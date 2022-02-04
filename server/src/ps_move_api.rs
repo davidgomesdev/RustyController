@@ -51,7 +51,7 @@ impl PsMoveController {
     fn new(hid_device: HidDevice) -> PsMoveController {
         PsMoveController {
             hid_device,
-            effect: Box::new(OFF {}),
+            effect: Box::new(Off {}),
             current_setting: PsMoveSetting {
                 led: Hsv::new(0.0, 0.0, 0.0),
                 rumble: 0.0,
@@ -59,8 +59,8 @@ impl PsMoveController {
         }
     }
 
-    pub fn set_effect(&mut self, effect: Box<dyn LedEffect>, initial_hsv: (f32, f32, f32)) -> () {
-        self.set_hsv(Hsv::from_components(initial_hsv));
+    pub fn set_led_effect(&mut self, effect: Box<dyn LedEffect>, initial_hsv: (f32, f32, f32)) -> () {
+        self.current_setting.led = Hsv::from_components(initial_hsv);
         self.effect = effect;
     }
 
@@ -131,15 +131,15 @@ pub trait LedEffect {
     fn transformer(&mut self, led: Hsv) -> Hsv;
 }
 
-pub struct OFF {}
-impl LedEffect for OFF {
+pub struct Off {}
+impl LedEffect for Off {
     fn transformer(&mut self, _led: Hsv) -> Hsv {
         return Hsv::from_components((0.0, 0.0, 0.0));
     }
 }
-impl OFF {
-    pub fn new() -> OFF {
-        OFF {}
+impl Off {
+    pub fn new() -> Off {
+        Off {}
     }
 }
 
@@ -155,11 +155,18 @@ impl Static {
     }
 }
 
-pub struct Rainbow {}
+pub struct Rainbow {
+    step: f32
+}
 impl LedEffect for Rainbow {
     fn transformer(&mut self, mut led: Hsv) -> Hsv {
-        led.hue += 0.1;
+        led.hue += self.step;
         return led;
+    }
+}
+impl Rainbow {
+    pub fn new(step: f32) -> Rainbow {
+        Rainbow { step }
     }
 }
 
@@ -191,6 +198,6 @@ impl LedEffect for Breathing {
 }
 impl Breathing {
     pub fn new(step: f32, peak: f32) -> Breathing {
-        Breathing { step: step, peak: peak, is_inhaling: true }
+        Breathing { step, peak, is_inhaling: true }
     }
 }
