@@ -59,6 +59,13 @@ impl PsMoveController {
         }
     }
 
+    pub fn set_led_pwm_frequency(&self, frequency: u64) -> bool {
+        let request = build_set_led_pwm_request(frequency);
+        let is_ok = self.hid_device.write(&request).is_ok();
+
+        return is_ok;
+    }
+
     pub fn set_led_effect(&mut self, effect: LedEffect) -> () {
         self.current_setting.led = match effect {
             LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
@@ -149,7 +156,7 @@ impl PsMoveController {
 
     fn set_hsv(&mut self, hsv: Hsv) -> bool {
         let setting = &mut self.current_setting;
-        let request = build_set_leds_rumble_request(hsv, setting.rumble);
+        let request = build_set_led_and_rumble_request(hsv, setting.rumble);
 
         let is_ok = self.hid_device.write(&request).is_ok();
 
@@ -162,7 +169,7 @@ impl PsMoveController {
 
     pub fn set_rumble(&mut self, rumble: f32) -> bool {
         let setting = &mut self.current_setting;
-        let request = build_set_leds_rumble_request(setting.led, rumble);
+        let request = build_set_led_and_rumble_request(setting.led, rumble);
 
         let is_ok = self.hid_device.write(&request).is_ok();
 
@@ -174,13 +181,29 @@ impl PsMoveController {
     }
 }
 
-fn build_set_leds_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
+fn build_set_led_pwm_request(frequency: u64) -> [u8; 7] {
+    if frequency < 733 || frequency > 24e6 as u64 {
+        panic!("Frequency must be between 733 and 24e6!")
+    }
+
+    return [
+        PsMoveRequestType::SetLEDPWMFrequency as u8,
+        0x41,
+        0,
+        (frequency & 0xFF) as u8,
+        ((frequency >> 8) & 0xFF) as u8,
+        ((frequency >> 16) & 0xFF) as u8,
+        ((frequency >> 24) & 0xFF) as u8,
+    ];
+}
+
+fn build_set_led_and_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
     let rgb = Srgb::from_color(hsv);
     let f32_to_u8 = |f| (f * 255.0) as u8;
     let rgb = [rgb.red, rgb.green, rgb.blue].map(f32_to_u8);
 
     return [
-        PSMOVE_REQ_SET_LED,
+        PsMoveRequestType::SetLED as u8,
         0,
         rgb[0],
         rgb[1],
@@ -191,7 +214,19 @@ fn build_set_leds_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
     ];
 }
 
-const PSMOVE_REQ_SET_LED: u8 = 0x06;
+enum PsMoveRequestType {
+    GetInput = 0x01,
+    SetLED = 0x06,
+    SetLEDPWMFrequency = 0x03,
+    GetBluetoothAddr = 0x04,
+    BluetoothAddr = 0x05,
+    GetCalibration = 0x10,
+    SetAuthChallenge = 0xA0,
+    GetAuthResponse = 0xA1,
+    GetExtDeviceInfo = 0xE0,
+    SetDFUMode = 0xF2,
+    GetFirmwareInfo = 0xF9
+}
 
 pub enum LedEffect {
     Off,
@@ -210,78 +245,3 @@ pub enum LedEffect {
         step: f32,
     },
 }
-
-// pub trait LedEffect {
-//     fn transformer(&mut self, led: Hsv) -> Hsv;
-// }
-
-// pub struct Off {}
-// impl LedEffect for Off {
-//     fn transformer(&mut self, _led: Hsv) -> Hsv {
-//         return Hsv::from_components((0.0, 0.0, 0.0));
-//     }
-// }
-// impl Off {
-//     pub fn new() -> Off {
-//         Off {}
-//     }
-// }
-
-// pub struct Static {}
-// impl LedEffect for Static {
-//     fn transformer(&mut self, led: Hsv) -> Hsv {
-//         return led;
-//     }
-// }
-// impl Static {
-//     pub fn new() -> Static {
-//         Static {}
-//     }
-// }
-
-// pub struct Rainbow {
-//     step: f32
-// }
-// impl LedEffect for Rainbow {
-//     fn transformer(&mut self, mut led: Hsv) -> Hsv {
-//         led.hue += self.step;
-//         return led;
-//     }
-// }
-// impl Rainbow {
-//     pub fn new(step: f32) -> Rainbow {
-//         Rainbow { step }
-//     }
-// }
-
-// pub struct Breathing {
-//     peak: f32,
-//     step: f32,
-//     is_inhaling: bool,
-// }
-// impl LedEffect for Breathing {
-//     fn transformer(&mut self, mut led: Hsv) -> Hsv {
-//         if self.is_inhaling {
-//             led.value += self.step;
-
-//             if led.value >= self.peak {
-//                 self.is_inhaling = false;
-//                 led.value = self.peak;
-//             }
-//         } else {
-//             led.value -= self.step;
-
-//             if led.value <= 0.0 {
-//                 self.is_inhaling = true;
-//                 led.value = 0.0;
-//             }
-//         }
-
-//         return led;
-//     }
-// }
-// impl Breathing {
-//     pub fn new(step: f32, peak: f32) -> Breathing {
-//         Breathing { step, peak, is_inhaling: true }
-//     }
-// }
