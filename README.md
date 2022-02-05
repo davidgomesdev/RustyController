@@ -6,7 +6,7 @@ A simple project to play with some LEDs :)
 
 I started this project because I wanted to learn Rust, but didn't have any use for it.
 
-But... I wanted to play with PsMove's LED!
+However... I could play with PsMove's LED!
 
 I've used [C++ in the past](https://github.com/LegendL3n/MembroEsquerdo), to interact with them, but C++ is a pain...
 
