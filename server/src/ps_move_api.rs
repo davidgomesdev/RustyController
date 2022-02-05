@@ -1,5 +1,5 @@
 use hidapi::{HidApi, HidDevice};
-use palette::{FromColor, Hsv, Srgb};
+use palette::{rgb::RgbStandard, FromColor, Hsv, Hue, Srgb};
 
 const MAGIC_PATH: &str = "&col01#";
 const PSMOVE_VENDOR_ID: u16 = 0x054c;
@@ -38,7 +38,7 @@ impl PsMoveApi {
 
 pub struct PsMoveController {
     hid_device: HidDevice,
-    effect: Box<dyn LedEffect>,
+    effect: LedEffect,
     current_setting: PsMoveSetting,
 }
 
@@ -51,23 +51,46 @@ impl PsMoveController {
     fn new(hid_device: HidDevice) -> PsMoveController {
         PsMoveController {
             hid_device,
-            effect: Box::new(Off {}),
+            effect: LedEffect::Off,
             current_setting: PsMoveSetting {
-                led: Hsv::new(0.0, 0.0, 0.0),
+                led: Hsv::from_components((0.0, 0.0, 0.0)),
                 rumble: 0.0,
             },
         }
     }
 
-    pub fn set_led_effect(&mut self, effect: Box<dyn LedEffect>, initial_hsv: (f32, f32, f32)) -> () {
-        self.current_setting.led = Hsv::from_components(initial_hsv);
-        self.effect = effect;
+    pub fn set_led_effect(&mut self, effect: LedEffect) -> () {
+        self.current_setting.led = match effect {
+            LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
+            LedEffect::Static { hsv } => hsv,
+            LedEffect::Breathing {
+                initial_hsv,
+                step,
+                peak,
+                inhaling: _,
+            } => {
+                if peak <= initial_hsv.value {
+                    panic!("Peak must be higher than initial value");
+                }
+                if step >= peak {
+                    panic!("Step must be lower than peak")
+                }
+
+                initial_hsv
+            }
+            LedEffect::Rainbow {
+                saturation,
+                value,
+                step: _,
+            } => Hsv::from_components((0.0, saturation, value)),
+        };
+        self.effect = effect
     }
 
     pub fn update(&mut self) -> bool {
-        let led = self.effect.transformer(self.current_setting.led);
+        let new_hsv = self.transform_led();
 
-        if !self.set_hsv(led) {
+        if !self.set_hsv(new_hsv) {
             return false;
         }
 
@@ -78,6 +101,52 @@ impl PsMoveController {
         return true;
     }
 
+    fn transform_led(&mut self) -> Hsv {
+        let effect = &mut self.effect;
+        let current_hsv = self.current_setting.led;
+
+        match *effect {
+            LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
+            LedEffect::Static { hsv } => hsv,
+            LedEffect::Breathing {
+                initial_hsv,
+                step,
+                peak,
+                ref mut inhaling,
+            } => {
+                let initial_value = initial_hsv.value;
+
+                let mut new_hsv = current_hsv.clone();
+                let mut new_value = new_hsv.value;
+
+                if *inhaling {
+                    new_value += step
+                } else {
+                    new_value -= step
+                }
+
+                if new_value >= peak {
+                    new_value = peak;
+                    *inhaling = false
+                } else if new_value <= initial_value {
+                    new_value = initial_value;
+                    *inhaling = true
+                }
+
+                new_hsv.value = new_value;
+                new_hsv
+            }
+            LedEffect::Rainbow {
+                saturation: _,
+                value: _,
+                step,
+            } => {
+                // no need to use [saturation] and [value], since it's already when setting effect
+                current_hsv.shift_hue(step)
+            }
+        }
+    }
+
     fn set_hsv(&mut self, hsv: Hsv) -> bool {
         let setting = &mut self.current_setting;
         let request = build_set_leds_rumble_request(hsv, setting.rumble);
@@ -85,7 +154,7 @@ impl PsMoveController {
         let is_ok = self.hid_device.write(&request).is_ok();
 
         if is_ok {
-            setting.led = hsv.clone();
+            setting.led = hsv;
         }
 
         return is_ok;
@@ -95,10 +164,7 @@ impl PsMoveController {
         let setting = &mut self.current_setting;
         let request = build_set_leds_rumble_request(setting.led, rumble);
 
-        let is_ok = self
-            .hid_device
-            .write(&request)
-            .is_ok();
+        let is_ok = self.hid_device.write(&request).is_ok();
 
         if is_ok {
             setting.rumble = rumble;
@@ -127,77 +193,95 @@ fn build_set_leds_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
 
 const PSMOVE_REQ_SET_LED: u8 = 0x06;
 
-pub trait LedEffect {
-    fn transformer(&mut self, led: Hsv) -> Hsv;
+pub enum LedEffect {
+    Off,
+    Static {
+        hsv: Hsv,
+    },
+    Breathing {
+        initial_hsv: Hsv,
+        step: f32,
+        peak: f32,
+        inhaling: bool,
+    },
+    Rainbow {
+        saturation: f32,
+        value: f32,
+        step: f32,
+    },
 }
 
-pub struct Off {}
-impl LedEffect for Off {
-    fn transformer(&mut self, _led: Hsv) -> Hsv {
-        return Hsv::from_components((0.0, 0.0, 0.0));
-    }
-}
-impl Off {
-    pub fn new() -> Off {
-        Off {}
-    }
-}
+// pub trait LedEffect {
+//     fn transformer(&mut self, led: Hsv) -> Hsv;
+// }
 
-pub struct Static {}
-impl LedEffect for Static {
-    fn transformer(&mut self, led: Hsv) -> Hsv {
-        return led;
-    }
-}
-impl Static {
-    pub fn new() -> Static {
-        Static {}
-    }
-}
+// pub struct Off {}
+// impl LedEffect for Off {
+//     fn transformer(&mut self, _led: Hsv) -> Hsv {
+//         return Hsv::from_components((0.0, 0.0, 0.0));
+//     }
+// }
+// impl Off {
+//     pub fn new() -> Off {
+//         Off {}
+//     }
+// }
 
-pub struct Rainbow {
-    step: f32
-}
-impl LedEffect for Rainbow {
-    fn transformer(&mut self, mut led: Hsv) -> Hsv {
-        led.hue += self.step;
-        return led;
-    }
-}
-impl Rainbow {
-    pub fn new(step: f32) -> Rainbow {
-        Rainbow { step }
-    }
-}
+// pub struct Static {}
+// impl LedEffect for Static {
+//     fn transformer(&mut self, led: Hsv) -> Hsv {
+//         return led;
+//     }
+// }
+// impl Static {
+//     pub fn new() -> Static {
+//         Static {}
+//     }
+// }
 
-pub struct Breathing {
-    peak: f32,
-    step: f32,
-    is_inhaling: bool,
-}
-impl LedEffect for Breathing {
-    fn transformer(&mut self, mut led: Hsv) -> Hsv {
-        if self.is_inhaling {
-            led.value += self.step;
+// pub struct Rainbow {
+//     step: f32
+// }
+// impl LedEffect for Rainbow {
+//     fn transformer(&mut self, mut led: Hsv) -> Hsv {
+//         led.hue += self.step;
+//         return led;
+//     }
+// }
+// impl Rainbow {
+//     pub fn new(step: f32) -> Rainbow {
+//         Rainbow { step }
+//     }
+// }
 
-            if led.value >= self.peak {
-                self.is_inhaling = false;
-                led.value = self.peak;
-            }
-        } else {
-            led.value -= self.step;
+// pub struct Breathing {
+//     peak: f32,
+//     step: f32,
+//     is_inhaling: bool,
+// }
+// impl LedEffect for Breathing {
+//     fn transformer(&mut self, mut led: Hsv) -> Hsv {
+//         if self.is_inhaling {
+//             led.value += self.step;
 
-            if led.value <= 0.0 {
-                self.is_inhaling = true;
-                led.value = 0.0;
-            }
-        }
+//             if led.value >= self.peak {
+//                 self.is_inhaling = false;
+//                 led.value = self.peak;
+//             }
+//         } else {
+//             led.value -= self.step;
 
-        return led;
-    }
-}
-impl Breathing {
-    pub fn new(step: f32, peak: f32) -> Breathing {
-        Breathing { step, peak, is_inhaling: true }
-    }
-}
+//             if led.value <= 0.0 {
+//                 self.is_inhaling = true;
+//                 led.value = 0.0;
+//             }
+//         }
+
+//         return led;
+//     }
+// }
+// impl Breathing {
+//     pub fn new(step: f32, peak: f32) -> Breathing {
+//         Breathing { step, peak, is_inhaling: true }
+//     }
+// }
