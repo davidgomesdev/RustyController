@@ -5,6 +5,38 @@ const MAGIC_PATH: &str = "&col01#";
 const PSMOVE_VENDOR_ID: u16 = 0x054c;
 const PSMOVE_PRODUCT_ID: u16 = 0x03d5;
 
+enum PsMoveRequestType {
+    GetInput = 0x01,
+    SetLED = 0x06,
+    SetLEDPWMFrequency = 0x03,
+    GetBluetoothAddr = 0x04,
+    BluetoothAddr = 0x05,
+    GetCalibration = 0x10,
+    SetAuthChallenge = 0xA0,
+    GetAuthResponse = 0xA1,
+    GetExtDeviceInfo = 0xE0,
+    SetDFUMode = 0xF2,
+    GetFirmwareInfo = 0xF9
+}
+
+pub enum LedEffect {
+    Off,
+    Static {
+        hsv: Hsv,
+    },
+    Breathing {
+        initial_hsv: Hsv,
+        step: f32,
+        peak: f32,
+        inhaling: bool,
+    },
+    Rainbow {
+        saturation: f32,
+        value: f32,
+        step: f32,
+    },
+}
+
 pub struct PsMoveApi {
     hid: HidApi,
 }
@@ -17,7 +49,7 @@ impl PsMoveApi {
     }
 
     pub fn list(&self) -> Vec<PsMoveController> {
-        let controllers = self
+        let controllers: Vec<PsMoveController> = self
             .hid
             .device_list()
             .filter(|device| -> bool {
@@ -25,14 +57,17 @@ impl PsMoveApi {
                 let vendor_id = device.vendor_id();
                 let product_id = device.product_id();
 
-                path.contains(MAGIC_PATH)
+                path.to_lowercase().contains(MAGIC_PATH)
                     && vendor_id == PSMOVE_VENDOR_ID
                     && product_id == PSMOVE_PRODUCT_ID
             })
             .map(|dev_info| self.hid.open_path(dev_info.path()).unwrap())
-            .map(|dev| PsMoveController::new(dev));
+            .map(|dev| PsMoveController::new(dev))
+            .collect();
 
-        return controllers.collect();
+        println!("Listed {} controllers", controllers.len());
+        
+        return controllers;
     }
 }
 
@@ -212,36 +247,4 @@ fn build_set_led_and_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
         f32_to_u8(rumble),
         0,
     ];
-}
-
-enum PsMoveRequestType {
-    GetInput = 0x01,
-    SetLED = 0x06,
-    SetLEDPWMFrequency = 0x03,
-    GetBluetoothAddr = 0x04,
-    BluetoothAddr = 0x05,
-    GetCalibration = 0x10,
-    SetAuthChallenge = 0xA0,
-    GetAuthResponse = 0xA1,
-    GetExtDeviceInfo = 0xE0,
-    SetDFUMode = 0xF2,
-    GetFirmwareInfo = 0xF9
-}
-
-pub enum LedEffect {
-    Off,
-    Static {
-        hsv: Hsv,
-    },
-    Breathing {
-        initial_hsv: Hsv,
-        step: f32,
-        peak: f32,
-        inhaling: bool,
-    },
-    Rainbow {
-        saturation: f32,
-        value: f32,
-        step: f32,
-    },
 }
