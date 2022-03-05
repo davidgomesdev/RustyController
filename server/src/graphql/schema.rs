@@ -1,62 +1,64 @@
-use juniper::FieldResult;
+use std::sync::Arc;
+
 use juniper::{EmptySubscription, RootNode};
+use juniper::{FieldResult, GraphQLEnum, GraphQLInputObject};
+use palette::encoding::Srgb;
+use palette::Hsv;
+use tokio::sync::watch::Sender;
+
+use crate::ps_move_api::LedEffect;
+
+pub struct Context {
+    pub tx: Arc<Sender<LedEffect>>,
+}
+
+impl juniper::Context for Context {}
 
 #[derive(GraphQLEnum)]
-enum Episode {
-    NewHope,
-    Empire,
-    Jedi,
-}
-
-use juniper::{GraphQLEnum, GraphQLInputObject, GraphQLObject};
-
-#[derive(GraphQLObject)]
-#[graphql(description = "A humanoid creature in the Star Wars universe")]
-struct Human {
-    id: String,
-    name: String,
-    appears_in: Vec<Episode>,
-    home_planet: String,
-}
-
-#[derive(GraphQLInputObject)]
-#[graphql(description = "A humanoid creature in the Star Wars universe")]
-struct NewHuman {
-    name: String,
-    appears_in: Vec<Episode>,
-    home_planet: String,
+enum HealthStatus {
+    Ok,
+    Error,
 }
 
 pub struct QueryRoot;
 
-#[juniper::graphql_object]
+#[juniper::graphql_object(Context = Context)]
 impl QueryRoot {
-    fn human(_id: String) -> FieldResult<Human> {
-        Ok(Human {
-            id: "1234".to_owned(),
-            name: "Luke".to_owned(),
-            appears_in: vec![Episode::NewHope],
-            home_planet: "Mars".to_owned(),
-        })
+    #[graphql(description = "Check the service health")]
+    fn health(ctx: &Context) -> FieldResult<HealthStatus> {
+        Ok(HealthStatus::Ok)
     }
+}
+
+#[derive(GraphQLEnum)]
+enum EffectType {
+    Static,
+    Rainbow,
+}
+
+#[derive(GraphQLInputObject)]
+struct LedSetting {
+    effectType: EffectType,
+    hue: f64,
 }
 
 pub struct MutationRoot;
 
-#[juniper::graphql_object]
+#[juniper::graphql_object(Context = Context)]
 impl MutationRoot {
-    fn create_human(new_human: NewHuman) -> FieldResult<Human> {
-        Ok(Human {
-            id: "1234".to_owned(),
-            name: new_human.name,
-            appears_in: new_human.appears_in,
-            home_planet: new_human.home_planet,
-        })
+    #[graphql(description = "Set a LED effect and hue")]
+    fn set_led(ctx: &Context, _new_led: LedSetting) -> FieldResult<i32> {
+        return match ctx.tx.send(LedEffect::Static {
+            hsv: Hsv::<Srgb, f32>::from_components((120.0, 0.4, 0.34)),
+        }) {
+            Ok(_) => Ok(0),
+            Err(_) => Ok(1),
+        };
     }
 }
 
-pub type Schema = RootNode<'static, QueryRoot, MutationRoot, EmptySubscription>;
+pub type Schema = RootNode<'static, QueryRoot, MutationRoot, EmptySubscription<Context>>;
 
 pub fn create_schema() -> Schema {
-    Schema::new(QueryRoot {}, MutationRoot {}, EmptySubscription::new())
+    Schema::new(QueryRoot, MutationRoot, EmptySubscription::new())
 }

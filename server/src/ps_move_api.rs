@@ -1,5 +1,5 @@
 use hidapi::{HidApi, HidDevice};
-use palette::{rgb::RgbStandard, FromColor, Hsv, Hue, Srgb};
+use palette::{FromColor, Hsv, Hue, Srgb};
 
 const MAGIC_PATH: &str = "&col01#";
 const PSMOVE_VENDOR_ID: u16 = 0x054c;
@@ -19,6 +19,7 @@ enum PsMoveRequestType {
     GetFirmwareInfo = 0xF9
 }
 
+#[derive(Clone, Copy)]
 pub enum LedEffect {
     Off,
     Static {
