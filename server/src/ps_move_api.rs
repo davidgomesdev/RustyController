@@ -16,7 +16,7 @@ enum PsMoveRequestType {
     GetAuthResponse = 0xA1,
     GetExtDeviceInfo = 0xE0,
     SetDFUMode = 0xF2,
-    GetFirmwareInfo = 0xF9
+    GetFirmwareInfo = 0xF9,
 }
 
 #[derive(Clone, Copy)]
@@ -67,7 +67,7 @@ impl PsMoveApi {
             .collect();
 
         println!("Listed {} controllers", controllers.len());
-        
+
         return controllers;
     }
 }
@@ -248,4 +248,8 @@ fn build_set_led_and_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
         f32_to_u8(rumble),
         0,
     ];
+}
+
+pub fn build_hsv(h: f64, s: f64, v: f64) -> Hsv {
+    Hsv::from_components((h as f32, s as f32, v as f32))
 }
