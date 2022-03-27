@@ -49,9 +49,10 @@ class HomeScreen extends StatelessWidget {
             return Row(
               children: [
                 Expanded(
-                    child: EffectChooser(
-                        choiceStream: _effectChoiceController.sink,
-                        currentEffect: currentEffect)),
+                  child: EffectChooser(
+                      choiceStream: _effectChoiceController.sink,
+                      currentEffect: currentEffect),
+                ),
                 Expanded(
                   child: settings,
                 ),
@@ -65,8 +66,11 @@ class HomeScreen extends StatelessWidget {
 
   Widget _getEffectSettings(
       LedEffectEvent currentEffect, StreamSink<LedEffectEvent> colorStream) {
-    if (currentEffect.name == "Static") {
-      return StaticEffectSettings(effectStream: colorStream);
+    if (currentEffect is StaticLedEffectEvent) {
+      return StaticEffectSettings(
+        effectStream: colorStream,
+        currentEffect: currentEffect,
+      );
     } else {
       return Container();
     }

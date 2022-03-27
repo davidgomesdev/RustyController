@@ -8,11 +8,10 @@ class StaticEffectSettings extends StatelessWidget {
   final StreamSink<LedEffectEvent> effectStream;
 
   final StreamController<Color> _colorStream = StreamController();
-  final StaticLedEffectEvent _currentEffect;
+  final StaticLedEffectEvent currentEffect;
 
-  StaticEffectSettings({Key? key, required this.effectStream})
-      : _currentEffect = StaticLedEffectEvent(color: Colors.black),
-        super(key: key);
+  StaticEffectSettings({Key? key, required this.effectStream, required this.currentEffect})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +22,11 @@ class StaticEffectSettings extends StatelessWidget {
           final selectedColor = snapshot.data;
 
           if (selectedColor != null) {
-            effectStream.add(_currentEffect..color = selectedColor);
+            effectStream.add(currentEffect..color = selectedColor);
           }
 
           return LedColorPicker(
+            currentColor: selectedColor ?? Colors.black,
             colorPickStream: _colorStream.sink,
           );
         });

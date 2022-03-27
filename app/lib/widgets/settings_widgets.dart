@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class LedColorPicker extends StatelessWidget {
+  final Color currentColor;
   final StreamSink<Color> colorPickStream;
 
-  const LedColorPicker({Key? key, required this.colorPickStream})
+  const LedColorPicker(
+      {Key? key, required this.currentColor, required this.colorPickStream})
       : super(key: key);
 
   @override
@@ -14,7 +16,7 @@ class LedColorPicker extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: SlidePicker(
-        pickerColor: Colors.black,
+        pickerColor: currentColor,
         onColorChanged: (color) => colorPickStream.add(color),
         colorModel: ColorModel.hsv,
         showParams: false,
