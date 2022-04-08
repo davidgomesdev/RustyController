@@ -42,8 +42,8 @@ fn move_update_task(controllers: Arc<Mutex<Vec<PsMoveController>>>) -> JoinHandl
                     }
                 });
             }
-            // seems to be needed to use the controllers elsewhere..
-            std::thread::sleep(Duration::from_nanos(1));
+            // needed so there's some room for other tasks to own [controllers]
+            std::thread::sleep(Duration::from_millis(1));
         }
     });
 }

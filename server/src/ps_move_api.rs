@@ -49,7 +49,9 @@ impl PsMoveApi {
         }
     }
 
-    pub fn list(&self) -> Vec<PsMoveController> {
+    pub fn list(&mut self) -> Vec<PsMoveController> {
+        self.hid.refresh_devices();
+
         let controllers: Vec<PsMoveController> = self
             .hid
             .device_list()
@@ -73,7 +75,7 @@ impl PsMoveApi {
 }
 
 pub struct PsMoveController {
-    hid_device: HidDevice,
+    pub hid_device: HidDevice,
     effect: LedEffect,
     current_setting: PsMoveSetting,
 }
