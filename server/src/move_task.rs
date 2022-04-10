@@ -3,18 +3,20 @@ use std::{
     sync::{Arc, Mutex},
     time::Duration,
 };
+use std::borrow::BorrowMut;
 use std::thread::current;
 
 use juniper::futures::StreamExt;
+use log::{debug, error, info};
 use palette::{encoding::Srgb, Hsv};
 use tokio::{sync::watch::Receiver, task::JoinError};
 use tokio::task::JoinHandle;
 
 use ps_move_api::LedEffect;
 
-use crate::ps_move_api::PsMoveController;
+use crate::ps_move_api::MAX_LED_PWM_FREQUENCY;
 
-use super::ps_move_api::{self, PsMoveApi};
+use super::ps_move_api::{self, PsMoveApi, PsMoveController};
 
 fn move_list_task(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi) {
     tokio::spawn(async move {
@@ -22,6 +24,20 @@ fn move_list_task(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi
             {
                 let mut updated_controllers = api.list();
                 let mut controllers = controllers.lock().unwrap();
+
+                updated_controllers.iter_mut().for_each(|controller| {
+                    let old_controller = controllers.list.iter()
+                        .find(|old_controller| {
+                            return old_controller.serial_number == controller.serial_number;
+                        });
+
+                    if old_controller.is_some() {
+                        let old_controller = old_controller.unwrap();
+                        controller.copy_settings(old_controller);
+                    }
+
+                    controller.set_led_pwm_frequency(MAX_LED_PWM_FREQUENCY);
+                });
 
                 controllers.list = updated_controllers;
             }
@@ -37,12 +53,12 @@ fn set_effect_task(controllers: Arc<Mutex<PsMoveControllers>>, mut rx: Receiver<
             let mut controllers = controllers.lock().unwrap();
             let effect = *rx.borrow();
 
-            println!("Received {} effect", effect);
+            info!("Received '{}' effect", effect);
 
             controllers.list.iter_mut().for_each(|controller| {
-                println!("Setting controller");
+                debug!("Setting '{}' controller", controller.serial_number);
                 controller.set_led_effect(effect);
-                println!("Controller set");
+                info!("Controller '{}' set", controller.serial_number);
             });
         }
     });
@@ -58,7 +74,7 @@ fn move_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()
                     let is_ok = controller.update();
 
                     if !is_ok {
-                        eprintln!("Error updating controller with SN '{}'!", controller.serial_number);
+                        error!("Error updating controller with SN '{}'!", controller.serial_number);
                     }
                 });
             }
@@ -71,7 +87,7 @@ fn move_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()
 pub async fn run_move(rx: Receiver<LedEffect>) -> Result<(), JoinError> {
     let mut api = PsMoveApi::new();
 
-    let controllers = Arc::new(Mutex::new(PsMoveControllers::new(api.list())));
+    let controllers = Arc::new(Mutex::new(PsMoveControllers::new()));
 
     set_effect_task(Arc::clone(&controllers), rx);
     move_list_task(Arc::clone(&controllers), api);
@@ -86,9 +102,9 @@ struct PsMoveControllers {
 }
 
 impl PsMoveControllers {
-    fn new(list: Vec<PsMoveController>) -> PsMoveControllers {
+    fn new() -> PsMoveControllers {
         PsMoveControllers {
-            list
+            list: Vec::new()
         }
     }
 }

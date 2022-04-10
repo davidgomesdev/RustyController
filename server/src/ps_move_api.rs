@@ -1,11 +1,17 @@
+use std::borrow::Borrow;
 use std::fmt;
 
 use hidapi::{HidApi, HidDevice, HidResult};
+use log::error;
 use palette::{FromColor, Hsv, Hue, Srgb};
+use strum_macros::Display;
 
 const MAGIC_PATH: &str = "&col01#";
 const PSMOVE_VENDOR_ID: u16 = 0x054c;
 const PSMOVE_PRODUCT_ID: u16 = 0x03d5;
+
+pub const MIN_LED_PWM_FREQUENCY: u64 = 733;
+pub const MAX_LED_PWM_FREQUENCY: u64 = 0x24e6;
 
 enum PsMoveRequestType {
     GetInput = 0x01,
@@ -21,7 +27,7 @@ enum PsMoveRequestType {
     GetFirmwareInfo = 0xF9,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, strum_macros::Display)]
 pub enum LedEffect {
     Off,
     Static {
@@ -40,12 +46,6 @@ pub enum LedEffect {
     },
 }
 
-impl fmt::Display for LedEffect {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Debug::fmt(self, f)
-    }
-}
-
 pub struct PsMoveApi {
     hid: HidApi,
 }
@@ -58,7 +58,10 @@ impl PsMoveApi {
     }
 
     pub fn list(&mut self) -> Vec<PsMoveController> {
-        self.hid.refresh_devices();
+        if self.hid.refresh_devices().is_err() {
+            error!("ERROR: HID devices refresh");
+            return Vec::new();
+        }
 
         let controllers: Vec<PsMoveController> = self
             .hid
@@ -83,8 +86,6 @@ impl PsMoveApi {
                 PsMoveController::new(dev))
             .collect();
 
-        println!("Listed {} controllers", controllers.len());
-
         return controllers;
     }
 }
@@ -96,6 +97,7 @@ pub struct PsMoveController {
     current_setting: PsMoveSetting,
 }
 
+#[derive(Clone)]
 pub struct PsMoveSetting {
     led: Hsv,
     rumble: f32,
@@ -137,10 +139,10 @@ impl PsMoveController {
                 inhaling: _,
             } => {
                 if peak <= initial_hsv.value {
-                    panic!("Peak must be higher than initial value");
+                    error!("Peak must be higher than initial value")
                 }
                 if step >= peak {
-                    panic!("Step must be lower than peak")
+                    error!("Step must be lower than peak")
                 }
 
                 initial_hsv
@@ -166,6 +168,11 @@ impl PsMoveController {
         }
 
         return true;
+    }
+
+    pub fn copy_settings(&mut self, controller: &Self) {
+        self.current_setting = controller.current_setting.clone();
+        self.effect = controller.effect;
     }
 
     fn transform_led(&mut self) -> Hsv {
@@ -242,7 +249,7 @@ impl PsMoveController {
 }
 
 fn build_set_led_pwm_request(frequency: u64) -> [u8; 7] {
-    if frequency < 733 || frequency > 24e6 as u64 {
+    if frequency < MIN_LED_PWM_FREQUENCY || frequency > MAX_LED_PWM_FREQUENCY {
         panic!("Frequency must be between 733 and 24e6!")
     }
 

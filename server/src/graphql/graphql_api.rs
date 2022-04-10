@@ -3,9 +3,9 @@ use std::sync::Arc;
 
 use actix_cors::Cors;
 use actix_web::{
-    get, middleware, route,
-    web::{self, Data},
-    App, Error, HttpResponse, HttpServer, Responder,
+    App, Error, get,
+    HttpResponse,
+    HttpServer, middleware, Responder, route, web::{self, Data},
 };
 use actix_web_lab::respond::Html;
 use juniper::http::graphiql::graphiql_source;
@@ -14,7 +14,7 @@ use tokio::sync::watch::Sender;
 
 use crate::ps_move_api::LedEffect;
 
-use super::schema::{create_schema, Context, Schema};
+use super::schema::{Context, create_schema, Schema};
 
 #[get("/graphiql")]
 async fn graphiql() -> impl Responder {
@@ -37,9 +37,6 @@ async fn graphql(
 }
 
 pub async fn start(tx: Arc<Sender<LedEffect>>) -> io::Result<()> {
-    std::env::set_var("RUST_LOG", "actix_web=debug");
-    env_logger::init();
-
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(create_schema()))
