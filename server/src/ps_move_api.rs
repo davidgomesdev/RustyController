@@ -1,4 +1,6 @@
-use hidapi::{HidApi, HidDevice};
+use std::fmt;
+
+use hidapi::{HidApi, HidDevice, HidResult};
 use palette::{FromColor, Hsv, Hue, Srgb};
 
 const MAGIC_PATH: &str = "&col01#";
@@ -19,7 +21,7 @@ enum PsMoveRequestType {
     GetFirmwareInfo = 0xF9,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum LedEffect {
     Off,
     Static {
@@ -38,6 +40,12 @@ pub enum LedEffect {
     },
 }
 
+impl fmt::Display for LedEffect {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
+    }
+}
+
 pub struct PsMoveApi {
     hid: HidApi,
 }
@@ -45,7 +53,7 @@ pub struct PsMoveApi {
 impl PsMoveApi {
     pub fn new() -> PsMoveApi {
         PsMoveApi {
-            hid: HidApi::new().unwrap(),
+            hid: HidApi::new().unwrap_or_else(|_| panic!("Couldn't init hidapi")),
         }
     }
 
@@ -56,7 +64,12 @@ impl PsMoveApi {
             .hid
             .device_list()
             .filter(|device| -> bool {
-                let path = device.path().to_str().unwrap();
+                let path = device.path().to_str();
+
+                let path = match path {
+                    Ok(path) => path,
+                    Err(_) => return false
+                };
                 let vendor_id = device.vendor_id();
                 let product_id = device.product_id();
 
@@ -64,8 +77,10 @@ impl PsMoveApi {
                     && vendor_id == PSMOVE_VENDOR_ID
                     && product_id == PSMOVE_PRODUCT_ID
             })
-            .map(|dev_info| self.hid.open_path(dev_info.path()).unwrap())
-            .map(|dev| PsMoveController::new(dev))
+            .map(|dev_info| self.hid.open_path(dev_info.path()))
+            .filter_map(|dev| dev.ok())
+            .map(|dev|
+                PsMoveController::new(dev))
             .collect();
 
         println!("Listed {} controllers", controllers.len());
@@ -76,6 +91,7 @@ impl PsMoveApi {
 
 pub struct PsMoveController {
     pub hid_device: HidDevice,
+    pub serial_number: String,
     effect: LedEffect,
     current_setting: PsMoveSetting,
 }
@@ -87,8 +103,14 @@ pub struct PsMoveSetting {
 
 impl PsMoveController {
     fn new(hid_device: HidDevice) -> PsMoveController {
+        let no_serial_number = String::from("");
+        let serial_number = hid_device.get_serial_number_string()
+            .unwrap_or(Option::Some(no_serial_number.clone()))
+            .unwrap_or(no_serial_number);
+
         PsMoveController {
             hid_device,
+            serial_number,
             effect: LedEffect::Off,
             current_setting: PsMoveSetting {
                 led: Hsv::from_components((0.0, 0.0, 0.0)),
