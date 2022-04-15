@@ -99,9 +99,11 @@ impl PsMoveApi {
         let vendor_id = dev_info.vendor_id();
         let product_id = dev_info.product_id();
 
-        path.to_lowercase().contains(MAGIC_PATH)
-            && vendor_id == PS_MOVE_VENDOR_ID
-            && product_id == PS_MOVE_PRODUCT_ID
+        if cfg!(windows) && !path.to_lowercase().contains(MAGIC_PATH) {
+            return false;
+        }
+
+        vendor_id == PS_MOVE_VENDOR_ID && product_id == PS_MOVE_PRODUCT_ID
     }
 
     fn merge_usb_with_bt_device(&self, mut res: Vec<Box<PsMoveController>>, curr: Box<PsMoveController>) -> Vec<Box<PsMoveController>> {
