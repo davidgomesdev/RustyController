@@ -1,14 +1,19 @@
 use std::borrow::Borrow;
+use std::ffi::{CStr, CString};
 use std::fmt;
+use std::str;
 
-use hidapi::{HidApi, HidDevice, HidResult};
-use log::error;
+use actix_web::connect;
+use hidapi::{DeviceInfo, HidApi, HidDevice, HidResult};
+use log::{debug, error, info};
 use palette::{FromColor, Hsv, Hue, Srgb};
 use strum_macros::Display;
 
 const MAGIC_PATH: &str = "&col01#";
-const PSMOVE_VENDOR_ID: u16 = 0x054c;
-const PSMOVE_PRODUCT_ID: u16 = 0x03d5;
+const PS_MOVE_VENDOR_ID: u16 = 0x054c;
+const PS_MOVE_PRODUCT_ID: u16 = 0x03d5;
+
+const PS_MOVE_BT_ADDR_GET_SIZE: usize = 16;
 
 pub const MIN_LED_PWM_FREQUENCY: u64 = 733;
 pub const MAX_LED_PWM_FREQUENCY: u64 = 0x24e6;
@@ -57,44 +62,137 @@ impl PsMoveApi {
         }
     }
 
-    pub fn list(&mut self) -> Vec<PsMoveController> {
-        if self.hid.refresh_devices().is_err() {
-            error!("ERROR: HID devices refresh");
+    pub fn list(&mut self) -> Vec<Box<PsMoveController>> {
+        let result = self.hid.refresh_devices();
+        if result.is_err() {
+            error!("{}", result.unwrap_err());
             return Vec::new();
         }
 
-        let controllers: Vec<PsMoveController> = self
+        let controllers = self
             .hid
-            .device_list()
-            .filter(|device| -> bool {
-                let path = device.path().to_str();
+            .device_list();
 
-                let path = match path {
-                    Ok(path) => path,
-                    Err(_) => return false
-                };
-                let vendor_id = device.vendor_id();
-                let product_id = device.product_id();
+        let controllers = controllers
+            .filter(|dev_info| self.is_move_controller(dev_info))
+            .map(|dev_info| {
+                let serial_number =
+                    CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
 
-                path.to_lowercase().contains(MAGIC_PATH)
-                    && vendor_id == PSMOVE_VENDOR_ID
-                    && product_id == PSMOVE_PRODUCT_ID
+                self.connect_controller(&serial_number, dev_info.path())
             })
-            .map(|dev_info| self.hid.open_path(dev_info.path()))
-            .filter_map(|dev| dev.ok())
-            .map(|dev|
-                PsMoveController::new(dev))
-            .collect();
+            .flatten()
+            .fold(Vec::<Box<PsMoveController>>::new(), |mut res, curr| {
+                self.merge_usb_with_bt_device(res, curr)
+            });
 
         return controllers;
+    }
+
+    fn is_move_controller(&self, dev_info: &DeviceInfo) -> bool {
+        let path = dev_info.path().to_str();
+
+        let path = match path {
+            Ok(path) => path,
+            Err(_) => return false
+        };
+        let vendor_id = dev_info.vendor_id();
+        let product_id = dev_info.product_id();
+
+        path.to_lowercase().contains(MAGIC_PATH)
+            && vendor_id == PS_MOVE_VENDOR_ID
+            && product_id == PS_MOVE_PRODUCT_ID
+    }
+
+    fn merge_usb_with_bt_device(&self, mut res: Vec<Box<PsMoveController>>, curr: Box<PsMoveController>) -> Vec<Box<PsMoveController>> {
+        let dupe = res.iter_mut().find(|controller| {
+            controller.bt_address == curr.bt_address
+        });
+
+        if dupe.is_some() {
+            dupe.unwrap().connection_type = PsMoveConnectionType::USBAndBluetooth
+        } else {
+            res.push(curr);
+        }
+        res
+    }
+
+    fn connect_controller(&self, serial_number: &CStr, path: &CStr) -> Option<Box<PsMoveController>> {
+        let device = self.hid.open_path(path);
+        let mut address = String::from(serial_number.to_str().unwrap_or(""));
+
+        if device.is_err() {
+            return None;
+        }
+
+        let device = device.unwrap();
+
+        let mut connection_type = PsMoveConnectionType::Unknown;
+
+        if address.is_empty() {
+            connection_type = PsMoveConnectionType::USB;
+            address = self.get_usb_address(path).unwrap_or(String::from(""))
+        } else {
+            connection_type = PsMoveConnectionType::Bluetooth;
+        }
+
+        return Some(Box::new(PsMoveController::new(
+            device,
+            address,
+            connection_type,
+        )))
+    }
+
+    fn get_usb_address(&self, path: &CStr) -> Option<String> {
+        let mut usb_path = String::from(path.to_str().unwrap())
+            .replace("Col01", "Col02")
+            .replace("&0000#", "&0001#");
+
+        let usb_path = CString::new(usb_path).unwrap();
+        let addr_device = self.hid.open_path(usb_path.as_c_str());
+
+        if addr_device.is_ok() {
+            let addr = self.get_bt_address(addr_device.unwrap());
+
+            Some(addr.unwrap_or(String::from("")))
+        } else {
+            error!("Failed to open addr device {}", addr_device.err().unwrap());
+            None
+        }
+    }
+
+    fn get_bt_address(&self, device: HidDevice) -> Option<String> {
+        let mut bt_addr_report = build_get_bt_addr_request();
+
+        let report_status = device.get_feature_report(&mut bt_addr_report);
+
+        if report_status.is_ok() {
+            let addr = &bt_addr_report[1..7];
+            let addr = format!(
+                "{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+                addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]);
+
+            Some(addr)
+        } else {
+            error!("{}", report_status.unwrap_err());
+            None
+        }
     }
 }
 
 pub struct PsMoveController {
-    pub hid_device: HidDevice,
-    pub serial_number: String,
+    device: HidDevice,
+    pub bt_address: String,
     effect: LedEffect,
     current_setting: PsMoveSetting,
+    connection_type: PsMoveConnectionType,
+}
+
+pub enum PsMoveConnectionType {
+    Unknown,
+    USB,
+    Bluetooth,
+    USBAndBluetooth,
 }
 
 #[derive(Clone)]
@@ -104,26 +202,22 @@ pub struct PsMoveSetting {
 }
 
 impl PsMoveController {
-    fn new(hid_device: HidDevice) -> PsMoveController {
-        let no_serial_number = String::from("");
-        let serial_number = hid_device.get_serial_number_string()
-            .unwrap_or(Option::Some(no_serial_number.clone()))
-            .unwrap_or(no_serial_number);
-
+    fn new(device: HidDevice, serial_number: String, connection_type: PsMoveConnectionType) -> PsMoveController {
         PsMoveController {
-            hid_device,
-            serial_number,
+            device,
+            bt_address: serial_number,
             effect: LedEffect::Off,
             current_setting: PsMoveSetting {
                 led: Hsv::from_components((0.0, 0.0, 0.0)),
                 rumble: 0.0,
             },
+            connection_type,
         }
     }
 
     pub fn set_led_pwm_frequency(&self, frequency: u64) -> bool {
         let request = build_set_led_pwm_request(frequency);
-        let is_ok = self.hid_device.write(&request).is_ok();
+        let is_ok = self.device.write(&request).is_ok();
 
         return is_ok;
     }
@@ -225,26 +319,30 @@ impl PsMoveController {
         let setting = &mut self.current_setting;
         let request = build_set_led_and_rumble_request(hsv, setting.rumble);
 
-        let is_ok = self.hid_device.write(&request).is_ok();
+        let res = self.device.write(&request);
 
-        if is_ok {
-            setting.led = hsv;
+        if res.is_err() {
+            error!("Error setting HSV {}", res.unwrap_err());
+            return false;
         }
 
-        return is_ok;
+        setting.led = hsv;
+        return true;
     }
 
     pub fn set_rumble(&mut self, rumble: f32) -> bool {
         let setting = &mut self.current_setting;
         let request = build_set_led_and_rumble_request(setting.led, rumble);
 
-        let is_ok = self.hid_device.write(&request).is_ok();
+        let res = self.device.write(&request);
 
-        if is_ok {
-            setting.rumble = rumble;
+        if res.is_err() {
+            error!("Error setting HSV {}", res.unwrap_err());
+            return false;
         }
 
-        return is_ok;
+        setting.rumble = rumble;
+        return true;
     }
 }
 
@@ -279,6 +377,14 @@ fn build_set_led_and_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
         f32_to_u8(rumble),
         0,
     ];
+}
+
+fn build_get_bt_addr_request() -> [u8; PS_MOVE_BT_ADDR_GET_SIZE] {
+    let mut request = [0; PS_MOVE_BT_ADDR_GET_SIZE];
+
+    request[0] = PsMoveRequestType::GetBluetoothAddr as u8;
+
+    return request;
 }
 
 pub fn build_hsv(h: f64, s: f64, v: f64) -> Hsv {

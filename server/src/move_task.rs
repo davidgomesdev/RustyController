@@ -26,9 +26,10 @@ fn move_list_task(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi
                 let mut controllers = controllers.lock().unwrap();
 
                 updated_controllers.iter_mut().for_each(|controller| {
+                    info!("Controller address: {}", controller.bt_address);
                     let old_controller = controllers.list.iter()
                         .find(|old_controller| {
-                            return old_controller.serial_number == controller.serial_number;
+                            return old_controller.bt_address == controller.bt_address;
                         });
 
                     if old_controller.is_some() {
@@ -56,9 +57,9 @@ fn set_effect_task(controllers: Arc<Mutex<PsMoveControllers>>, mut rx: Receiver<
             info!("Received '{}' effect", effect);
 
             controllers.list.iter_mut().for_each(|controller| {
-                debug!("Setting '{}' controller", controller.serial_number);
+                debug!("Setting '{}' controller", controller.bt_address);
                 controller.set_led_effect(effect);
-                info!("Controller '{}' set", controller.serial_number);
+                info!("Controller '{}' set", controller.bt_address);
             });
         }
     });
@@ -74,7 +75,7 @@ fn move_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()
                     let is_ok = controller.update();
 
                     if !is_ok {
-                        error!("Error updating controller with SN '{}'!", controller.serial_number);
+                        error!("Error updating controller with SN '{}'!", controller.bt_address);
                     }
                 });
             }
@@ -98,7 +99,7 @@ pub async fn run_move(rx: Receiver<LedEffect>) -> Result<(), JoinError> {
 }
 
 struct PsMoveControllers {
-    list: Vec<PsMoveController>,
+    list: Vec<Box<PsMoveController>>,
 }
 
 impl PsMoveControllers {
