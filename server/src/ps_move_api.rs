@@ -142,7 +142,7 @@ impl PsMoveApi {
             device,
             address,
             connection_type,
-        )))
+        )));
     }
 
     fn get_usb_address(&self, path: &CStr) -> Option<String> {
@@ -389,6 +389,74 @@ fn build_get_bt_addr_request() -> [u8; PS_MOVE_BT_ADDR_GET_SIZE] {
     return request;
 }
 
-pub fn build_hsv(h: f64, s: f64, v: f64) -> Hsv {
+fn build_hsv(h: f64, s: f64, v: f64) -> Hsv {
     Hsv::from_components((h as f32, s as f32, v as f32))
+}
+
+/// Adapted from [psmoveapi's source](https://github.com/thp/psmoveapi/blob/master/src/psmove.c)
+struct PsMoveDataInput {
+    // message type, must be PSMove_Req_GetInput
+    msg_type: u8,
+    buttons1: u8,
+    buttons2: u8,
+    buttons3: u8,
+    buttons4: u8,
+    // trigger value: u8, 0..255
+    trigger: u8,
+    // trigger value, 2nd frame
+    trigger2: u8,
+    _unk7: u8,
+    _unk8: u8,
+    _unk9: u8,
+    _unk10: u8,
+    // high byte of timestamp
+    time_high: u8,
+    // battery level: u8, 0x05 = max, 0xEE = USB charging
+    battery: u8,
+    // low byte of accelerometer X value
+    accel_x_low: u8,
+    // high byte of accelerometer X value
+    accel_x_high: u8,
+    accel_y_low: u8,
+    accel_y_high: u8,
+    accel_z_low: u8,
+    accel_z_high: u8,
+    // low byte of accelerometer X value, 2nd frame
+    accel_x_low2: u8,
+    // high byte of accelerometer X value, 2nd frame
+    accel_x_high2: u8,
+    accel_y_low2: u8,
+    accel_y_high2: u8,
+    accel_z_low2: u8,
+    accel_z_high2: u8,
+    // low byte of gyro X value
+    gyro_x_low: u8,
+    // high byte of gyro X value
+    gyro_x_high: u8,
+    gyro_y_low: u8,
+    gyro_y_high: u8,
+    gyro_z_low: u8,
+    gyro_z_high: u8,
+    // low byte of gyro X value, 2nd frame
+    gyro_x_low2: u8,
+    // high byte of gyro X value, 2nd frame
+    gyro_x_high2: u8,
+    gyro_y_low2: u8,
+    gyro_y_high2: u8,
+    gyro_z_low2: u8,
+    gyro_z_high2: u8,
+    // temperature (bits 12-5)
+    temp_high: u8,
+    /* temp (bits 4-1): u8, magneto X (bits 12-9)*/
+    temp_low_magneto_x_high: u8,
+    // magnetometer X (bits 8-1)
+    magneto_x_low: u8,
+    // magnetometer Y (bits 12-5)
+    magneto_y_high: u8,
+    // magnetometer: Y (bits 4-1), Z (bits 12-9)
+    magneto_y_low_magneto_z_high: u8,
+    // magnetometer Z (bits 8-1)
+    magneto_z_low: u8,
+    // low byte of timestamp
+    time_low: u8,
 }
