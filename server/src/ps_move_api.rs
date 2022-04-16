@@ -316,31 +316,18 @@ impl PsMoveController {
     }
 
     pub fn set_rumble(&mut self, rumble: f32) -> bool {
-        let setting = &mut self.setting;
-        let request = build_set_led_and_rumble_request(setting.led, rumble);
-
-        let res = self.device.write(&request);
-
-        return match res {
-            Ok(_) => {
-                setting.rumble = rumble;
-                true
-            }
-            Err(err) => {
-                error!("Failed to set rumble {}", err);
-                false
-            }
-        };
+        if rumble < 0.0 || rumble > 1.0 {
+            false
+        } else {
+            self.setting.rumble = rumble;
+            true
+        }
     }
 
     pub fn update(&mut self) -> bool {
         let new_hsv = self.transform_led();
 
-        if !self.set_hsv(new_hsv) {
-            return false;
-        }
-
-        if !self.set_rumble(self.setting.rumble) {
+        if !self.update_hsv_and_rumble(new_hsv) {
             return false;
         }
 
@@ -403,7 +390,7 @@ impl PsMoveController {
         }
     }
 
-    fn set_hsv(&mut self, hsv: Hsv) -> bool {
+    fn update_hsv_and_rumble(&mut self, hsv: Hsv) -> bool {
         let setting = &mut self.setting;
         let request = build_set_led_and_rumble_request(hsv, setting.rumble);
 
@@ -455,9 +442,8 @@ fn build_set_led_pwm_request(frequency: u64) -> [u8; 7] {
 }
 
 fn build_set_led_and_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
-    let rgb = Srgb::from_color(hsv);
-    let f32_to_u8 = |f| (f * 255.0) as u8;
-    let rgb = [rgb.red, rgb.green, rgb.blue].map(f32_to_u8);
+    let f32_to_u8 = |f: f32| (f * 255.0) as u8;
+    let rgb = hsv_to_rgb(hsv, f32_to_u8);
 
     return [
         PsMoveRequestType::SetLED as u8,
@@ -469,6 +455,11 @@ fn build_set_led_and_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
         f32_to_u8(rumble),
         0,
     ];
+}
+
+fn hsv_to_rgb(hsv: Hsv, f32_to_u8: fn(f: f32) -> u8) -> [u8; 3] {
+    let rgb = Srgb::from_color(hsv);
+    [rgb.red, rgb.green, rgb.blue].map(f32_to_u8)
 }
 
 fn build_get_bt_addr_request() -> [u8; PS_MOVE_BT_ADDR_GET_SIZE] {
