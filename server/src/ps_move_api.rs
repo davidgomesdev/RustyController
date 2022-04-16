@@ -190,6 +190,7 @@ pub struct PsMoveController {
     connection_type: PsMoveConnectionType,
 }
 
+#[derive(strum_macros::Display, PartialEq)]
 pub enum PsMoveConnectionType {
     Unknown,
     USB,

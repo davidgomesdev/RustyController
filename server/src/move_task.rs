@@ -25,22 +25,41 @@ fn move_list_task(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi
                 let mut updated_controllers = api.list();
                 let mut controllers = controllers.lock().unwrap();
 
-                updated_controllers.iter_mut().for_each(|controller| {
-                    info!("Controller address: {}", controller.bt_address);
-                    let old_controller = controllers.list.iter()
-                        .find(|old_controller| {
-                            return old_controller.bt_address == controller.bt_address;
-                        });
+                controllers.list.retain(|curr| {
+                    let updated_controller = updated_controllers.iter()
+                        .find(|ctrl| ctrl.bt_address == curr.bt_address);
 
-                    if old_controller.is_some() {
-                        let old_controller = old_controller.unwrap();
-                        controller.copy_settings(old_controller);
+                    if updated_controller.is_none() {
+                        info!("Controller disconnected ({} by {})",
+                            curr.bt_address, curr.connection_type);
+                        false
+                    } else {
+                        true
                     }
-
-                    controller.set_led_pwm_frequency(MAX_LED_PWM_FREQUENCY);
                 });
 
-                controllers.list = updated_controllers;
+                updated_controllers.into_iter().for_each(|controller| {
+                    let current_controller = controllers.list.iter_mut()
+                        .find(|current_controller| {
+                            return current_controller.bt_address == controller.bt_address;
+                        });
+
+                    if current_controller.is_some() {
+                        let current_controller = current_controller.unwrap();
+
+                        if controller.connection_type != current_controller.connection_type {
+                            info!("Controller changed ({} to {})",
+                                controller.bt_address, controller.connection_type);
+                            current_controller.connection_type = controller.connection_type;
+                        }
+                    } else {
+                        info!("New controller! ({} by {})",
+                            controller.bt_address, controller.connection_type);
+
+                        controller.set_led_pwm_frequency(MAX_LED_PWM_FREQUENCY);
+                        controllers.list.push(controller);
+                    }
+                });
             }
 
             std::thread::sleep(Duration::from_millis(100));
