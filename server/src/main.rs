@@ -1,31 +1,24 @@
-use std::{borrow::Borrow, thread::current};
+use std::{io::Error, sync::Arc};
 
-use palette::{Hsv, rgb::RgbStandard, encoding::Srgb};
-use ps_move_api::{LedEffect, PsMoveController};
+use log::info;
+use tokio::signal;
+use tokio::sync::watch;
 
+use graphql::graphql_api;
+use ps_move_api::LedEffect;
+
+mod graphql;
+mod move_task;
 mod ps_move_api;
 
-fn main() {
-    let api = ps_move_api::PsMoveApi::new();
-    let mut controllers = api.list();
-    let initial_hsv = Hsv::<Srgb, f32>::from_components((270.0, 1.0, 0.01));
-    
-    controllers.iter_mut().for_each(|controller| {
-        // let effect = LedEffect::Off;
-        // let effect = LedEffect::Static { hsv: initial_hsv };
-        let effect = LedEffect::Breathing { initial_hsv, step: 0.0003, peak: 0.2, inhaling: true };
-        // let effect = LedEffect::Rainbow { saturation: 1.0, value: 1.0, step: 0.09 };
+#[tokio::main]
+async fn main() {
+    pretty_env_logger::init();
 
-        controller.set_led_effect(effect);
-    });
+    let (tx, rx) = watch::channel(LedEffect::Off);
 
-    loop {
-        controllers.iter_mut().for_each(|controller| {
-            let is_ok = controller.update();
+    let task = tokio::spawn(move_task::run_move(rx));
+    graphql_api::start(Arc::new(tx)).await;
 
-            if !is_ok {
-                panic!("Error! Beep boop");
-            }
-        });
-    }
+    info!("Shutting down...");
 }
