@@ -9,7 +9,10 @@ use log::{debug, error, info};
 use palette::{FromColor, Hsv, Hue, Srgb};
 use strum_macros::Display;
 
-use crate::ps_move_api::PsMoveBatteryLevel::{Charged, Charging, EightyPercent, Empty, FortyPercent, Full, SixtyPercent, TwentyPercent, Unknown};
+use crate::ps_move_api::PsMoveBatteryLevel::{
+    Charged, Charging, EightyPercent, Empty, FortyPercent, Full, SixtyPercent, TwentyPercent,
+    Unknown,
+};
 
 const MAGIC_PATH: &str = "&col01#";
 const PS_MOVE_VENDOR_ID: u16 = 0x054c;
@@ -72,15 +75,12 @@ impl PsMoveApi {
             return Vec::new();
         }
 
-        let controllers = self
-            .hid
-            .device_list();
+        let controllers = self.hid.device_list();
 
         let controllers = controllers
             .filter(|dev_info| self.is_move_controller(dev_info))
             .map(|dev_info| {
-                let serial_number =
-                    CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
+                let serial_number = CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
 
                 self.connect_controller(&serial_number, dev_info.path())
             })
@@ -97,7 +97,7 @@ impl PsMoveApi {
 
         let path = match path {
             Ok(path) => path,
-            Err(_) => return false
+            Err(_) => return false,
         };
         let vendor_id = dev_info.vendor_id();
         let product_id = dev_info.product_id();
@@ -109,19 +109,27 @@ impl PsMoveApi {
         vendor_id == PS_MOVE_VENDOR_ID && product_id == PS_MOVE_PRODUCT_ID
     }
 
-    fn merge_usb_with_bt_device(&self, mut res: Vec<Box<PsMoveController>>, curr: Box<PsMoveController>) -> Vec<Box<PsMoveController>> {
-        let dupe = res.iter_mut().find(|controller| {
-            controller.bt_address == curr.bt_address
-        });
+    fn merge_usb_with_bt_device(
+        &self,
+        mut res: Vec<Box<PsMoveController>>,
+        curr: Box<PsMoveController>,
+    ) -> Vec<Box<PsMoveController>> {
+        let dupe = res
+            .iter_mut()
+            .find(|controller| controller.bt_address == curr.bt_address);
 
         match dupe {
-            None => { res.push(curr) }
-            Some(dupe) => { dupe.connection_type = PsMoveConnectionType::USBAndBluetooth }
+            None => res.push(curr),
+            Some(dupe) => dupe.connection_type = PsMoveConnectionType::USBAndBluetooth,
         }
         res
     }
 
-    fn connect_controller(&self, serial_number: &CStr, path: &CStr) -> Option<Box<PsMoveController>> {
+    fn connect_controller(
+        &self,
+        serial_number: &CStr,
+        path: &CStr,
+    ) -> Option<Box<PsMoveController>> {
         let device = self.hid.open_path(path);
         let mut address = String::from(serial_number.to_str().unwrap_or(""));
 
@@ -188,7 +196,8 @@ impl PsMoveApi {
                 let addr = &bt_addr_report[1..7];
                 let addr = format!(
                     "{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
-                    addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]);
+                    addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]
+                );
 
                 Some(addr)
             }
@@ -247,13 +256,17 @@ impl PsMoveBatteryLevel {
             0x05 => Full,
             0xEE => Charging,
             0xEF => Charged,
-            _ => Unknown
+            _ => Unknown,
         }
     }
 }
 
 impl PsMoveController {
-    fn new(device: HidDevice, serial_number: String, connection_type: PsMoveConnectionType) -> PsMoveController {
+    fn new(
+        device: HidDevice,
+        serial_number: String,
+        connection_type: PsMoveConnectionType,
+    ) -> PsMoveController {
         PsMoveController {
             device,
             bt_address: serial_number,
@@ -415,7 +428,10 @@ impl PsMoveController {
             if self.battery == Unknown {
                 info!("Battery status of {} is {}", self.bt_address, curr_battery);
             } else {
-                info!("Battery status of {} changed to {}", self.bt_address, curr_battery);
+                info!(
+                    "Battery status of {} changed to {}",
+                    self.bt_address, curr_battery
+                );
             }
             self.battery = curr_battery;
         }

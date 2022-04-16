@@ -4,13 +4,16 @@ use std::{
     time::Duration,
 };
 use std::borrow::BorrowMut;
+use std::sync::MutexGuard;
 use std::thread::current;
+use std::time::Instant;
 
 use juniper::futures::StreamExt;
 use log::{debug, error, info};
 use palette::{encoding::Srgb, Hsv};
-use tokio::{sync::watch::Receiver, task::JoinError};
+use tokio::{sync::watch::Receiver, task::JoinError, time};
 use tokio::task::JoinHandle;
+use tokio::time::Interval;
 
 use ps_move_api::LedEffect;
 
@@ -18,55 +21,80 @@ use crate::ps_move_api::MAX_LED_PWM_FREQUENCY;
 
 use super::ps_move_api::{self, PsMoveApi, PsMoveController};
 
-fn move_list_task(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi) {
+const LIST_INTERVAL_MS: u64 = 50;
+
+fn spawn_list_task(
+    controllers: Arc<Mutex<PsMoveControllers>>,
+    mut api: PsMoveApi,
+) -> JoinHandle<()> {
     tokio::spawn(async move {
+        let mut interval = time::interval(Duration::from_millis(LIST_INTERVAL_MS));
+
         loop {
-            {
-                let mut updated_controllers = api.list();
-                let mut controllers = controllers.lock().unwrap();
+            interval.tick().await;
 
-                controllers.list.retain(|curr| {
-                    let updated_controller = updated_controllers.iter()
-                        .find(|ctrl| ctrl.bt_address == curr.bt_address);
-                    let is_connected = updated_controller.is_some();
+            let mut updated_controllers = api.list();
+            let mut controllers = controllers.lock().unwrap();
 
-                    if !is_connected {
-                        info!("Controller disconnected ({} by {})",
-                            curr.bt_address, curr.connection_type);
-                    }
-                    is_connected
-                });
+            controllers
+                .list
+                .retain(|curr| is_connected(&mut updated_controllers, curr));
 
-                updated_controllers.into_iter().for_each(|controller| {
-                    let current_controller = controllers.list.iter_mut()
-                        .find(|current_controller| {
-                            return current_controller.bt_address == controller.bt_address;
-                        });
-
-                    if current_controller.is_some() {
-                        let current_controller = current_controller.unwrap();
-
-                        if controller.connection_type != current_controller.connection_type {
-                            info!("Controller changed ({} to {})",
-                                controller.bt_address, controller.connection_type);
-                            current_controller.connection_type = controller.connection_type;
-                        }
-                    } else {
-                        info!("New controller! ({} by {})",
-                            controller.bt_address, controller.connection_type);
-
-                        controller.set_led_pwm_frequency(MAX_LED_PWM_FREQUENCY);
-                        controllers.list.push(controller);
-                    }
-                });
-            }
-
-            std::thread::sleep(Duration::from_millis(100));
+            updated_controllers
+                .into_iter()
+                .for_each(|controller| update_list(&mut (controllers.list), controller))
         }
-    });
+    })
 }
 
-fn set_effect_task(controllers: Arc<Mutex<PsMoveControllers>>, mut rx: Receiver<LedEffect>) {
+fn is_connected(
+    updated_controllers: &Vec<Box<PsMoveController>>,
+    controller: &Box<PsMoveController>,
+) -> bool {
+    let updated_controller = updated_controllers
+        .iter()
+        .find(|ctrl| ctrl.bt_address == controller.bt_address);
+    let is_connected = updated_controller.is_some();
+
+    if !is_connected {
+        info!(
+            "Controller disconnected ({} by {})",
+            controller.bt_address, controller.connection_type
+        );
+    }
+    is_connected
+}
+
+fn update_list(controllers: &mut Vec<Box<PsMoveController>>, controller: Box<PsMoveController>) {
+    let current_controller = controllers.iter_mut().find(|current_controller| {
+        return current_controller.bt_address == controller.bt_address;
+    });
+
+    if current_controller.is_some() {
+        let current_controller = current_controller.unwrap();
+
+        if controller.connection_type != current_controller.connection_type {
+            info!(
+                "Controller changed ({} to {})",
+                controller.bt_address, controller.connection_type
+            );
+            current_controller.connection_type = controller.connection_type;
+        }
+    } else {
+        info!(
+            "New controller! ({} by {})",
+            controller.bt_address, controller.connection_type
+        );
+
+        controller.set_led_pwm_frequency(MAX_LED_PWM_FREQUENCY);
+        controllers.push(controller);
+    }
+}
+
+fn spawn_set_effect_task(
+    controllers: Arc<Mutex<PsMoveControllers>>,
+    mut rx: Receiver<LedEffect>,
+) -> JoinHandle<()> {
     tokio::spawn(async move {
         while rx.changed().await.is_ok() {
             let mut controllers = controllers.lock().unwrap();
@@ -75,45 +103,43 @@ fn set_effect_task(controllers: Arc<Mutex<PsMoveControllers>>, mut rx: Receiver<
             info!("Received '{}' effect", effect);
 
             controllers.list.iter_mut().for_each(|controller| {
-                debug!("Setting '{}' controller", controller.bt_address);
                 controller.set_led_effect(effect);
-                info!("Controller '{}' set", controller.bt_address);
+                info!("Controller '{}' set to {}", controller.bt_address, effect);
             });
         }
-    });
+    })
 }
 
-fn move_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()> {
-    return tokio::spawn(async move {
+fn spawn_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()> {
+    tokio::spawn(async move {
+        let mut interval = time::interval(Duration::from_nanos(1));
+
         loop {
-            {
-                let mut controllers = controllers.lock().unwrap();
+            interval.tick().await;
+            let mut controllers = controllers.lock().unwrap();
 
-                controllers.list.iter_mut().for_each(|controller| {
-                    let is_ok = controller.update();
+            controllers.list.iter_mut().for_each(|controller| {
+                let is_ok = controller.update();
 
-                    if !is_ok {
-                        error!("Error updating controller with SN '{}'!", controller.bt_address);
-                    }
-                });
-            }
-            // needed so there's some room for other tasks to own [controllers]
-            std::thread::sleep(Duration::from_millis(1));
+                if !is_ok {
+                    error!(
+                        "Error updating controller with SN '{}'!",
+                        controller.bt_address
+                    );
+                }
+            })
         }
-    });
+    })
 }
 
-pub async fn run_move(rx: Receiver<LedEffect>) -> Result<(), JoinError> {
+pub async fn run_move(rx: Receiver<LedEffect>) {
     let mut api = PsMoveApi::new();
 
     let controllers = Arc::new(Mutex::new(PsMoveControllers::new()));
 
-    set_effect_task(Arc::clone(&controllers), rx);
-    move_list_task(Arc::clone(&controllers), api);
-
-    let update_task = move_update_task(controllers);
-
-    return update_task.await;
+    spawn_set_effect_task(controllers.clone(), rx);
+    spawn_list_task(controllers.clone(), api);
+    spawn_update_task(controllers);
 }
 
 struct PsMoveControllers {
@@ -122,8 +148,6 @@ struct PsMoveControllers {
 
 impl PsMoveControllers {
     fn new() -> PsMoveControllers {
-        PsMoveControllers {
-            list: Vec::new()
-        }
+        PsMoveControllers { list: Vec::new() }
     }
 }

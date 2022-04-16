@@ -7,6 +7,7 @@ use actix_web::{
     HttpResponse,
     HttpServer, middleware, Responder, route, web::{self, Data},
 };
+use actix_web::dev::Server;
 use actix_web_lab::respond::Html;
 use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
@@ -36,7 +37,7 @@ async fn graphql(
     Ok(HttpResponse::Ok().json(res))
 }
 
-pub async fn start(tx: Arc<Sender<LedEffect>>) -> io::Result<()> {
+pub async fn start(tx: Arc<Sender<LedEffect>>) -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(create_schema()))
@@ -46,7 +47,7 @@ pub async fn start(tx: Arc<Sender<LedEffect>>) -> io::Result<()> {
             .service(graphql)
             .service(graphiql)
     })
-    .bind("127.0.0.1:8080")?
+        .bind("127.0.0.1:8080")?
     .run()
     .await
 }
