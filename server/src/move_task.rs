@@ -28,14 +28,13 @@ fn move_list_task(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi
                 controllers.list.retain(|curr| {
                     let updated_controller = updated_controllers.iter()
                         .find(|ctrl| ctrl.bt_address == curr.bt_address);
+                    let is_connected = updated_controller.is_some();
 
-                    if updated_controller.is_none() {
+                    if !is_connected {
                         info!("Controller disconnected ({} by {})",
                             curr.bt_address, curr.connection_type);
-                        false
-                    } else {
-                        true
                     }
+                    is_connected
                 });
 
                 updated_controllers.into_iter().for_each(|controller| {
