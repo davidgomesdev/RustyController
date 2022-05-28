@@ -47,7 +47,7 @@ pub async fn start(tx: Arc<Sender<LedEffect>>) -> std::io::Result<()> {
             .service(graphql)
             .service(graphiql)
     })
-        .bind("127.0.0.1:8080")?
+        .bind("0.0.0.0:8080")?
     .run()
     .await
 }

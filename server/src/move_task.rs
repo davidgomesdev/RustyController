@@ -21,7 +21,7 @@ use crate::ps_move_api::MAX_LED_PWM_FREQUENCY;
 
 use super::ps_move_api::{self, PsMoveApi, PsMoveController};
 
-const LIST_INTERVAL_MS: u64 = 50;
+const LIST_INTERVAL_MS: u64 = 500;
 
 fn spawn_list_task(
     controllers: Arc<Mutex<PsMoveControllers>>,
@@ -33,14 +33,10 @@ fn spawn_list_task(
         loop {
             interval.tick().await;
 
-            let mut updated_controllers = api.list();
             let mut controllers = controllers.lock().unwrap();
+            let mut new_controllers = api.list(&mut controllers.list);
 
-            controllers
-                .list
-                .retain(|curr| is_connected(&mut updated_controllers, curr));
-
-            updated_controllers
+            new_controllers
                 .into_iter()
                 .for_each(|controller| update_list(&mut (controllers.list), controller))
         }
@@ -70,24 +66,25 @@ fn update_list(controllers: &mut Vec<Box<PsMoveController>>, controller: Box<PsM
         return current_controller.bt_address == controller.bt_address;
     });
 
-    if current_controller.is_some() {
-        let current_controller = current_controller.unwrap();
-
-        if controller.connection_type != current_controller.connection_type {
+    match current_controller {
+        Some(current_controller) => {
+            if controller.connection_type != current_controller.connection_type {
+                info!(
+                    "Controller changed ({} to {})",
+                    controller.bt_address, controller.connection_type
+                );
+                current_controller.connection_type = controller.connection_type;
+            }
+        }
+        None => {
             info!(
-                "Controller changed ({} to {})",
+                "New controller! ({} by {})",
                 controller.bt_address, controller.connection_type
             );
-            current_controller.connection_type = controller.connection_type;
-        }
-    } else {
-        info!(
-            "New controller! ({} by {})",
-            controller.bt_address, controller.connection_type
-        );
 
-        controller.set_led_pwm_frequency(MAX_LED_PWM_FREQUENCY);
-        controllers.push(controller);
+            controller.set_led_pwm_frequency(MAX_LED_PWM_FREQUENCY);
+            controllers.push(controller);
+        }
     }
 }
 
@@ -123,7 +120,7 @@ fn spawn_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<(
 
                 if !is_ok {
                     error!(
-                        "Error updating controller with SN '{}'!",
+                        "Error updating controller with address '{}'!",
                         controller.bt_address
                     );
                 }
