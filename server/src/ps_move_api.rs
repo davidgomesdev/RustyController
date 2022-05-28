@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 use std::ffi::{CStr, CString};
 use std::fmt;
+use std::iter::Filter;
 use std::str;
 
 use actix_web::connect;
@@ -81,13 +82,21 @@ impl PsMoveApi {
         let mut controllers = self
             .hid
             .device_list()
-            .filter(|dev_info| self.is_move_controller(dev_info));
+            .filter(|dev_info| Self::is_move_controller(dev_info));
 
-        // Keeps only the ones that are still connected
+        Self::remove_disconnected(current_controllers, &mut controllers);
+
+        let controllers = self.connect_new_controllers(current_controllers, &mut controllers);
+
+        return controllers;
+    }
+
+    fn remove_disconnected<'a>(current_controllers: &mut Vec<Box<PsMoveController>>, mut controllers: &mut impl Iterator<Item=&'a DeviceInfo>) {
         current_controllers.retain(|controller| controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path));
+    }
 
-        // Now we need to connect only to the ones that are new
-        let controllers = controllers
+    fn connect_new_controllers(&self, current_controllers: &mut Vec<Box<PsMoveController>>, controllers: &mut dyn Iterator<Item=&DeviceInfo>) -> Vec<Box<PsMoveController>> {
+        controllers
             .filter(|dev_info| !current_controllers.iter().any(|controller| dev_info.path().to_str().unwrap() == controller.path))
             .map(|dev_info| {
                 let serial_number =
@@ -98,9 +107,7 @@ impl PsMoveApi {
             .flatten()
             .fold(Vec::<Box<PsMoveController>>::new(), |mut res, curr| {
                 self.merge_usb_with_bt_device(res, curr)
-            });
-
-        return controllers;
+            })
     }
 
     fn connect_controller(
@@ -132,7 +139,7 @@ impl PsMoveApi {
 
                 if address.is_empty() {
                     connection_type = PsMoveConnectionType::USB;
-                    address = self.get_bt_address(&device).unwrap_or(String::from(""))
+                    address = Self::get_bt_address(&device).unwrap_or(String::from(""))
                 } else {
                     connection_type = PsMoveConnectionType::Bluetooth;
                 }
@@ -151,7 +158,7 @@ impl PsMoveApi {
         }
     }
 
-    fn is_move_controller(&self, dev_info: &DeviceInfo) -> bool {
+    fn is_move_controller(dev_info: &DeviceInfo) -> bool {
         let path = dev_info.path().to_str();
 
         let path = match path {
@@ -184,7 +191,7 @@ impl PsMoveApi {
         res
     }
 
-    fn get_bt_address(&self, device: &HidDevice) -> Option<String> {
+    fn get_bt_address(device: &HidDevice) -> Option<String> {
         let mut bt_addr_report = build_get_bt_addr_request();
 
         let report_status = device.get_feature_report(&mut bt_addr_report);

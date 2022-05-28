@@ -8,6 +8,7 @@ use actix_web::{
     HttpServer, middleware, Responder, route, web::{self, Data},
 };
 use actix_web::dev::Server;
+use actix_web::web::Json;
 use actix_web_lab::respond::Html;
 use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
@@ -24,9 +25,9 @@ async fn graphiql() -> impl Responder {
 
 #[route("/graphql", method = "GET", method = "POST")]
 async fn graphql(
-    tx: web::Data<Arc<Sender<LedEffect>>>,
-    schema: web::Data<Schema>,
-    data: web::Json<GraphQLRequest>,
+    tx: Data<Arc<Sender<LedEffect>>>,
+    schema: Data<Schema>,
+    data: Json<GraphQLRequest>,
 ) -> Result<HttpResponse, Error> {
     let ctx = Context {
         tx: tx.get_ref().to_owned(),
@@ -37,7 +38,7 @@ async fn graphql(
     Ok(HttpResponse::Ok().json(res))
 }
 
-pub async fn start(tx: Arc<Sender<LedEffect>>) -> std::io::Result<()> {
+pub async fn start(tx: Arc<Sender<LedEffect>>) -> io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(create_schema()))
