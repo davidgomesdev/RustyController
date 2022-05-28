@@ -23,6 +23,7 @@ const PS_MOVE_BT_ADDR_GET_SIZE: usize = 16;
 pub const MIN_LED_PWM_FREQUENCY: u64 = 733;
 pub const MAX_LED_PWM_FREQUENCY: u64 = 0x24e6;
 
+#[allow(unused_variables)]
 enum PsMoveRequestType {
     GetInput = 0x01,
     SetLED = 0x06,
@@ -37,7 +38,7 @@ enum PsMoveRequestType {
     GetFirmwareInfo = 0xF9,
 }
 
-#[derive(Clone, Copy, strum_macros::Display)]
+#[derive(Clone, Copy, Display)]
 pub enum LedEffect {
     Off,
     Static {
@@ -67,20 +68,30 @@ impl PsMoveApi {
         }
     }
 
-    pub fn list(&mut self) -> Vec<Box<PsMoveController>> {
+    pub fn list(
+        &mut self,
+        current_controllers: &mut Vec<Box<PsMoveController>>,
+    ) -> Vec<Box<PsMoveController>> {
         let result = self.hid.refresh_devices();
 
         if result.is_err() {
             error!("Failed to refresh devices {}", result.unwrap_err());
             return Vec::new();
         }
+        let mut controllers = self
+            .hid
+            .device_list()
+            .filter(|dev_info| self.is_move_controller(dev_info));
 
-        let controllers = self.hid.device_list();
+        // Keeps only the ones that are still connected
+        current_controllers.retain(|controller| controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path));
 
+        // Now we need to connect only to the ones that are new
         let controllers = controllers
-            .filter(|dev_info| self.is_move_controller(dev_info))
+            .filter(|dev_info| !current_controllers.iter().any(|controller| dev_info.path().to_str().unwrap() == controller.path))
             .map(|dev_info| {
-                let serial_number = CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
+                let serial_number =
+                    CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
 
                 self.connect_controller(&serial_number, dev_info.path())
             })
@@ -90,6 +101,54 @@ impl PsMoveApi {
             });
 
         return controllers;
+    }
+
+    fn connect_controller(
+        &self,
+        serial_number: &CStr,
+        path: &CStr,
+    ) -> Option<Box<PsMoveController>> {
+        let mut path_str = String::from(path.to_str().unwrap());
+        let mut address = String::from(serial_number.to_str().unwrap_or(""));
+
+        let device = if address.is_empty() && !path_str.is_empty() {
+            self.hid.open_path(path)
+        } else {
+            self.hid
+                .open_serial(PS_MOVE_VENDOR_ID, PS_MOVE_PRODUCT_ID, &*address)
+        };
+
+        match device {
+            Ok(device) => {
+                match device.set_blocking_mode(false) {
+                    Ok(_) => {}
+                    Err(err) => {
+                        error!("Unable to set {} to nonblocking {}", address, err);
+                        return None;
+                    }
+                }
+
+                let mut connection_type = PsMoveConnectionType::Unknown;
+
+                if address.is_empty() {
+                    connection_type = PsMoveConnectionType::USB;
+                    address = self.get_bt_address(&device).unwrap_or(String::from(""))
+                } else {
+                    connection_type = PsMoveConnectionType::Bluetooth;
+                }
+
+                Some(Box::new(PsMoveController::new(
+                    device,
+                    path_str,
+                    address,
+                    connection_type,
+                )))
+            }
+            Err(err) => {
+                error!("Couldn't open '{}'", path_str);
+                None
+            }
+        }
     }
 
     fn is_move_controller(&self, dev_info: &DeviceInfo) -> bool {
@@ -125,68 +184,7 @@ impl PsMoveApi {
         res
     }
 
-    fn connect_controller(
-        &self,
-        serial_number: &CStr,
-        path: &CStr,
-    ) -> Option<Box<PsMoveController>> {
-        let device = self.hid.open_path(path);
-        let mut address = String::from(serial_number.to_str().unwrap_or(""));
-
-        match device {
-            Ok(device) => {
-                match device.set_blocking_mode(false) {
-                    Ok(_) => {}
-                    Err(err) => {
-                        error!("Unable to set {} to nonblocking {}", address, err);
-                        return None;
-                    }
-                }
-
-                let mut connection_type = PsMoveConnectionType::Unknown;
-
-                if address.is_empty() {
-                    connection_type = PsMoveConnectionType::USB;
-                    address = self.get_usb_address(path).unwrap_or(String::from(""))
-                } else {
-                    connection_type = PsMoveConnectionType::Bluetooth;
-                }
-
-                Some(Box::new(PsMoveController::new(
-                    device,
-                    address,
-                    connection_type,
-                )))
-            }
-            Err(err) => {
-                error!("Couldn't open {} {}", address, err);
-                None
-            }
-        }
-    }
-
-    fn get_usb_address(&self, path: &CStr) -> Option<String> {
-        let mut usb_path = String::from(path.to_str().unwrap())
-            .replace("Col01", "Col02")
-            .replace("&0000#", "&0001#");
-
-        let usb_path = CString::new(usb_path).unwrap();
-        let addr_device = self.hid.open_path(usb_path.as_c_str());
-
-        match addr_device {
-            Ok(addr_device) => {
-                let addr = self.get_bt_address(addr_device);
-
-                Some(addr.unwrap_or(String::from("")))
-            }
-            Err(err) => {
-                error!("Failed to open addr device {}", err);
-                None
-            }
-        }
-    }
-
-    fn get_bt_address(&self, device: HidDevice) -> Option<String> {
+    fn get_bt_address(&self, device: &HidDevice) -> Option<String> {
         let mut bt_addr_report = build_get_bt_addr_request();
 
         let report_status = device.get_feature_report(&mut bt_addr_report);
@@ -211,6 +209,7 @@ impl PsMoveApi {
 
 pub struct PsMoveController {
     device: HidDevice,
+    path: String,
     pub bt_address: String,
     pub effect: LedEffect,
     pub setting: PsMoveSetting,
@@ -224,7 +223,7 @@ pub struct PsMoveSetting {
     rumble: f32,
 }
 
-#[derive(strum_macros::Display, PartialEq)]
+#[derive(Display, PartialEq)]
 pub enum PsMoveConnectionType {
     Unknown,
     USB,
@@ -232,7 +231,7 @@ pub enum PsMoveConnectionType {
     USBAndBluetooth,
 }
 
-#[derive(strum_macros::Display, PartialEq)]
+#[derive(Display, PartialEq)]
 pub enum PsMoveBatteryLevel {
     Unknown,
     Empty,
@@ -264,11 +263,13 @@ impl PsMoveBatteryLevel {
 impl PsMoveController {
     fn new(
         device: HidDevice,
+        path: String,
         serial_number: String,
         connection_type: PsMoveConnectionType,
     ) -> PsMoveController {
         PsMoveController {
             device,
+            path,
             bt_address: serial_number,
             effect: LedEffect::Off,
             setting: PsMoveSetting {
@@ -475,6 +476,7 @@ pub fn build_hsv(h: f64, s: f64, v: f64) -> Hsv {
 }
 
 /// Adapted from [psmoveapi's source](https://github.com/thp/psmoveapi/blob/master/src/psmove.c)
+#[allow(unused_variables)]
 struct PsMoveDataInput {
     // message type, must be PSMove_Req_GetInput
     msg_type: u8,
