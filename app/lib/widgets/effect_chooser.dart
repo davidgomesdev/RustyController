@@ -1,18 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:rusty_controller/extensions/color_extensions.dart';
+
 import '../bloc/events/led_effects.dart';
 
-final List<LedEffectEvent> effects = [
-  OffLedEffectEvent(),
-  StaticLedEffectEvent(color: Colors.black),
-  BreathingLedEffectEvent(),
-  RainbowLedEffectEvent(),
+final List<EffectEvent> effects = [
+  OffEffectEvent(),
+  StaticEffectEvent(color: Colors.black.toHSV()),
+  BreathingEffectEvent(),
+  RainbowEffectEvent(),
 ];
 
 class EffectChooser extends StatelessWidget {
-  final LedEffectEvent currentEffect;
-  final StreamSink<LedEffectEvent> choiceStream;
+  final EffectEvent currentEffect;
+  final StreamSink<EffectEvent> choiceStream;
 
   const EffectChooser(
       {Key? key, required this.choiceStream, required this.currentEffect})
@@ -36,9 +38,9 @@ class EffectChooser extends StatelessWidget {
 }
 
 class EffectChoice extends StatelessWidget {
-  final LedEffectEvent effect;
+  final EffectEvent effect;
   final bool isSelected;
-  final StreamSink<LedEffectEvent> choiceStream;
+  final StreamSink<EffectEvent> choiceStream;
 
   const EffectChoice(
       {Key? key,
@@ -57,20 +59,17 @@ class EffectChoice extends StatelessWidget {
             choiceStream.add(effect);
           }
         },
-        child: Padding(
-          padding: EdgeInsets.zero,
-          child: Row(
-            children: <Widget>[
-              Radio<String>(
-                groupValue: isSelected ? effect.name : '',
-                value: effect.name,
-                onChanged: (_) {
-                  choiceStream.add(effect);
-                },
-              ),
-              Text(effect.name),
-            ],
-          ),
+        child: Row(
+          children: <Widget>[
+            Radio<String>(
+              groupValue: isSelected ? effect.name : '',
+              value: effect.name,
+              onChanged: (_) {
+                choiceStream.add(effect);
+              },
+            ),
+            Text(effect.name),
+          ],
         ),
       ),
     );

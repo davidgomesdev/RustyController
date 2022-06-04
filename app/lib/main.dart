@@ -1,78 +1,72 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 import 'package:rusty_controller/bloc/events/led_effects.dart';
 import 'package:rusty_controller/widgets/effect_chooser.dart';
-import 'package:rusty_controller/widgets/effects/static_effect_settings.dart';
+import 'package:rusty_controller/widgets/effect_widget.dart';
 
-void main() {
-  runApp(MaterialApp(
-    builder: (ctx, _) => HomeScreen(),
-  ));
-}
+var log = Logger(level: Level.debug, printer: PrettyPrinter());
+
+// TODO: port to a service and DI
+// TODO: use UDP discovery
+var graphqlClient = GraphQLClient(
+  link: HttpLink("http://127.0.0.1:8080/graphql"),
+  cache: GraphQLCache(store: InMemoryStore()),
+);
+
+void main() => runApp(HomeScreen());
 
 class HomeScreen extends StatelessWidget {
-  final _effectChoiceController = StreamController<LedEffectEvent>();
+  final _effectChoiceController = StreamController<EffectEvent>();
 
   HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ScaffoldMessenger(
-        child: StreamBuilder<LedEffectEvent>(
-          initialData: OffLedEffectEvent(),
-          stream: _effectChoiceController.stream,
-          builder: (ctx, snapshot) {
-            if (!snapshot.hasData) {
-              return const CircularProgressIndicator.adaptive();
-            }
+    return MaterialApp(
+      home: Scaffold(
+        body: ScaffoldMessenger(
+          child: StreamBuilder<EffectEvent>(
+            initialData: OffEffectEvent(),
+            stream: _effectChoiceController.stream,
+            builder: (ctx, snapshot) {
+              if (snapshot.hasError) {
+                // TODO: banner here
+              }
 
-            if (snapshot.hasError) {
-              final snackBar = SnackBar(
-                content: const Text('Yay! A SnackBar!'),
-                action: SnackBarAction(
-                  label: 'Undo',
-                  onPressed: () {
-                    // Some code to undo the change.
-                  },
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator.adaptive();
+              }
+
+              final currentEffect = snapshot.data!;
+
+              if (snapshot.connectionState == ConnectionState.active) {
+                graphqlClient.mutate(MutationOptions(
+                    document: gql(currentEffect.graphqlMutation)));
+              }
+
+              return SafeArea(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: EffectChooser(
+                          choiceStream: _effectChoiceController.sink,
+                          currentEffect: currentEffect),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: EffectWidget(currentEffect,
+                          colorStream: _effectChoiceController.sink),
+                    ),
+                  ],
                 ),
               );
-
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);
-            }
-
-            final currentEffect = snapshot.data!;
-            final settings =
-                _getEffectSettings(currentEffect, _effectChoiceController.sink);
-
-            return Row(
-              children: [
-                Expanded(
-                  child: EffectChooser(
-                      choiceStream: _effectChoiceController.sink,
-                      currentEffect: currentEffect),
-                ),
-                Expanded(
-                  child: settings,
-                ),
-              ],
-            );
-          },
+            },
+          ),
         ),
       ),
     );
-  }
-
-  Widget _getEffectSettings(
-      LedEffectEvent currentEffect, StreamSink<LedEffectEvent> colorStream) {
-    if (currentEffect is StaticLedEffectEvent) {
-      return StaticEffectSettings(
-        effectStream: colorStream,
-        currentEffect: currentEffect,
-      );
-    } else {
-      return Container();
-    }
   }
 }
