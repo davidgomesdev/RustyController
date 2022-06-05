@@ -91,16 +91,28 @@ impl PsMoveApi {
         return controllers;
     }
 
-    fn remove_disconnected<'a>(current_controllers: &mut Vec<Box<PsMoveController>>, mut controllers: &mut impl Iterator<Item=&'a DeviceInfo>) {
-        current_controllers.retain(|controller| controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path));
+    fn remove_disconnected<'a>(
+        current_controllers: &mut Vec<Box<PsMoveController>>,
+        mut controllers: &mut impl Iterator<Item=&'a DeviceInfo>,
+    ) {
+        current_controllers.retain(|controller| {
+            controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path)
+        });
     }
 
-    fn connect_new_controllers(&self, current_controllers: &mut Vec<Box<PsMoveController>>, controllers: &mut dyn Iterator<Item=&DeviceInfo>) -> Vec<Box<PsMoveController>> {
+    fn connect_new_controllers(
+        &self,
+        current_controllers: &mut Vec<Box<PsMoveController>>,
+        controllers: &mut dyn Iterator<Item=&DeviceInfo>,
+    ) -> Vec<Box<PsMoveController>> {
         controllers
-            .filter(|dev_info| !current_controllers.iter().any(|controller| dev_info.path().to_str().unwrap() == controller.path))
+            .filter(|dev_info| {
+                !current_controllers
+                    .iter()
+                    .any(|controller| dev_info.path().to_str().unwrap() == controller.path)
+            })
             .map(|dev_info| {
-                let serial_number =
-                    CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
+                let serial_number = CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
 
                 self.connect_controller(&serial_number, dev_info.path())
             })
