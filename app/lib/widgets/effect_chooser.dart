@@ -29,7 +29,7 @@ class EffectChooser extends StatelessWidget {
           (effect) => EffectChoice(
             choiceStream: choiceStream,
             effect: effect,
-            isSelected: effect.name == currentEffect.name,
+            isSelected: effect.type == currentEffect.type,
           ),
         ),
       ],

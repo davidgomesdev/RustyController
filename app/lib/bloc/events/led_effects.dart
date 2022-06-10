@@ -1,13 +1,17 @@
 import 'package:flutter/painting.dart';
 
 abstract class EffectEvent {
-  String get name;
+  EffectEventType get type;
+  String get name => type.name;
+
   String get graphqlMutation;
 }
 
+enum EffectEventType { off, static, breathing, rainbow }
+
 class OffEffectEvent extends EffectEvent {
   @override
-  String get name => "Off";
+  EffectEventType get type => EffectEventType.off;
 
   @override
   String get graphqlMutation => """
@@ -19,7 +23,7 @@ class OffEffectEvent extends EffectEvent {
 
 class StaticEffectEvent extends EffectEvent {
   @override
-  String get name => "Static";
+  EffectEventType get type => EffectEventType.static;
 
   HSVColor color;
 
@@ -36,7 +40,7 @@ class StaticEffectEvent extends EffectEvent {
 // TODO
 class BreathingEffectEvent extends EffectEvent {
   @override
-  String get name => "Breathing";
+  EffectEventType get type => EffectEventType.breathing;
 
   @override
   String get graphqlMutation => """
@@ -49,7 +53,7 @@ class BreathingEffectEvent extends EffectEvent {
 // TODO
 class RainbowEffectEvent extends EffectEvent {
   @override
-  String get name => "Rainbow";
+  EffectEventType get type => EffectEventType.rainbow;
 
   @override
   String get graphqlMutation => """
