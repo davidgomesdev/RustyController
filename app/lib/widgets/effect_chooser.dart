@@ -1,14 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:rusty_controller/extensions/color_extensions.dart';
 
-import '../bloc/events/led_effects.dart';
+import '../model/led_effects.dart';
 
 class EffectChooser extends StatelessWidget {
-  final EffectEvent currentEffect;
-  final StreamSink<EffectEvent> choiceStream;
-  final Map<EffectType, EffectEvent> effects;
+  final LedEffect currentEffect;
+  final StreamSink<LedEffect> choiceStream;
+  final Map<EffectType, LedEffect> effects;
 
   const EffectChooser(
       {Key? key,
@@ -35,9 +34,9 @@ class EffectChooser extends StatelessWidget {
 }
 
 class _EffectChoice extends StatelessWidget {
-  final EffectEvent effect;
+  final LedEffect effect;
   final bool isSelected;
-  final StreamSink<EffectEvent> choiceStream;
+  final StreamSink<LedEffect> choiceStream;
 
   const _EffectChoice(
       {Key? key,

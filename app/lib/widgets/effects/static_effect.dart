@@ -1,18 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:rusty_controller/bloc/events/led_effects.dart';
-import 'package:rusty_controller/extensions/color_extensions.dart';
+import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/widgets/effects/common/led_color_picker.dart';
 
-class StaticEffect extends StatelessWidget {
-
-  final StreamSink<EffectEvent> effectStream;
-  final StaticEffectEvent currentEffect;
+class StaticEffectWidget extends StatelessWidget {
+  final StreamSink<LedEffect> effectStream;
+  final StaticEffect currentEffect;
 
   final StreamController<HSVColor> _colorStream = StreamController();
 
-  StaticEffect({Key? key, required this.effectStream, required this.currentEffect})
+  StaticEffectWidget(
+      {Key? key, required this.effectStream, required this.currentEffect})
       : super(key: key);
 
   @override
@@ -29,7 +28,7 @@ class StaticEffect extends StatelessWidget {
 
           return LedColorPicker(
             currentColor: selectedColor,
-            colorPickStream: _colorStream.sink,
+            onColorPick: _colorStream.sink.add,
           );
         });
   }

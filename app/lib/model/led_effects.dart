@@ -1,6 +1,6 @@
 import 'package:flutter/painting.dart';
 
-abstract class EffectEvent {
+abstract class LedEffect {
   EffectType get type;
 
   String get name => type.name;
@@ -10,7 +10,7 @@ abstract class EffectEvent {
 
 enum EffectType { off, static, breathing, rainbow }
 
-class OffEffectEvent extends EffectEvent {
+class OffEffect extends LedEffect {
   @override
   EffectType get type => EffectType.off;
 
@@ -22,7 +22,7 @@ class OffEffectEvent extends EffectEvent {
   """;
 }
 
-class StaticEffectEvent extends EffectEvent {
+class StaticEffect extends LedEffect {
   @override
   EffectType get type => EffectType.static;
 
@@ -35,11 +35,10 @@ class StaticEffectEvent extends EffectEvent {
     }
   """;
 
-  StaticEffectEvent({required this.color});
+  StaticEffect({required this.color});
 }
 
-// TODO
-class BreathingEffectEvent extends EffectEvent {
+class BreathingEffect extends LedEffect {
   @override
   EffectType get type => EffectType.breathing;
 
@@ -54,12 +53,11 @@ class BreathingEffectEvent extends EffectEvent {
     }
   """;
 
-  BreathingEffectEvent(
+  BreathingEffect(
       {required this.color, required this.step, required this.peak});
 }
 
-// TODO
-class RainbowEffectEvent extends EffectEvent {
+class RainbowEffect extends LedEffect {
   @override
   EffectType get type => EffectType.rainbow;
 
@@ -74,6 +72,6 @@ class RainbowEffectEvent extends EffectEvent {
     }
   """;
 
-  RainbowEffectEvent(
+  RainbowEffect(
       {required this.saturation, required this.value, required this.step});
 }

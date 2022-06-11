@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
-import 'package:rusty_controller/bloc/events/led_effects.dart';
 import 'package:rusty_controller/extensions/color_extensions.dart';
+import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/widgets/effect_chooser.dart';
 import 'package:rusty_controller/widgets/effect_widget.dart';
 
@@ -20,15 +20,14 @@ var graphqlClient = GraphQLClient(
 void main() => runApp(HomeScreen());
 
 class HomeScreen extends StatelessWidget {
-  final _effectChoiceController = StreamController<EffectEvent>();
+  final _effectChoiceController = StreamController<LedEffect>();
 
-  final Map<EffectType, EffectEvent> _effects = {
-    EffectType.off: OffEffectEvent(),
-    EffectType.static: StaticEffectEvent(color: Colors.black.toHSV()),
-    EffectType.breathing: BreathingEffectEvent(
-        color: Colors.black.toHSV(), step: 0.01, peak: 1.0),
-    EffectType.rainbow:
-        RainbowEffectEvent(saturation: 1.0, value: 1.0, step: 1),
+  final Map<EffectType, LedEffect> _effects = {
+    EffectType.off: OffEffect(),
+    EffectType.static: StaticEffect(color: Colors.black.toHSV()),
+    EffectType.breathing:
+        BreathingEffect(color: Colors.black.toHSV(), step: 0.01, peak: 1.0),
+    EffectType.rainbow: RainbowEffect(saturation: 1.0, value: 1.0, step: 1),
   };
 
   HomeScreen({Key? key}) : super(key: key);
@@ -38,8 +37,8 @@ class HomeScreen extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         body: ScaffoldMessenger(
-          child: StreamBuilder<EffectEvent>(
-            initialData: OffEffectEvent(),
+          child: StreamBuilder<LedEffect>(
+            initialData: OffEffect(),
             stream: _effectChoiceController.stream,
             builder: (ctx, snapshot) {
               if (snapshot.hasError) {
