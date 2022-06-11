@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:rusty_controller/bloc/events/led_effects.dart';
+import 'package:rusty_controller/extensions/color_extensions.dart';
 import 'package:rusty_controller/widgets/effect_chooser.dart';
 import 'package:rusty_controller/widgets/effect_widget.dart';
 
@@ -20,6 +21,15 @@ void main() => runApp(HomeScreen());
 
 class HomeScreen extends StatelessWidget {
   final _effectChoiceController = StreamController<EffectEvent>();
+
+  final Map<EffectType, EffectEvent> _effects = {
+    EffectType.off: OffEffectEvent(),
+    EffectType.static: StaticEffectEvent(color: Colors.black.toHSV()),
+    EffectType.breathing: BreathingEffectEvent(
+        color: Colors.black.toHSV(), step: 0.01, peak: 1.0),
+    EffectType.rainbow:
+        RainbowEffectEvent(saturation: 1.0, value: 1.0, step: 1),
+  };
 
   HomeScreen({Key? key}) : super(key: key);
 
@@ -43,9 +53,12 @@ class HomeScreen extends StatelessWidget {
               final currentEffect = snapshot.data!;
 
               if (snapshot.connectionState == ConnectionState.active) {
+                _effects[currentEffect.type] = currentEffect;
                 graphqlClient
-                    .mutate(MutationOptions(
-                        document: gql(currentEffect.graphqlMutation)))
+                    .mutate(
+                      MutationOptions(
+                          document: gql(currentEffect.graphqlMutation)),
+                    )
                     .then(log.v, onError: (msg, _) => log.e(msg));
               }
 
@@ -54,6 +67,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: EffectChooser(
+                          effects: _effects,
                           choiceStream: _effectChoiceController.sink,
                           currentEffect: currentEffect),
                     ),

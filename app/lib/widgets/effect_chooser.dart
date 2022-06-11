@@ -5,19 +5,16 @@ import 'package:rusty_controller/extensions/color_extensions.dart';
 
 import '../bloc/events/led_effects.dart';
 
-final Map<EffectType, EffectEvent> effects = {
-  EffectType.off: OffEffectEvent(),
-  EffectType.static: StaticEffectEvent(color: Colors.black.toHSV()),
-  EffectType.breathing: BreathingEffectEvent(),
-  EffectType.rainbow: RainbowEffectEvent(),
-};
-
 class EffectChooser extends StatelessWidget {
   final EffectEvent currentEffect;
   final StreamSink<EffectEvent> choiceStream;
+  final Map<EffectType, EffectEvent> effects;
 
   const EffectChooser(
-      {Key? key, required this.choiceStream, required this.currentEffect})
+      {Key? key,
+      required this.choiceStream,
+      required this.currentEffect,
+      required this.effects})
       : super(key: key);
 
   @override
@@ -64,9 +61,7 @@ class _EffectChoice extends StatelessWidget {
             Radio<String>(
               groupValue: isSelected ? effect.name : '',
               value: effect.name,
-              onChanged: (_) {
-                choiceStream.add(effect);
-              },
+              onChanged: (_) => choiceStream.add(effect),
             ),
             Text(effect.name),
           ],

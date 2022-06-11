@@ -2,6 +2,7 @@ import 'package:flutter/painting.dart';
 
 abstract class EffectEvent {
   EffectType get type;
+
   String get name => type.name;
 
   String get graphqlMutation;
@@ -42,12 +43,19 @@ class BreathingEffectEvent extends EffectEvent {
   @override
   EffectType get type => EffectType.breathing;
 
+  HSVColor color;
+  double step;
+  double peak;
+
   @override
   String get graphqlMutation => """
     mutation SetLedBreathing {
-      off
+      breathing(h: ${color.hue}, s: ${color.saturation}, initialV: ${color.value}, step: $step, peak: $peak)
     }
   """;
+
+  BreathingEffectEvent(
+      {required this.color, required this.step, required this.peak});
 }
 
 // TODO
@@ -55,10 +63,17 @@ class RainbowEffectEvent extends EffectEvent {
   @override
   EffectType get type => EffectType.rainbow;
 
+  double saturation;
+  double value;
+  double step;
+
   @override
   String get graphqlMutation => """
     mutation SetLedRainbow {
-      off
+      rainbow(s: $saturation, v: $value, step: $step)
     }
   """;
+
+  RainbowEffectEvent(
+      {required this.saturation, required this.value, required this.step});
 }

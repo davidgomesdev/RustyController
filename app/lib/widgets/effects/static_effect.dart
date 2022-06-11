@@ -19,16 +19,16 @@ class StaticEffect extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<HSVColor>(
         stream: _colorStream.stream,
-        initialData: Colors.black.toHSV(),
+        initialData: currentEffect.color,
         builder: (context, snapshot) {
-          final selectedColor = snapshot.data;
+          final selectedColor = snapshot.data ?? currentEffect.color;
 
           if (snapshot.connectionState == ConnectionState.active) {
-            effectStream.add(currentEffect..color = selectedColor!);
+            effectStream.add(currentEffect..color = selectedColor);
           }
 
           return LedColorPicker(
-            currentColor: selectedColor ?? Colors.black.toHSV(),
+            currentColor: selectedColor,
             colorPickStream: _colorStream.sink,
           );
         });
