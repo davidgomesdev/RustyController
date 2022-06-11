@@ -5,12 +5,12 @@ import 'package:rusty_controller/extensions/color_extensions.dart';
 
 import '../bloc/events/led_effects.dart';
 
-final List<EffectEvent> effects = [
-  OffEffectEvent(),
-  StaticEffectEvent(color: Colors.black.toHSV()),
-  BreathingEffectEvent(),
-  RainbowEffectEvent(),
-];
+final Map<EffectType, EffectEvent> effects = {
+  EffectType.off: OffEffectEvent(),
+  EffectType.static: StaticEffectEvent(color: Colors.black.toHSV()),
+  EffectType.breathing: BreathingEffectEvent(),
+  EffectType.rainbow: RainbowEffectEvent(),
+};
 
 class EffectChooser extends StatelessWidget {
   final EffectEvent currentEffect;
@@ -25,8 +25,8 @@ class EffectChooser extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ...effects.map(
-          (effect) => EffectChoice(
+        ...effects.values.map(
+          (effect) => _EffectChoice(
             choiceStream: choiceStream,
             effect: effect,
             isSelected: effect.type == currentEffect.type,
@@ -37,12 +37,12 @@ class EffectChooser extends StatelessWidget {
   }
 }
 
-class EffectChoice extends StatelessWidget {
+class _EffectChoice extends StatelessWidget {
   final EffectEvent effect;
   final bool isSelected;
   final StreamSink<EffectEvent> choiceStream;
 
-  const EffectChoice(
+  const _EffectChoice(
       {Key? key,
       required this.choiceStream,
       required this.effect,

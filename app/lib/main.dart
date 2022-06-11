@@ -43,8 +43,10 @@ class HomeScreen extends StatelessWidget {
               final currentEffect = snapshot.data!;
 
               if (snapshot.connectionState == ConnectionState.active) {
-                graphqlClient.mutate(MutationOptions(
-                    document: gql(currentEffect.graphqlMutation)));
+                graphqlClient
+                    .mutate(MutationOptions(
+                        document: gql(currentEffect.graphqlMutation)))
+                    .then(log.v, onError: (msg, _) => log.e(msg));
               }
 
               return SafeArea(
