@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rusty_controller/bloc/specific_effect_bloc.dart';
 import 'package:rusty_controller/model/led_effects.dart';
 
-class BreathingBloc extends Bloc<BreathingEffectEvent, BreathingEffect> {
+class BreathingBloc
+    extends SpecificEffectBloc<BreathingEffectEvent, BreathingEffect> {
   BreathingBloc(BreathingEffect effect) : super(effect) {
     on<BreathingColorEvent>((event, emit) {
       if (event.initialValue > state.peak) {
