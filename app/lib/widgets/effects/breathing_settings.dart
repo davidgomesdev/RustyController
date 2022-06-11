@@ -1,21 +1,18 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rusty_controller/bloc/breathing_bloc.dart';
+import 'package:rusty_controller/bloc/effect_bloc.dart';
+import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
+import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/widgets/effects/common/led_color_picker.dart';
 
 class BreathingSettings extends StatefulWidget {
-  final StreamSink<LedEffect> effectStream;
+  final EffectBloc effectBloc;
+  final BreathingEffect effect;
 
-  late final BreathingBloc _bloc;
-
-  BreathingSettings(
-      {Key? key, required this.effectStream, required BreathingEffect effect})
-      : super(key: key) {
-    _bloc = BreathingBloc(effect);
-  }
+  const BreathingSettings(
+      {Key? key, required this.effectBloc, required this.effect})
+      : super(key: key);
 
   @override
   State<BreathingSettings> createState() => _BreathingSettingsState();
@@ -24,18 +21,19 @@ class BreathingSettings extends StatefulWidget {
 class _BreathingSettingsState extends State<BreathingSettings> {
   @override
   Widget build(BuildContext context) {
+    final bloc = serviceLocator.get<BreathingBloc>();
+
     return BlocConsumer<BreathingBloc, BreathingEffect>(
-      bloc: widget._bloc,
+      bloc: bloc,
       listener: (ctx, effect) {
-        widget.effectStream.add(effect);
+        widget.effectBloc.add(EffectSettingChangeEvent(effect));
       },
       builder: (ctx, effect) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           LedColorPicker(
             currentColor: effect.color,
-            onColorPick: (color) =>
-                widget._bloc.add(BreathingColorEvent(color)),
+            onColorPick: (color) => bloc.add(BreathingColorEvent(color)),
           ),
           Row(
             children: [
@@ -45,7 +43,7 @@ class _BreathingSettingsState extends State<BreathingSettings> {
                   label: "Step",
                   onChanged: (step) {
                     setState(() {
-                      widget._bloc.add(BreathingStepEvent(step));
+                      bloc.add(BreathingStepEvent(step));
                     });
                   },
                 ),
@@ -55,11 +53,11 @@ class _BreathingSettingsState extends State<BreathingSettings> {
                   value: effect.peak,
                   label: "Peak",
                   onChanged: (peak) {
-                    setState(() {
-                      if (peak > effect.color.value) {
-                        widget._bloc.add(BreathingPeakEvent(peak));
-                      }
-                    });
+                    if (peak > effect.color.value) {
+                      setState(() {
+                        bloc.add(BreathingPeakEvent(peak));
+                      });
+                    }
                   },
                 ),
               ),

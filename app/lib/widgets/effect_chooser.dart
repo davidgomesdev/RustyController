@@ -1,19 +1,14 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:rusty_controller/bloc/effect_bloc.dart';
 
 import '../model/led_effects.dart';
 
 class EffectChooser extends StatelessWidget {
   final LedEffect currentEffect;
-  final StreamSink<LedEffect> choiceStream;
-  final Map<EffectType, LedEffect> effects;
+  final EffectBloc bloc;
 
   const EffectChooser(
-      {Key? key,
-      required this.choiceStream,
-      required this.currentEffect,
-      required this.effects})
+      {Key? key, required this.bloc, required this.currentEffect})
       : super(key: key);
 
   @override
@@ -21,11 +16,11 @@ class EffectChooser extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ...effects.values.map(
-          (effect) => _EffectChoice(
-            choiceStream: choiceStream,
-            effect: effect,
-            isSelected: effect.type == currentEffect.type,
+        ...EffectType.values.map(
+          (type) => _EffectChoice(
+            name: type.name,
+            isSelected: type == currentEffect.type,
+            onSelected: () => bloc.add(EffectTypeChangeEvent(type)),
           ),
         ),
       ],
@@ -34,15 +29,15 @@ class EffectChooser extends StatelessWidget {
 }
 
 class _EffectChoice extends StatelessWidget {
-  final LedEffect effect;
+  final String name;
   final bool isSelected;
-  final StreamSink<LedEffect> choiceStream;
+  final VoidCallback onSelected;
 
   const _EffectChoice(
       {Key? key,
-      required this.choiceStream,
-      required this.effect,
-      required this.isSelected})
+      required this.name,
+      required this.isSelected,
+      required this.onSelected})
       : super(key: key);
 
   @override
@@ -52,17 +47,17 @@ class _EffectChoice extends StatelessWidget {
       child: InkWell(
         onTap: () {
           if (!isSelected) {
-            choiceStream.add(effect);
+            onSelected();
           }
         },
         child: Row(
           children: <Widget>[
             Radio<String>(
-              groupValue: isSelected ? effect.name : '',
-              value: effect.name,
-              onChanged: (_) => choiceStream.add(effect),
+              groupValue: isSelected ? name : '',
+              value: name,
+              onChanged: (_) => onSelected(),
             ),
-            Text(effect.name),
+            Text(name),
           ],
         ),
       ),
