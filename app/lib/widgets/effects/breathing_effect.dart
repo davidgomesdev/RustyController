@@ -43,9 +43,9 @@ class _BreathingSettingsState extends State<BreathingSettings> {
                 child: Slider(
                   value: effect.step,
                   label: "Step",
-                  onChanged: (value) {
+                  onChanged: (step) {
                     setState(() {
-                      widget._bloc.add(BreathingStepEvent(value));
+                      widget._bloc.add(BreathingStepEvent(step));
                     });
                   },
                 ),
@@ -54,9 +54,11 @@ class _BreathingSettingsState extends State<BreathingSettings> {
                 child: Slider(
                   value: effect.peak,
                   label: "Peak",
-                  onChanged: (value) {
+                  onChanged: (peak) {
                     setState(() {
-                      widget._bloc.add(BreathingPeakEvent(value));
+                      if (peak > effect.color.value) {
+                        widget._bloc.add(BreathingPeakEvent(peak));
+                      }
                     });
                   },
                 ),

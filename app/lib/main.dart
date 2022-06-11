@@ -1,24 +1,31 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:rusty_controller/extensions/color_extensions.dart';
 import 'package:rusty_controller/model/led_effects.dart';
+import 'package:rusty_controller/service/controller_service.dart';
 import 'package:rusty_controller/widgets/effect_chooser.dart';
 import 'package:rusty_controller/widgets/effect_widget.dart';
 
 var log = Logger(level: Level.debug, printer: PrettyPrinter());
+var serviceLocator = GetIt.instance;
 
-// TODO: port to a service and DI
-// TODO: use UDP discovery
-var graphqlClient = GraphQLClient(
-  link: HttpLink("http://127.0.0.1:8080/graphql"),
-  cache: GraphQLCache(store: InMemoryStore()),
-);
+void main() {
+  setupDependencies();
 
-void main() => runApp(HomeScreen());
+  runApp(HomeScreen());
+}
 
+// TODO: this could be in its own file
+void setupDependencies() {
+  serviceLocator.registerSingleton(ControllerService());
+}
+
+// TODO: split into:
+// - MainScreen (has the DI and bootstrap stuff); possibly also the caller of the service?
+// - HomeScreen (has the actual effect widgets)
 class HomeScreen extends StatelessWidget {
   final _effectChoiceController = StreamController<LedEffect>();
 
@@ -53,12 +60,8 @@ class HomeScreen extends StatelessWidget {
 
               if (snapshot.connectionState == ConnectionState.active) {
                 _effects[currentEffect.type] = currentEffect;
-                graphqlClient
-                    .mutate(
-                      MutationOptions(
-                          document: gql(currentEffect.graphqlMutation)),
-                    )
-                    .then(log.v, onError: (msg, _) => log.e(msg));
+
+                serviceLocator<ControllerService>().set(effect: currentEffect);
               }
 
               return SafeArea(
