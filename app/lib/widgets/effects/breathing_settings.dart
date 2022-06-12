@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rusty_controller/bloc/effect_bloc.dart';
 import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
 import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/widgets/effects/common/led_color_picker.dart';
 
 class BreathingSettings extends StatefulWidget {
-  final EffectBloc effectBloc;
   final BreathingEffect effect;
 
-  const BreathingSettings(
-      {Key? key, required this.effectBloc, required this.effect})
-      : super(key: key);
+  const BreathingSettings({Key? key, required this.effect}) : super(key: key);
 
   @override
   State<BreathingSettings> createState() => _BreathingSettingsState();

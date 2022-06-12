@@ -24,7 +24,7 @@ class HomeScreen extends StatelessWidget {
             ),
             Expanded(
               flex: 3,
-              child: EffectWidget(effect, bloc: bloc),
+              child: EffectWidget(effect),
             ),
           ],
         );
