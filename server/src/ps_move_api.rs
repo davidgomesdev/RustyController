@@ -383,9 +383,9 @@ impl PsMoveController {
                 let mut new_value = new_hsv.value;
 
                 if *inhaling {
-                    new_value += step
+                    new_value += step * peak
                 } else {
-                    new_value -= step
+                    new_value -= step * peak
                 }
 
                 if new_value >= peak {
@@ -404,7 +404,7 @@ impl PsMoveController {
                 value: _,
                 step,
             } => {
-                // no need to use [saturation] and [value], since it's already when setting effect
+                // no need to use [saturation] and [value], since it was already set in the beginning
                 current_hsv.shift_hue(step)
             }
         }
