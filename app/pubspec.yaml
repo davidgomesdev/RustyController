@@ -17,6 +17,7 @@ dependencies:
   logger: ^1.1.0
   graphql_flutter: ^5.1.0
   get_it: ^7.2.0
+  rate_limiter: ^0.1.1
 
 dev_dependencies:
   flutter_test:

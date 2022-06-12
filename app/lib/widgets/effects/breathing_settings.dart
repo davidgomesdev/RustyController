@@ -19,10 +19,10 @@ class BreathingSettings extends StatefulWidget {
 }
 
 class _BreathingSettingsState extends State<BreathingSettings> {
+  final bloc = serviceLocator.get<BreathingBloc>();
+
   @override
   Widget build(BuildContext context) {
-    final bloc = serviceLocator.get<BreathingBloc>();
-
     return BlocConsumer<BreathingBloc, BreathingEffect>(
       bloc: bloc,
       listener: (ctx, effect) {
@@ -31,40 +31,40 @@ class _BreathingSettingsState extends State<BreathingSettings> {
       builder: (ctx, effect) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          LedColorPicker(
-            currentColor: effect.color,
-            onColorPick: (color) => bloc.add(BreathingColorEvent(color)),
-          ),
-          Row(
-            children: [
-              Flexible(
-                child: Slider(
-                  value: effect.step,
-                  label: "Step",
-                  onChanged: (step) {
-                    setState(() {
-                      bloc.add(BreathingStepEvent(step));
-                    });
-                  },
-                ),
+              LedColorPicker(
+                currentColor: effect.color,
+                onColorPick: (color) => bloc.add(BreathingColorEvent(color)),
               ),
-              Flexible(
-                child: Slider(
-                  value: effect.peak,
-                  label: "Peak",
-                  onChanged: (peak) {
-                    if (peak > effect.color.value) {
-                      setState(() {
-                        bloc.add(BreathingPeakEvent(peak));
-                      });
-                    }
-                  },
-                ),
-              ),
+              Row(
+                children: [
+                  Flexible(
+                    child: Slider(
+                      value: effect.step,
+                      label: "Step",
+                      onChanged: (step) {
+                        setState(() {
+                          bloc.add(BreathingStepEvent(step));
+                        });
+                      },
+                    ),
+                  ),
+                  Flexible(
+                    child: Slider(
+                      value: effect.peak,
+                      label: "Peak",
+                      onChanged: (peak) {
+                        if (peak > effect.color.value) {
+                          setState(() {
+                            bloc.add(BreathingPeakEvent(peak));
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              )
             ],
-          )
-        ],
-      ),
+          ),
     );
   }
 }
