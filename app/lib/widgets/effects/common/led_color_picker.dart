@@ -4,7 +4,7 @@ import 'package:rusty_controller/extensions/color_extensions.dart';
 
 class LedColorPicker extends StatelessWidget {
   final HSVColor currentColor;
-  final ValueSetter<HSVColor> onColorPick;
+  final void Function(HSVColor) onColorPick;
 
   const LedColorPicker(
       {Key? key, required this.currentColor, required this.onColorPick})

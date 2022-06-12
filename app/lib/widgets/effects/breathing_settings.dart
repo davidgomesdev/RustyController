@@ -26,20 +26,26 @@ class _BreathingSettingsState extends State<BreathingSettings> {
         children: [
           LedColorPicker(
             currentColor: effect.color,
-            onColorPick: (color) => bloc.add(BreathingColorEvent(color)),
+            onColorPick: (color) {
+              setState(() {
+                if (color.value > effect.peak) effect.peak = color.value;
+
+                bloc.add(BreathingColorEvent(color));
+              });
+            },
           ),
           Row(
             children: [
               Flexible(
                     child: Slider(
                       value: effect.step,
-                      label: "Step",
-                      onChanged: (step) {
-                        setState(() {
-                          bloc.add(BreathingStepEvent(step));
-                        });
-                      },
-                    ),
+                  max: 0.01,
+                  onChanged: (step) {
+                    setState(() {
+                      bloc.add(BreathingStepEvent(step));
+                    });
+                  },
+                ),
                   ),
                   Flexible(
                     child: Slider(
