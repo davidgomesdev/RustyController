@@ -9,7 +9,7 @@ import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/screen/home_screen.dart';
 import 'package:rusty_controller/service/controller_service.dart';
 
-var log = Logger(level: Level.debug, printer: PrettyPrinter());
+var log = Logger(level: Level.info, printer: PrettyPrinter());
 var serviceLocator = GetIt.instance;
 
 void main() {
@@ -20,6 +20,7 @@ void main() {
 
 // TODO: this could be in its own file
 void setupDependencies() {
+  // Services
   serviceLocator.registerSingleton(ControllerService());
 
   // Effect Blocs
