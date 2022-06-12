@@ -18,11 +18,8 @@ class StaticEffectWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = serviceLocator.get<StaticBloc>();
 
-    return BlocConsumer<StaticBloc, StaticEffect>(
+    return BlocBuilder<StaticBloc, StaticEffect>(
       bloc: bloc,
-      listener: (_, effect) {
-        effectBloc.add(EffectSettingChangeEvent(effect));
-      },
       builder: (_, effect) => LedColorPicker(
         currentColor: effect.color,
         onColorPick: (color) => bloc.add(StaticColorEvent(color)),

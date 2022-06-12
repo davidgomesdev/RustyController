@@ -23,21 +23,18 @@ class _BreathingSettingsState extends State<BreathingSettings> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<BreathingBloc, BreathingEffect>(
+    return BlocBuilder<BreathingBloc, BreathingEffect>(
       bloc: bloc,
-      listener: (ctx, effect) {
-        widget.effectBloc.add(EffectSettingChangeEvent(effect));
-      },
       builder: (ctx, effect) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-              LedColorPicker(
-                currentColor: effect.color,
-                onColorPick: (color) => bloc.add(BreathingColorEvent(color)),
-              ),
-              Row(
-                children: [
-                  Flexible(
+          LedColorPicker(
+            currentColor: effect.color,
+            onColorPick: (color) => bloc.add(BreathingColorEvent(color)),
+          ),
+          Row(
+            children: [
+              Flexible(
                     child: Slider(
                       value: effect.step,
                       label: "Step",
