@@ -20,6 +20,7 @@ void main() {
 
 // TODO: this could be in its own file
 void setupDependencies() {
+  // Services
   serviceLocator.registerSingleton(ControllerService());
 
   // Effect Blocs
