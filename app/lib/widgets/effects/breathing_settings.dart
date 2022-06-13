@@ -37,20 +37,27 @@ class _BreathingSettingsState extends State<BreathingSettings> {
           Row(
             children: [
               Flexible(
-                    child: Slider(
+                child: Column(
+                  children: [
+                    const Text('Step'),
+                    Slider(
                       value: effect.step,
-                  max: 0.01,
-                  onChanged: (step) {
-                    setState(() {
-                      bloc.add(BreathingStepEvent(step));
-                    });
-                  },
+                      max: 0.01,
+                      onChanged: (step) {
+                        setState(() {
+                          bloc.add(BreathingStepEvent(step));
+                        });
+                      },
+                    ),
+                  ],
                 ),
-                  ),
-                  Flexible(
-                    child: Slider(
+              ),
+              Flexible(
+                child: Column(
+                  children: [
+                    const Text('Peak'),
+                    Slider(
                       value: effect.peak,
-                      label: "Peak",
                       onChanged: (peak) {
                         if (peak > effect.color.value) {
                           setState(() {
@@ -59,11 +66,13 @@ class _BreathingSettingsState extends State<BreathingSettings> {
                         }
                       },
                     ),
-                  ),
-                ],
-              )
+                  ],
+                ),
+              ),
             ],
-          ),
+          )
+        ],
+      ),
     );
   }
 }
