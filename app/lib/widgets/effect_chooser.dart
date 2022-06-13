@@ -1,21 +1,14 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import '../bloc/events/led_effects.dart';
+import 'package:rusty_controller/bloc/effect_bloc.dart';
 
-final List<LedEffectEvent> effects = [
-  OffLedEffectEvent(),
-  StaticLedEffectEvent(color: Colors.black),
-  BreathingLedEffectEvent(),
-  RainbowLedEffectEvent(),
-];
+import '../model/led_effects.dart';
 
 class EffectChooser extends StatelessWidget {
-  final LedEffectEvent currentEffect;
-  final StreamSink<LedEffectEvent> choiceStream;
+  final LedEffect currentEffect;
+  final EffectBloc bloc;
 
   const EffectChooser(
-      {Key? key, required this.choiceStream, required this.currentEffect})
+      {Key? key, required this.bloc, required this.currentEffect})
       : super(key: key);
 
   @override
@@ -23,11 +16,11 @@ class EffectChooser extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ...effects.map(
-          (effect) => EffectChoice(
-            choiceStream: choiceStream,
-            effect: effect,
-            isSelected: effect.name == currentEffect.name,
+        ...EffectType.values.map(
+          (type) => _EffectChoice(
+            name: type.name,
+            isSelected: type == currentEffect.type,
+            onSelected: () => bloc.add(EffectTypeChangeEvent(type)),
           ),
         ),
       ],
@@ -35,16 +28,16 @@ class EffectChooser extends StatelessWidget {
   }
 }
 
-class EffectChoice extends StatelessWidget {
-  final LedEffectEvent effect;
+class _EffectChoice extends StatelessWidget {
+  final String name;
   final bool isSelected;
-  final StreamSink<LedEffectEvent> choiceStream;
+  final VoidCallback onSelected;
 
-  const EffectChoice(
+  const _EffectChoice(
       {Key? key,
-      required this.choiceStream,
-      required this.effect,
-      required this.isSelected})
+      required this.name,
+      required this.isSelected,
+      required this.onSelected})
       : super(key: key);
 
   @override
@@ -54,23 +47,18 @@ class EffectChoice extends StatelessWidget {
       child: InkWell(
         onTap: () {
           if (!isSelected) {
-            choiceStream.add(effect);
+            onSelected();
           }
         },
-        child: Padding(
-          padding: EdgeInsets.zero,
-          child: Row(
-            children: <Widget>[
-              Radio<String>(
-                groupValue: isSelected ? effect.name : '',
-                value: effect.name,
-                onChanged: (_) {
-                  choiceStream.add(effect);
-                },
-              ),
-              Text(effect.name),
-            ],
-          ),
+        child: Row(
+          children: <Widget>[
+            Radio<String>(
+              groupValue: isSelected ? name : '',
+              value: name,
+              onChanged: (_) => onSelected(),
+            ),
+            Text(name),
+          ],
         ),
       ),
     );

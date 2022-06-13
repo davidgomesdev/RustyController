@@ -1,14 +1,13 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:rusty_controller/extensions/color_extensions.dart';
 
 class LedColorPicker extends StatelessWidget {
-  final Color currentColor;
-  final StreamSink<Color> colorPickStream;
+  final HSVColor currentColor;
+  final void Function(HSVColor) onColorPick;
 
   const LedColorPicker(
-      {Key? key, required this.currentColor, required this.colorPickStream})
+      {Key? key, required this.currentColor, required this.onColorPick})
       : super(key: key);
 
   @override
@@ -16,8 +15,8 @@ class LedColorPicker extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: SlidePicker(
-        pickerColor: currentColor,
-        onColorChanged: (color) => colorPickStream.add(color),
+        pickerColor: currentColor.toColor(),
+        onColorChanged: (color) => onColorPick(color.toHSV()),
         colorModel: ColorModel.hsv,
         showParams: false,
         showSliderText: false,

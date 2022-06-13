@@ -1,78 +1,58 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:rusty_controller/bloc/events/led_effects.dart';
-import 'package:rusty_controller/widgets/effect_chooser.dart';
-import 'package:rusty_controller/widgets/effects/static_effect_settings.dart';
+import 'package:get_it/get_it.dart';
+import 'package:logger/logger.dart';
+import 'package:rusty_controller/bloc/effect_bloc.dart';
+import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
+import 'package:rusty_controller/bloc/effects/rainbow_bloc.dart';
+import 'package:rusty_controller/bloc/effects/static_bloc.dart';
+import 'package:rusty_controller/extensions/color_extensions.dart';
+import 'package:rusty_controller/global_consts.dart';
+import 'package:rusty_controller/model/led_effects.dart';
+import 'package:rusty_controller/screen/home_screen.dart';
+import 'package:rusty_controller/service/controller_service.dart';
+
+var log = Logger(level: Level.info, printer: PrettyPrinter());
+var serviceLocator = GetIt.instance;
 
 void main() {
-  runApp(MaterialApp(
-    builder: (ctx, _) => HomeScreen(),
-  ));
+  setupDependencies();
+
+  runApp(const BaseScreen());
 }
 
-class HomeScreen extends StatelessWidget {
-  final _effectChoiceController = StreamController<LedEffectEvent>();
+// TODO: this could be in its own file
+void setupDependencies() {
+  // Services
+  serviceLocator.registerSingleton(ControllerService());
 
-  HomeScreen({Key? key}) : super(key: key);
+  // Effect Blocs
+  serviceLocator.registerLazySingleton(
+    () => EffectBloc(OffEffect()),
+  );
+  serviceLocator.registerLazySingleton(
+    () => StaticBloc(StaticEffect(color: Colors.black.toHSV())),
+  );
+  serviceLocator.registerLazySingleton(
+    () => BreathingBloc(BreathingEffect(
+        color: Colors.black.toHSV(), step: maxBreathingStep, peak: 1.0)),
+  );
+  serviceLocator.registerLazySingleton(
+    () => RainbowBloc(
+        RainbowEffect(saturation: 1.0, value: 1.0, step: maxRainbowStep)),
+  );
+}
+
+class BaseScreen extends StatelessWidget {
+  const BaseScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ScaffoldMessenger(
-        child: StreamBuilder<LedEffectEvent>(
-          initialData: OffLedEffectEvent(),
-          stream: _effectChoiceController.stream,
-          builder: (ctx, snapshot) {
-            if (!snapshot.hasData) {
-              return const CircularProgressIndicator.adaptive();
-            }
-
-            if (snapshot.hasError) {
-              final snackBar = SnackBar(
-                content: const Text('Yay! A SnackBar!'),
-                action: SnackBarAction(
-                  label: 'Undo',
-                  onPressed: () {
-                    // Some code to undo the change.
-                  },
-                ),
-              );
-
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);
-            }
-
-            final currentEffect = snapshot.data!;
-            final settings =
-                _getEffectSettings(currentEffect, _effectChoiceController.sink);
-
-            return Row(
-              children: [
-                Expanded(
-                  child: EffectChooser(
-                      choiceStream: _effectChoiceController.sink,
-                      currentEffect: currentEffect),
-                ),
-                Expanded(
-                  child: settings,
-                ),
-              ],
-            );
-          },
+    return const MaterialApp(
+      home: Scaffold(
+        body: ScaffoldMessenger(
+          child: SafeArea(child: HomeScreen()),
         ),
       ),
     );
-  }
-
-  Widget _getEffectSettings(
-      LedEffectEvent currentEffect, StreamSink<LedEffectEvent> colorStream) {
-    if (currentEffect is StaticLedEffectEvent) {
-      return StaticEffectSettings(
-        effectStream: colorStream,
-        currentEffect: currentEffect,
-      );
-    } else {
-      return Container();
-    }
   }
 }

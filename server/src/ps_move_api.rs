@@ -91,16 +91,28 @@ impl PsMoveApi {
         return controllers;
     }
 
-    fn remove_disconnected<'a>(current_controllers: &mut Vec<Box<PsMoveController>>, mut controllers: &mut impl Iterator<Item=&'a DeviceInfo>) {
-        current_controllers.retain(|controller| controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path));
+    fn remove_disconnected<'a>(
+        current_controllers: &mut Vec<Box<PsMoveController>>,
+        mut controllers: &mut impl Iterator<Item=&'a DeviceInfo>,
+    ) {
+        current_controllers.retain(|controller| {
+            controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path)
+        });
     }
 
-    fn connect_new_controllers(&self, current_controllers: &mut Vec<Box<PsMoveController>>, controllers: &mut dyn Iterator<Item=&DeviceInfo>) -> Vec<Box<PsMoveController>> {
+    fn connect_new_controllers(
+        &self,
+        current_controllers: &mut Vec<Box<PsMoveController>>,
+        controllers: &mut dyn Iterator<Item=&DeviceInfo>,
+    ) -> Vec<Box<PsMoveController>> {
         controllers
-            .filter(|dev_info| !current_controllers.iter().any(|controller| dev_info.path().to_str().unwrap() == controller.path))
+            .filter(|dev_info| {
+                !current_controllers
+                    .iter()
+                    .any(|controller| dev_info.path().to_str().unwrap() == controller.path)
+            })
             .map(|dev_info| {
-                let serial_number =
-                    CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
+                let serial_number = CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
 
                 self.connect_controller(&serial_number, dev_info.path())
             })
@@ -305,11 +317,8 @@ impl PsMoveController {
                 peak,
                 inhaling: _,
             } => {
-                if peak <= initial_hsv.value {
+                if peak < initial_hsv.value {
                     error!("Peak must be higher than initial value")
-                }
-                if step >= peak {
-                    error!("Step must be lower than peak")
                 }
 
                 initial_hsv
@@ -371,9 +380,9 @@ impl PsMoveController {
                 let mut new_value = new_hsv.value;
 
                 if *inhaling {
-                    new_value += step
+                    new_value += step * peak
                 } else {
-                    new_value -= step
+                    new_value -= step * peak
                 }
 
                 if new_value >= peak {
@@ -392,8 +401,9 @@ impl PsMoveController {
                 value: _,
                 step,
             } => {
-                // no need to use [saturation] and [value], since it's already when setting effect
-                current_hsv.shift_hue(step)
+                // no need to use [saturation] and [value], since it was already set in the beginning
+                // similar to breathing, the step is relative to the max possible value
+                current_hsv.shift_hue(step * 360.0)
             }
         }
     }
