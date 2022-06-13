@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
+import 'package:rusty_controller/global_consts.dart';
 import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/widgets/effects/common/labeled_slider.dart';
 import 'package:rusty_controller/widgets/effects/common/led_color_picker.dart';
 
 class BreathingSettings extends StatefulWidget {
-  final BreathingEffect effect;
-
-  const BreathingSettings({Key? key, required this.effect}) : super(key: key);
+  const BreathingSettings({Key? key}) : super(key: key);
 
   @override
   State<BreathingSettings> createState() => _BreathingSettingsState();
@@ -35,33 +34,31 @@ class _BreathingSettingsState extends State<BreathingSettings> {
               });
             },
           ),
-          Row(
+          Column(
             children: [
-              Flexible(
-                child: LabeledSlider(
-                  label: 'Step',
-                  value: effect.step,
-                  max: 0.01,
-                  onChanged: (step) {
-                    setState(() {
-                      bloc.add(BreathingStepEvent(step));
-                    });
-                  },
-                ),
+              LabeledSlider(
+                label: 'Step',
+                value: effect.step,
+                min: minBreathingStep,
+                max: maxBreathingStep,
+                onChanged: (step) {
+                  setState(() {
+                    bloc.add(BreathingStepEvent(step));
+                  });
+                },
               ),
-              Flexible(
-                child: LabeledSlider(
-                  label: 'Peak',
-                  value: effect.peak,
-                  onChanged: (peak) {
-                    if (peak < effect.color.value) {
-                      peak = effect.color.value;
-                    }
-                    setState(() {
-                      bloc.add(BreathingPeakEvent(peak));
-                    });
-                  },
-                ),
+              LabeledSlider(
+                label: 'Peak',
+                value: effect.peak,
+                onChanged: (peak) {
+                  if (peak < effect.color.value) {
+                    peak = effect.color.value;
+                  }
+
+                  setState(() {
+                    bloc.add(BreathingPeakEvent(peak));
+                  });
+                },
               ),
             ],
           )

@@ -6,13 +6,8 @@ import 'package:rusty_controller/model/led_effects.dart';
 class BreathingBloc
     extends SpecificEffectBloc<BreathingEffectEvent, BreathingEffect> {
   BreathingBloc(BreathingEffect effect) : super(effect) {
-    on<BreathingColorEvent>((event, emit) {
-      if (event.initialValue > state.peak) {
-        state.peak = event.initialValue;
-      }
-
-      emit(state..color = event.currentColor);
-    });
+    on<BreathingColorEvent>(
+        (event, emit) => emit(state..color = event.currentColor));
     on<BreathingStepEvent>((event, emit) => emit(state..step = event.step));
     on<BreathingPeakEvent>((event, emit) => emit(state..peak = event.peak));
   }

@@ -3,8 +3,10 @@ import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:rusty_controller/bloc/effect_bloc.dart';
 import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
+import 'package:rusty_controller/bloc/effects/rainbow_bloc.dart';
 import 'package:rusty_controller/bloc/effects/static_bloc.dart';
 import 'package:rusty_controller/extensions/color_extensions.dart';
+import 'package:rusty_controller/global_consts.dart';
 import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/screen/home_screen.dart';
 import 'package:rusty_controller/service/controller_service.dart';
@@ -31,8 +33,12 @@ void setupDependencies() {
     () => StaticBloc(StaticEffect(color: Colors.black.toHSV())),
   );
   serviceLocator.registerLazySingleton(
-    () => BreathingBloc(
-        BreathingEffect(color: Colors.black.toHSV(), step: 0.01, peak: 1.0)),
+    () => BreathingBloc(BreathingEffect(
+        color: Colors.black.toHSV(), step: maxBreathingStep, peak: 1.0)),
+  );
+  serviceLocator.registerLazySingleton(
+    () => RainbowBloc(
+        RainbowEffect(saturation: 1.0, value: 1.0, step: maxRainbowStep)),
   );
 }
 
