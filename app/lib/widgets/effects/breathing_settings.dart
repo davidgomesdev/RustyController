@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
 import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/led_effects.dart';
+import 'package:rusty_controller/widgets/effects/common/labeled_slider.dart';
 import 'package:rusty_controller/widgets/effects/common/led_color_picker.dart';
 
 class BreathingSettings extends StatefulWidget {
@@ -37,36 +38,29 @@ class _BreathingSettingsState extends State<BreathingSettings> {
           Row(
             children: [
               Flexible(
-                child: Column(
-                  children: [
-                    const Text('Step'),
-                    Slider(
-                      value: effect.step,
-                      max: 0.01,
-                      onChanged: (step) {
-                        setState(() {
-                          bloc.add(BreathingStepEvent(step));
-                        });
-                      },
-                    ),
-                  ],
+                child: LabeledSlider(
+                  label: 'Step',
+                  value: effect.step,
+                  max: 0.01,
+                  onChanged: (step) {
+                    setState(() {
+                      bloc.add(BreathingStepEvent(step));
+                    });
+                  },
                 ),
               ),
               Flexible(
-                child: Column(
-                  children: [
-                    const Text('Peak'),
-                    Slider(
-                      value: effect.peak,
-                      onChanged: (peak) {
-                        if (peak > effect.color.value) {
-                          setState(() {
-                            bloc.add(BreathingPeakEvent(peak));
-                          });
-                        }
-                      },
-                    ),
-                  ],
+                child: LabeledSlider(
+                  label: 'Peak',
+                  value: effect.peak,
+                  onChanged: (peak) {
+                    if (peak < effect.color.value) {
+                      peak = effect.color.value;
+                    }
+                    setState(() {
+                      bloc.add(BreathingPeakEvent(peak));
+                    });
+                  },
                 ),
               ),
             ],
