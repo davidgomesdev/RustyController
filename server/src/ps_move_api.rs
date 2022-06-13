@@ -317,11 +317,8 @@ impl PsMoveController {
                 peak,
                 inhaling: _,
             } => {
-                if peak <= initial_hsv.value {
+                if peak < initial_hsv.value {
                     error!("Peak must be higher than initial value")
-                }
-                if step >= peak {
-                    error!("Step must be lower than peak")
                 }
 
                 initial_hsv
@@ -405,7 +402,8 @@ impl PsMoveController {
                 step,
             } => {
                 // no need to use [saturation] and [value], since it was already set in the beginning
-                current_hsv.shift_hue(step)
+                // similar to breathing, the step is relative to the max possible value
+                current_hsv.shift_hue(step * 360.0)
             }
         }
     }
