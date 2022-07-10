@@ -17,10 +17,12 @@ class EffectChooser extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ...EffectType.values.map(
-          (type) => _EffectChoice(
-            name: type.name,
-            isSelected: type == currentEffect.type,
-            onSelected: () => bloc.add(EffectTypeChangeEvent(type)),
+          (type) => Flexible(
+            child: _EffectChoice(
+              name: type.name,
+              isSelected: type == currentEffect.type,
+              onSelected: () => bloc.add(EffectTypeChangeEvent(type)),
+            ),
           ),
         ),
       ],
@@ -52,12 +54,14 @@ class _EffectChoice extends StatelessWidget {
         },
         child: Row(
           children: <Widget>[
-            Radio<String>(
-              groupValue: isSelected ? name : '',
-              value: name,
-              onChanged: (_) => onSelected(),
+            Expanded(
+              child: Radio<String>(
+                groupValue: isSelected ? name : '',
+                value: name,
+                onChanged: (_) => onSelected(),
+              ),
             ),
-            Text(name),
+            Expanded(flex: 2, child: Text(name)),
           ],
         ),
       ),

@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
             Expanded(
               child: EffectChooser(currentEffect: effect, bloc: bloc),
             ),
-            Expanded(
+            Flexible(
               flex: 3,
               child: EffectWidget(effect),
             ),
