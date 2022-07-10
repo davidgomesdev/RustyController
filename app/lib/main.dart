@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
+import 'package:rusty_controller/bloc/discovery_bloc.dart';
 import 'package:rusty_controller/bloc/effect_bloc.dart';
 import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
 import 'package:rusty_controller/bloc/effects/rainbow_bloc.dart';
@@ -10,6 +11,7 @@ import 'package:rusty_controller/global_consts.dart';
 import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/screen/home_screen.dart';
 import 'package:rusty_controller/service/controller_service.dart';
+import 'package:rusty_controller/service/discovery_service.dart';
 
 var log = Logger(level: Level.info, printer: PrettyPrinter());
 var serviceLocator = GetIt.instance;
@@ -22,8 +24,8 @@ void main() {
 
 // TODO: this could be in its own file
 void setupDependencies() {
-  // Services
-  serviceLocator.registerSingleton(ControllerService());
+  // Connection Bloc
+  serviceLocator.registerSingleton(DiscoveryBloc());
 
   // Effect Blocs
   serviceLocator.registerLazySingleton(
@@ -40,6 +42,10 @@ void setupDependencies() {
     () => RainbowBloc(
         RainbowEffect(saturation: 1.0, value: 1.0, step: maxRainbowStep)),
   );
+
+  // Services
+  serviceLocator.registerSingleton(DiscoveryService());
+  serviceLocator.registerSingleton(ControllerService());
 }
 
 class BaseScreen extends StatelessWidget {

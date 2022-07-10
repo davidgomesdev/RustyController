@@ -1,0 +1,1 @@
+const healthQuery = "query { health }";

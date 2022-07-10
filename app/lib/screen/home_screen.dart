@@ -1,33 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rusty_controller/bloc/effect_bloc.dart';
+import 'package:rusty_controller/bloc/discovery_bloc.dart';
 import 'package:rusty_controller/main.dart';
-import 'package:rusty_controller/model/led_effects.dart';
-import 'package:rusty_controller/widgets/effect_chooser.dart';
-import 'package:rusty_controller/widgets/effect_widget.dart';
+import 'package:rusty_controller/screen/effect_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final bloc = serviceLocator.get<EffectBloc>();
+    final bloc = serviceLocator.get<DiscoveryBloc>();
 
-    return BlocBuilder<EffectBloc, LedEffect>(
+    return BlocBuilder<DiscoveryBloc, RustyConnectionState>(
       bloc: bloc,
-      builder: (_, effect) {
-        return Row(
-          children: [
-            Expanded(
-              child: EffectChooser(currentEffect: effect, bloc: bloc),
-            ),
-            Flexible(
-              flex: 3,
-              child: EffectWidget(effect),
-            ),
-          ],
-        );
+      builder: (_, state) {
+        if (state is DisconnectedState) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Center(
+                child: Text(
+                  "Not connected to the server, re-trying... ",
+                ),
+              ),
+              Center(
+                child: Text(
+                  "Make sure you are on the same network as rusty",
+                ),
+              ),
+            ],
+          );
+        } else if (state is ConnectedState) {
+          return const EffectScreen();
+        }
+
+        return Container();
       },
     );
   }
