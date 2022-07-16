@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:rusty_controller/bloc/discovery_bloc.dart';
 import 'package:rusty_controller/extensions/network_extensions.dart';
@@ -18,7 +19,11 @@ class DiscoveryService {
   RawDatagramSocket? _oldSocket;
 
   DiscoveryService() {
-    serviceLocator.get<DiscoveryBloc>().add(NotConnectedEvent());
+    if (kDebugMode) {
+      serviceLocator.get<DiscoveryBloc>().add(DiscoveredEvent('127.0.0.1'));
+    } else {
+      serviceLocator.get<DiscoveryBloc>().add(NotConnectedEvent());
+    }
   }
 
   void discover() async {
