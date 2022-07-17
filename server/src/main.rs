@@ -1,7 +1,6 @@
-use std::{io::Error, sync::Arc};
+use std::sync::Arc;
 
 use log::{error, info};
-use tokio::signal;
 use tokio::sync::watch;
 
 use graphql::graphql_api;
@@ -17,7 +16,7 @@ async fn main() {
 
     let (tx, rx) = watch::channel(LedEffect::Off);
 
-    let task = tokio::spawn(move_task::run_move(rx));
+    tokio::spawn(move_task::run_move(rx));
     match graphql_api::start(Arc::new(tx)).await {
         Ok(_) => {}
         Err(err) => { error!("Couldn't start GraphQL! {}", err) }

@@ -4,8 +4,8 @@ import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
 import 'package:rusty_controller/global_consts.dart';
 import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/led_effects.dart';
-import 'package:rusty_controller/widgets/effects/common/labeled_slider.dart';
-import 'package:rusty_controller/widgets/effects/common/led_color_picker.dart';
+import 'package:rusty_controller/widgets/effect_settings/common/labeled_slider.dart';
+import 'package:rusty_controller/widgets/effect_settings/common/led_color_picker.dart';
 
 class BreathingSettings extends StatefulWidget {
   const BreathingSettings({Key? key}) : super(key: key);

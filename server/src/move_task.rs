@@ -1,19 +1,12 @@
 use std::{
-    borrow::Borrow,
     sync::{Arc, Mutex},
     time::Duration,
 };
-use std::borrow::BorrowMut;
-use std::sync::MutexGuard;
-use std::thread::current;
-use std::time::Instant;
 
-use juniper::futures::StreamExt;
 use log::{debug, error, info};
-use palette::{encoding::Srgb, Hsv};
-use tokio::{sync::watch::Receiver, task::JoinError, time};
+use tokio::{sync::watch::Receiver, time};
+use tokio::net::UdpSocket;
 use tokio::task::JoinHandle;
-use tokio::time::Interval;
 
 use ps_move_api::LedEffect;
 
@@ -22,6 +15,11 @@ use crate::ps_move_api::MAX_LED_PWM_FREQUENCY;
 use super::ps_move_api::{self, PsMoveApi, PsMoveController};
 
 const LIST_INTERVAL_MS: u64 = 500;
+
+const HANDSHAKE_BEGIN_PORT: u16 = 31337;
+const HANDSHAKE_END_PORT: u16 = 31338;
+const HANDSHAKE_REQUEST: &str = "HelloDearRusty";
+const HANDSHAKE_RESPONSE: &str = "HeyoDearClient";
 
 fn spawn_list_task(
     controllers: Arc<Mutex<PsMoveControllers>>,
@@ -34,7 +32,7 @@ fn spawn_list_task(
             interval.tick().await;
 
             let mut controllers = controllers.lock().unwrap();
-            let mut new_controllers = api.list(&mut controllers.list);
+            let new_controllers = api.list(&mut controllers.list);
 
             new_controllers
                 .into_iter()
@@ -43,6 +41,7 @@ fn spawn_list_task(
     })
 }
 
+#[allow(dead_code)]
 fn is_connected(
     updated_controllers: &Vec<Box<PsMoveController>>,
     controller: &Box<PsMoveController>,
@@ -129,14 +128,56 @@ fn spawn_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<(
     })
 }
 
+fn spawn_ip_discovery_task() -> JoinHandle<Option<()>> {
+    tokio::spawn(async {
+        let socket = UdpSocket::bind(format!("0.0.0.0:{HANDSHAKE_BEGIN_PORT}")).await.expect("Failed binding");
+        info!("Binding on {}", HANDSHAKE_BEGIN_PORT);
+
+        socket.set_broadcast(true).unwrap();
+
+        loop {
+            let mut packet = [0; 16];
+
+            let recv = socket.recv_from(&mut packet).await;
+
+            if recv.is_err() {
+                continue;
+            }
+
+            let (_, mut src) = recv.unwrap();
+
+            let ascii_packet = String::from_utf8_lossy(&packet[..14]);
+
+            if !ascii_packet.starts_with(HANDSHAKE_REQUEST) {
+                debug!("Received a packet that's not the Rusty handshake");
+                continue;
+            }
+
+            info!("Received Rusty handshake begin from {}:{}!", src.ip(), src.port());
+
+            src.set_port(HANDSHAKE_END_PORT);
+
+            info!("Sending handshake end to {}:{}", src.ip(), src.port());
+
+            socket
+                .send_to(&HANDSHAKE_RESPONSE.as_bytes(), &src)
+                .await
+                .expect("Failed sending response");
+
+            info!("Handshake with {} finished", src.ip());
+        }
+    })
+}
+
 pub async fn run_move(rx: Receiver<LedEffect>) {
-    let mut api = PsMoveApi::new();
+    let api = PsMoveApi::new();
 
     let controllers = Arc::new(Mutex::new(PsMoveControllers::new()));
 
     spawn_set_effect_task(controllers.clone(), rx);
     spawn_list_task(controllers.clone(), api);
     spawn_update_task(controllers);
+    spawn_ip_discovery_task();
 }
 
 struct PsMoveControllers {

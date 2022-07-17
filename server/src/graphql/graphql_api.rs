@@ -5,9 +5,8 @@ use actix_cors::Cors;
 use actix_web::{
     App, Error, get,
     HttpResponse,
-    HttpServer, middleware, Responder, route, web::{self, Data},
+    HttpServer, middleware, Responder, route, web::Data,
 };
-use actix_web::dev::Server;
 use actix_web::web::Json;
 use actix_web_lab::respond::Html;
 use juniper::http::graphiql::graphiql_source;

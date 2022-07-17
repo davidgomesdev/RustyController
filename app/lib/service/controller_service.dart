@@ -1,20 +1,14 @@
-import 'dart:isolate';
-
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:rusty_controller/bloc/discovery_bloc.dart';
 import 'package:rusty_controller/extensions/color_extensions.dart';
 import 'package:rusty_controller/main.dart';
+import 'package:rusty_controller/model/graphql_queries.dart';
 import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/service/worker_service.dart';
 
-final recv = ReceivePort();
-
 class ControllerService {
-// TODO: use UDP discovery
-  final _graphqlClient = GraphQLClient(
-    link: HttpLink("http://127.0.0.1:8080/graphql"),
-    cache: GraphQLCache(store: InMemoryStore()),
-  );
+  late GraphQLClient _graphqlClient;
 
   final Map<EffectType, LedEffect> _effects = {
     EffectType.off: OffEffect(),
@@ -25,13 +19,27 @@ class ControllerService {
   };
 
   ControllerService() {
-    serviceLocator.registerSingletonAsync(() async =>
-        await WorkerService.create<LedEffect>((effect) async {
-          log.d("Sending mutation for '${effect.name}' effect");
-          await _graphqlClient
-              .mutate(MutationOptions(document: gql(effect.graphqlMutation)))
-              .then(log.v, onError: (msg, _) => log.e(msg));
-        }));
+    serviceLocator.registerSingletonAsync(
+        () async => await WorkerService.create<LedEffect>(_sendEffect));
+  }
+
+  void connect(String ip) {
+    _graphqlClient = GraphQLClient(
+      link: HttpLink("http://$ip:8080/graphql"),
+      cache: GraphQLCache(store: InMemoryStore()),
+    );
+
+    _graphqlClient.query(QueryOptions(document: gql(healthQuery))).then((_) {
+      serviceLocator.get<DiscoveryBloc>().add(ConnectedEvent());
+    })._reconnectOnTimeout();
+  }
+
+  Future<void> _sendEffect(LedEffect effect) async {
+    log.d("Sending mutation for '${effect.name}' effect");
+    await _graphqlClient
+        .mutate(MutationOptions(document: gql(effect.graphqlMutation)))
+        .then(log.v, onError: (msg, _) => log.e(msg))
+        ._reconnectOnTimeout();
   }
 
   void set({required LedEffect effect}) {
@@ -48,5 +56,13 @@ class ControllerService {
     if (effect == null) throw ArgumentError.notNull("effect");
 
     return effect;
+  }
+}
+
+extension on Future {
+  Future _reconnectOnTimeout() {
+    return timeout(const Duration(seconds: 3), onTimeout: () {
+      serviceLocator.get<DiscoveryBloc>().add(NotConnectedEvent());
+    });
   }
 }
