@@ -77,7 +77,7 @@ fn update_list(controllers: &mut Vec<Box<PsMoveController>>, controller: Box<PsM
         }
         None => {
             info!(
-                "New controller! ({} by {})",
+                "New controller! ('{}' by {})",
                 controller.bt_address, controller.connection_type
             );
 

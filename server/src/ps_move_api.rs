@@ -2,7 +2,7 @@ use std::ffi::{CStr, CString};
 use std::str;
 
 use hidapi::{DeviceInfo, HidApi, HidDevice};
-use log::{error, info};
+use log::{debug, error, info};
 use palette::{FromColor, Hsv, Hue, Srgb};
 use strum_macros::Display;
 
@@ -11,7 +11,8 @@ use crate::ps_move_api::PsMoveBatteryLevel::{
     Unknown,
 };
 
-const MAGIC_PATH: &str = "&col01#";
+const MAGIC_PATH: &str = "&Col01#";
+const WINDOWS_BLUETOOTH_MAGIC_PATH: &str = "&Col02#";
 const PS_MOVE_VENDOR_ID: u16 = 0x054c;
 const PS_MOVE_PRODUCT_ID: u16 = 0x03d5;
 
@@ -147,7 +148,30 @@ impl PsMoveApi {
 
                 if address.is_empty() {
                     connection_type = PsMoveConnectionType::USB;
-                    address = Self::get_bt_address(&device).unwrap_or(String::from(""))
+
+                    if cfg!(windows) {
+                        debug!("Getting bluetooth address by special device, due to Windows.");
+                        let mut bt_path_str = path_str.clone();
+
+                        bt_path_str = bt_path_str
+                            .replace(MAGIC_PATH, WINDOWS_BLUETOOTH_MAGIC_PATH)
+                            .replace("&0000#", "&0001#");
+
+                        match self
+                            .hid
+                            .open_path(&*CString::new(bt_path_str.clone()).unwrap())
+                        {
+                            Ok(special_bt_device) => {
+                                info!("Got special device for bluetooth.");
+                                address = Self::get_bt_address(&special_bt_device)
+                                    .unwrap_or(String::from(""));
+                            }
+                            Err(err) => error!("Couldn't open device. Caused by: {}", err),
+                        }
+                    } else {
+                        address = Self::get_bt_address(&device)
+                            .unwrap_or(String::from(""))
+                    }
                 } else {
                     connection_type = PsMoveConnectionType::Bluetooth;
                 }
@@ -176,7 +200,7 @@ impl PsMoveApi {
         let vendor_id = dev_info.vendor_id();
         let product_id = dev_info.product_id();
 
-        if cfg!(windows) && !path.to_lowercase().contains(MAGIC_PATH) {
+        if cfg!(windows) && !path.contains(MAGIC_PATH) {
             return false;
         }
 
@@ -212,7 +236,7 @@ impl PsMoveApi {
                     addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]
                 );
 
-                info!("Got bt address {}", addr);
+                info!("Got bluetooth address {}", addr);
 
                 Some(addr)
             }
@@ -334,7 +358,7 @@ impl PsMoveController {
                 }
 
                 Hsv::from_components((0.0, saturation, value))
-            },
+            }
         };
         self.effect = effect
     }
