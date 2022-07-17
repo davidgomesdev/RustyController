@@ -1,12 +1,8 @@
-use std::borrow::Borrow;
 use std::ffi::{CStr, CString};
-use std::fmt;
-use std::iter::Filter;
 use std::str;
 
-use actix_web::connect;
-use hidapi::{DeviceInfo, HidApi, HidDevice, HidResult};
-use log::{debug, error, info};
+use hidapi::{DeviceInfo, HidApi, HidDevice};
+use log::{error, info};
 use palette::{FromColor, Hsv, Hue, Srgb};
 use strum_macros::Display;
 
@@ -24,7 +20,7 @@ const PS_MOVE_BT_ADDR_GET_SIZE: usize = 16;
 pub const MIN_LED_PWM_FREQUENCY: u64 = 733;
 pub const MAX_LED_PWM_FREQUENCY: u64 = 0x24e6;
 
-#[allow(unused_variables)]
+#[allow(unused)]
 enum PsMoveRequestType {
     GetInput = 0x01,
     SetLED = 0x06,
@@ -93,7 +89,7 @@ impl PsMoveApi {
 
     fn remove_disconnected<'a>(
         current_controllers: &mut Vec<Box<PsMoveController>>,
-        mut controllers: &mut impl Iterator<Item=&'a DeviceInfo>,
+        controllers: &mut impl Iterator<Item=&'a DeviceInfo>,
     ) {
         current_controllers.retain(|controller| {
             controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path)
@@ -117,7 +113,7 @@ impl PsMoveApi {
                 self.connect_controller(&serial_number, dev_info.path())
             })
             .flatten()
-            .fold(Vec::<Box<PsMoveController>>::new(), |mut res, curr| {
+            .fold(Vec::<Box<PsMoveController>>::new(), |res, curr| {
                 self.merge_usb_with_bt_device(res, curr)
             })
     }
@@ -127,7 +123,7 @@ impl PsMoveApi {
         serial_number: &CStr,
         path: &CStr,
     ) -> Option<Box<PsMoveController>> {
-        let mut path_str = String::from(path.to_str().unwrap());
+        let path_str = String::from(path.to_str().unwrap());
         let mut address = String::from(serial_number.to_str().unwrap_or(""));
 
         let device = if address.is_empty() && !path_str.is_empty() {
@@ -147,7 +143,7 @@ impl PsMoveApi {
                     }
                 }
 
-                let mut connection_type = PsMoveConnectionType::Unknown;
+                let connection_type;
 
                 if address.is_empty() {
                     connection_type = PsMoveConnectionType::USB;
@@ -164,7 +160,7 @@ impl PsMoveApi {
                 )))
             }
             Err(err) => {
-                error!("Couldn't open '{}'", path_str);
+                error!("Couldn't open '{}'. Caused by {}", path_str, err);
                 None
             }
         }
@@ -216,6 +212,8 @@ impl PsMoveApi {
                     addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]
                 );
 
+                info!("Got bt address {}", addr);
+
                 Some(addr)
             }
             Err(err) => {
@@ -244,7 +242,6 @@ pub struct PsMoveSetting {
 
 #[derive(Display, PartialEq)]
 pub enum PsMoveConnectionType {
-    Unknown,
     USB,
     Bluetooth,
     USBAndBluetooth,
@@ -317,6 +314,10 @@ impl PsMoveController {
                 peak,
                 inhaling: _,
             } => {
+                if step < 0.0 || step > 1.0 {
+                    error!("Step must be between 0.0 and 1.0")
+                }
+
                 if peak < initial_hsv.value {
                     error!("Peak must be higher than initial value")
                 }
@@ -326,12 +327,19 @@ impl PsMoveController {
             LedEffect::Rainbow {
                 saturation,
                 value,
-                step: _,
-            } => Hsv::from_components((0.0, saturation, value)),
+                step,
+            } => {
+                if step > 360.0 {
+                    error!("Step can't be higher than 360 (max hue)")
+                }
+
+                Hsv::from_components((0.0, saturation, value))
+            },
         };
         self.effect = effect
     }
 
+    #[allow(dead_code)]
     pub fn set_rumble(&mut self, rumble: f32) -> bool {
         if rumble < 0.0 || rumble > 1.0 {
             false
@@ -493,7 +501,7 @@ pub fn build_hsv(h: f64, s: f64, v: f64) -> Hsv {
 }
 
 /// Adapted from [psmoveapi's source](https://github.com/thp/psmoveapi/blob/master/src/psmove.c)
-#[allow(unused_variables)]
+#[allow(unused)]
 struct PsMoveDataInput {
     // message type, must be PSMove_Req_GetInput
     msg_type: u8,

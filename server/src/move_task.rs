@@ -1,22 +1,12 @@
 use std::{
-    borrow::Borrow,
     sync::{Arc, Mutex},
     time::Duration,
 };
-use std::borrow::BorrowMut;
-use std::io::Write;
-use std::sync::MutexGuard;
-use std::thread::current;
-use std::time::Instant;
 
-use juniper::futures::StreamExt;
-use log::{debug, error, info, warn};
-use palette::{encoding::Srgb, Hsv};
-use tokio::{sync::watch::Receiver, task::JoinError, time};
-use tokio::io::AsyncWriteExt;
+use log::{debug, error, info};
+use tokio::{sync::watch::Receiver, time};
 use tokio::net::UdpSocket;
 use tokio::task::JoinHandle;
-use tokio::time::Interval;
 
 use ps_move_api::LedEffect;
 
@@ -42,7 +32,7 @@ fn spawn_list_task(
             interval.tick().await;
 
             let mut controllers = controllers.lock().unwrap();
-            let mut new_controllers = api.list(&mut controllers.list);
+            let new_controllers = api.list(&mut controllers.list);
 
             new_controllers
                 .into_iter()
@@ -51,6 +41,7 @@ fn spawn_list_task(
     })
 }
 
+#[allow(dead_code)]
 fn is_connected(
     updated_controllers: &Vec<Box<PsMoveController>>,
     controller: &Box<PsMoveController>,
@@ -153,7 +144,7 @@ fn spawn_ip_discovery_task() -> JoinHandle<Option<()>> {
                 continue;
             }
 
-            let (amt, mut src) = recv.unwrap();
+            let (_, mut src) = recv.unwrap();
 
             let ascii_packet = String::from_utf8_lossy(&packet[..14]);
 
@@ -179,7 +170,7 @@ fn spawn_ip_discovery_task() -> JoinHandle<Option<()>> {
 }
 
 pub async fn run_move(rx: Receiver<LedEffect>) {
-    let mut api = PsMoveApi::new();
+    let api = PsMoveApi::new();
 
     let controllers = Arc::new(Mutex::new(PsMoveControllers::new()));
 

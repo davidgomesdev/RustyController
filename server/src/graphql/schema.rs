@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
-use juniper::{EmptySubscription, RootNode};
-use juniper::{FieldResult, GraphQLEnum, GraphQLInputObject};
-use palette::encoding::Srgb;
-use palette::Hsv;
+use juniper::{EmptySubscription, FieldError, RootNode, Value};
+use juniper::{FieldResult, GraphQLEnum};
 use tokio::sync::watch::Sender;
 
 use crate::ps_move_api::{build_hsv, LedEffect};
@@ -44,6 +42,16 @@ impl MutationRoot {
 
     #[graphql(description = "Keep led in the specified setting")]
     fn r#static(ctx: &Context, h: f64, s: f64, v: f64) -> FieldResult<i32> {
+        if h < 0.0 || h > 360.0 {
+            return Err(FieldError::new("Hue must be between 0.0 and 360.0!", Value::Null))
+        }
+        if s < 0.0 || s > 1.0 {
+            return Err(FieldError::new("Saturation must be between 0.0 and 1.0!", Value::Null))
+        }
+        if v < 0.0 || v > 1.0 {
+            return Err(FieldError::new("Value must be between 0.0 and 1.0!", Value::Null))
+        }
+
         let effect = LedEffect::Static {
             hsv: build_hsv(h, s, v),
         };
@@ -63,6 +71,26 @@ impl MutationRoot {
         step: f64,
         peak: f64,
     ) -> FieldResult<i32> {
+        if step > peak {
+            return Err(FieldError::new("Step can't be higher than peak!", Value::Null))
+        }
+        if initial_v > peak {
+            return Err(FieldError::new("Initial value can't be higher than peak!", Value::Null))
+        }
+
+        if h < 0.0 || h > 360.0 {
+            return Err(FieldError::new("Hue must be between 0.0 and 360.0!", Value::Null))
+        }
+        if s < 0.0 || s > 1.0 {
+            return Err(FieldError::new("Saturation must be between 0.0 and 1.0!", Value::Null))
+        }
+        if initial_v < 0.0 || initial_v > 1.0 {
+            return Err(FieldError::new("Initial value must be between 0.0 and 1.0!", Value::Null))
+        }
+        if peak < 0.0 || peak > 1.0 {
+            return Err(FieldError::new("Peak must be between 0.0 and 1.0!", Value::Null))
+        }
+
         let effect = LedEffect::Breathing {
             initial_hsv: build_hsv(h, s, initial_v),
             step: step as f32,
@@ -78,6 +106,16 @@ impl MutationRoot {
 
     #[graphql(description = "Cycle hue by [step]")]
     fn rainbow(ctx: &Context, s: f64, v: f64, step: f64) -> FieldResult<i32> {
+        if step > 360.0 {
+            return Err(FieldError::new("Step can't be higher than max hue (360)!", Value::Null))
+        }
+        if s < 0.0 || s > 1.0 {
+            return Err(FieldError::new("Saturation must be between 0.0 and 1.0!", Value::Null))
+        }
+        if v < 0.0 || v > 1.0 {
+            return Err(FieldError::new("Value must be between 0.0 and 1.0!", Value::Null))
+        }
+
         let effect = LedEffect::Rainbow {
             saturation: s as f32,
             value: v as f32,
