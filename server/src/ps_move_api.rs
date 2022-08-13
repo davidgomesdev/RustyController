@@ -162,7 +162,7 @@ impl PsMoveApi {
                             .open_path(&*CString::new(bt_path_str.clone()).unwrap())
                         {
                             Ok(special_bt_device) => {
-                                info!("Got special device for bluetooth.");
+                                debug!("Got special device for bluetooth.");
                                 address = Self::get_bt_address(&special_bt_device)
                                     .unwrap_or(String::from(""));
                             }
@@ -285,8 +285,8 @@ pub enum PsMoveBatteryLevel {
 }
 
 impl PsMoveBatteryLevel {
-    fn from_code(code: u8) -> PsMoveBatteryLevel {
-        match code {
+    fn from_byte(byte: u8) -> PsMoveBatteryLevel {
+        match byte {
             0x00 => Empty,
             0x01 => TwentyPercent,
             0x02 => FortyPercent,
@@ -386,7 +386,7 @@ impl PsMoveController {
             if data[0] == PsMoveRequestType::GetInput as u8 {
                 let data = PsMoveDataInput::new(data);
 
-                self.update_data(data);
+                self.update_battery(data.battery);
             }
         }
 
@@ -458,8 +458,8 @@ impl PsMoveController {
         }
     }
 
-    fn update_data(&mut self, data: PsMoveDataInput) {
-        let curr_battery = PsMoveBatteryLevel::from_code(data.battery);
+    fn update_battery(&mut self, battery: u8) {
+        let curr_battery = PsMoveBatteryLevel::from_byte(battery);
 
         if curr_battery != self.battery {
             if self.battery == Unknown {

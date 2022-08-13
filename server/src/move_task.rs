@@ -21,6 +21,17 @@ const HANDSHAKE_END_PORT: u16 = 31338;
 const HANDSHAKE_REQUEST: &str = "HelloDearRusty";
 const HANDSHAKE_RESPONSE: &str = "HeyoDearClient";
 
+pub async fn run_move(rx: Receiver<LedEffect>) {
+    let api = PsMoveApi::new();
+
+    let controllers = Arc::new(Mutex::new(PsMoveControllers::new()));
+
+    spawn_set_effect_task(controllers.clone(), rx);
+    spawn_list_task(controllers.clone(), api);
+    spawn_update_task(controllers);
+    spawn_ip_discovery_task();
+}
+
 fn spawn_list_task(
     controllers: Arc<Mutex<PsMoveControllers>>,
     mut api: PsMoveApi,
@@ -69,8 +80,8 @@ fn update_list(controllers: &mut Vec<Box<PsMoveController>>, controller: Box<PsM
         Some(current_controller) => {
             if controller.connection_type != current_controller.connection_type {
                 info!(
-                    "Controller changed ({} to {})",
-                    controller.bt_address, controller.connection_type
+                    "Controller connection changed to {} ('{}')",
+                    controller.connection_type, controller.bt_address
                 );
                 current_controller.connection_type = controller.connection_type;
             }
@@ -167,17 +178,6 @@ fn spawn_ip_discovery_task() -> JoinHandle<Option<()>> {
             info!("Handshake with {} finished", src.ip());
         }
     })
-}
-
-pub async fn run_move(rx: Receiver<LedEffect>) {
-    let api = PsMoveApi::new();
-
-    let controllers = Arc::new(Mutex::new(PsMoveControllers::new()));
-
-    spawn_set_effect_task(controllers.clone(), rx);
-    spawn_list_task(controllers.clone(), api);
-    spawn_update_task(controllers);
-    spawn_ip_discovery_task();
 }
 
 struct PsMoveControllers {

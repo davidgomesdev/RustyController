@@ -9,3 +9,10 @@
    3. add your user to that group `sudo usermod -a -G psmove your_username`
 
 Then just `export RUST_LOG=info,rusty_controller=debug; cargo run`.
+
+## Pairing
+
+Due to lack of a bluetooth library in Rust, the pairing isn't implemented. (currently there are bluetooth low-energy
+libraries, but those don't use psmove's version of bluetooth)
+
+I do the pairing manually with [psmoveapi](https://github.com/thp/psmoveapi/releases).
