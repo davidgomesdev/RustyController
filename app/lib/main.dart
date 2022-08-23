@@ -22,7 +22,6 @@ void main() {
   runApp(const BaseScreen());
 }
 
-// TODO: this could be in its own file
 void setupDependencies() {
   // Connection Bloc
   serviceLocator.registerSingleton(DiscoveryBloc());

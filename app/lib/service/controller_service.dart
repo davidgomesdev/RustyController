@@ -5,7 +5,6 @@ import 'package:rusty_controller/extensions/color_extensions.dart';
 import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/graphql_queries.dart';
 import 'package:rusty_controller/model/led_effects.dart';
-import 'package:rusty_controller/service/worker_service.dart';
 
 class ControllerService {
   late GraphQLClient _graphqlClient;
@@ -17,11 +16,6 @@ class ControllerService {
         BreathingEffect(color: Colors.black.toHSV(), step: 0.01, peak: 1.0),
     EffectType.rainbow: RainbowEffect(saturation: 1.0, value: 1.0, step: 1),
   };
-
-  ControllerService() {
-    serviceLocator.registerSingletonAsync(
-        () async => await WorkerService.create<LedEffect>(_sendEffect));
-  }
 
   void connect(String ip) {
     _graphqlClient = GraphQLClient(
@@ -47,7 +41,7 @@ class ControllerService {
 
     _effects[effect.type] = effect;
 
-    serviceLocator.get<WorkerService<LedEffect>>().send(effect);
+    _sendEffect(effect);
   }
 
   LedEffect get({required EffectType type}) {
