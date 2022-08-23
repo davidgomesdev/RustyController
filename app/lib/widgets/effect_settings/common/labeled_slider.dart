@@ -24,6 +24,7 @@ class LabeledSlider extends StatelessWidget {
           max: max,
           min: min,
           onChanged: onChanged,
+          divisions: null,
         ),
       ],
     );
