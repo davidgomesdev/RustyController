@@ -20,7 +20,9 @@ class DiscoveryService {
 
   DiscoveryService() {
     if (kDebugMode) {
-      serviceLocator.get<DiscoveryBloc>().add(DiscoveredEvent('127.0.0.1'));
+      serviceLocator.get<DiscoveryBloc>().add(DiscoveredEvent(
+          const String.fromEnvironment('RUSTY_DEBUG_SERVER_IP',
+              defaultValue: '127.0.0.1')));
     } else {
       serviceLocator.get<DiscoveryBloc>().add(NotConnectedEvent());
     }
