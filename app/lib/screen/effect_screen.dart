@@ -26,7 +26,7 @@ class EffectScreen extends StatelessWidget {
             ),
             Flexible(
               flex: 3,
-              child: EffectWidget(effect),
+              child: Center(child: EffectWidget(effect)),
             ),
           ],
         );
