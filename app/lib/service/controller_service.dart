@@ -29,11 +29,25 @@ class ControllerService {
   }
 
   Future<void> _sendEffect(LedEffect effect) async {
-    log.d("Sending mutation for '${effect.name}' effect");
+    log.i("Sending mutation for '${effect.name}' effect");
+    log.d("Mutation request: ${effect.graphqlMutation}");
+
     await _graphqlClient
         .mutate(MutationOptions(document: gql(effect.graphqlMutation)))
-        .then(log.v, onError: (msg, _) => log.e(msg))
-        ._reconnectOnTimeout();
+        .then((msg) {
+      if (msg.hasException) {
+        final exception = msg.exception!.linkException;
+        if (exception is NetworkException || exception is ServerException) {
+          log.w('Network error when sending effect', exception);
+          serviceLocator.get<DiscoveryBloc>().add(NotConnectedEvent());
+          return;
+        }
+
+        log.e(msg.exception);
+      } else {
+        log.d(msg);
+      }
+    }, onError: (msg, _) => log.e(msg))._reconnectOnTimeout();
   }
 
   void set({required LedEffect effect}) {

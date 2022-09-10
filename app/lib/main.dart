@@ -13,7 +13,7 @@ import 'package:rusty_controller/screen/home_screen.dart';
 import 'package:rusty_controller/service/controller_service.dart';
 import 'package:rusty_controller/service/discovery_service.dart';
 
-var log = Logger(level: Level.info, printer: PrettyPrinter());
+var log = Logger(level: Level.debug, printer: PrettyPrinter());
 var serviceLocator = GetIt.instance;
 
 void main() {

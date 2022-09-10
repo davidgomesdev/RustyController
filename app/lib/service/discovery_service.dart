@@ -71,7 +71,7 @@ class DiscoveryService {
     final packet = socket.receive();
 
     if (packet == null) {
-      log.d('Received nothing from UDP socket');
+      log.v('Received nothing from UDP socket');
       return;
     }
 

@@ -7,6 +7,7 @@ class DiscoveryBloc extends Bloc<ConnectionEvent, RustyConnectionState> {
   DiscoveryBloc() : super(DisconnectedState()) {
     on<NotConnectedEvent>((_, emit) async {
       serviceLocator.get<DiscoveryService>().discover();
+      emit(DisconnectedState());
     });
     on<DiscoveredEvent>((event, _) async {
       serviceLocator.get<ControllerService>().connect(event.ip);
