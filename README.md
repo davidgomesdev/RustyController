@@ -12,4 +12,4 @@ I've used [C++ in the past](https://github.com/LegendL3n/MembroEsquerdo), to int
 
 ## Acknowledge
 
-I've read the source of [psmoveapi](https://github.com/thp/psmoveapi), to know how to find the controller with HIDAPI, and the request structures.
+I've made use of [psmoveapi's](https://github.com/thp/psmoveapi) source, to know how to interact with the controller with HIDAPI, and its request structures.
