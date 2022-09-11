@@ -8,7 +8,17 @@ abstract class LedEffect {
   String get graphqlMutation;
 }
 
-enum EffectType { off, static, breathing, rainbow }
+enum EffectType { none, off, static, breathing, rainbow }
+
+// A placeholder/null-object pattern for when there's no effect selected,
+// while avoiding null-checks
+class NoEffect extends LedEffect {
+  @override
+  String get graphqlMutation => "";
+
+  @override
+  EffectType get type => EffectType.none;
+}
 
 class OffEffect extends LedEffect {
   @override

@@ -16,15 +16,15 @@ class EffectChooser extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ...EffectType.values.map(
-          (type) => Flexible(
-            child: _EffectChoice(
-              name: type.name,
-              isSelected: type == currentEffect.type,
-              onSelected: () => bloc.add(EffectTypeChangeEvent(type)),
+        ...EffectType.values.where((element) => element != EffectType.none).map(
+              (type) => Flexible(
+                child: _EffectChoice(
+                  name: type.name,
+                  isSelected: type == currentEffect.type,
+                  onSelected: () => bloc.add(EffectTypeChangeEvent(type)),
+                ),
+              ),
             ),
-          ),
-        ),
       ],
     );
   }

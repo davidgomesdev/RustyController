@@ -28,7 +28,7 @@ void setupDependencies() {
 
   // Effect Blocs
   serviceLocator.registerLazySingleton(
-    () => EffectBloc(OffEffect()),
+    () => EffectBloc(NoEffect()),
   );
   serviceLocator.registerLazySingleton(
     () => StaticBloc(StaticEffect(color: Colors.black.toHSV())),
