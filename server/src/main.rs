@@ -12,7 +12,7 @@ mod ps_move_api;
 
 #[tokio::main]
 async fn main() {
-    pretty_env_logger::init();
+    env_logger::init();
 
     let (tx, rx) = watch::channel(LedEffect::Off);
 
