@@ -21,17 +21,17 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Install dependencies
+      - name: ⏱️ - Install dependencies
         run: flutter pub get
 
-      - name: Verify formatting
+      - name: ⭐ - Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
-      - name: Analyze project source
-        run: dart analyze
+      - name: 🧐 - Analyze project source
+        run: dart analyze --fatal-infos
     
-      - name: Run tests
+      - name: 🧪 - Run tests
         run: flutter test
         
-      - name: Build App
+      - name: 🔨 - Build App
         run: flutter build appbundle
