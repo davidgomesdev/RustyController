@@ -1,0 +1,37 @@
+name: App - Dart build
+
+on:
+  push:
+    # On main, it's the build and deploy that will run
+    branches-ignore: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+       shell: bash
+       working-directory: ./app
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze project source
+        run: dart analyze
+    
+      - name: Run tests
+        run: flutter test
+        
+      - name: Build App
+        run: flutter build appbundle
