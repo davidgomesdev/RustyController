@@ -1,0 +1,39 @@
+name: Server - Rust Release
+
+on:
+  push:
+    branches: ["main", "cicd/adding-server-release-action"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./server
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: 🌱 - Installing dependencies
+      run: sudo apt-get update; sudo apt-get install -y libusb-1.0-0-dev
+
+    - name: 🔨 - Build
+      run: cargo build --verbose --release
+      
+    - name: 🌠 - Release
+      uses: ncipollo/release-action@v1.10.0
+      with:
+        artifacts: "server/target/release/rusty_controller"
+        token: ${{ secrets.GITHUB_TOKEN }}
+        allowUpdates: true
+        removeArtifacts: true
+        artifactErrorsFailBuild: true
+        prerelease: true
+        name: latest
+        tag: latest
