@@ -1,4 +1,4 @@
-name: App - Flutter build
+name: App - Flutter Build
 
 on:
   push:
