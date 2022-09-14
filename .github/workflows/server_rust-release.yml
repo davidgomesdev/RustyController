@@ -29,7 +29,7 @@ jobs:
     - name: 🌠 - Release
       uses: ncipollo/release-action@v1.10.0
       with:
-        artifacts: "target/release/rusty_controller"
+        artifacts: "server/target/release/rusty_controller"
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: true
         removeArtifacts: true
