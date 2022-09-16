@@ -16,3 +16,17 @@ Due to lack of a bluetooth library in Rust, the pairing isn't implemented. (curr
 libraries, but those don't use psmove's version of bluetooth)
 
 I do the pairing manually with [psmoveapi](https://github.com/thp/psmoveapi/releases).
+
+## Auto-update
+
+Currently, there's a GitHub action that runs on every `main` branch push, releasing/replacing the latest build.
+
+The [auto-update](scripts/auto-update.sh) script updates the server to that latest build, in case it is outdated.
+
+You can run it every 15 minutes or so, by adding the following line on: `crontab -e`.
+
+```bash
+*/15 * * * * ( cd /home/youruser/RustyController && bash server/scripts/auto-update.sh && rusty_controller )
+```
+
+Alternatively, you can run `bash scripts/run-tmux-session`, if you want it as a tmux session.
