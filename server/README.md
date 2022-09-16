@@ -23,10 +23,10 @@ Currently, there's a GitHub action that runs on every `main` branch push, releas
 
 The [auto-update](scripts/auto-update.sh) script updates the server to that latest build, in case it is outdated.
 
-You can run it every 15 minutes or so, by adding the following line on: `crontab -e`.
+You can run it every hour or so, by adding the following line on: `crontab -e`.
 
 ```bash
-*/15 * * * * ( cd /home/youruser/RustyController && bash server/scripts/auto-update.sh && rusty_controller )
+0 * * * * ( cd /home/youruser/RustyController && bash server/scripts/auto-update.sh && rusty_controller )
 ```
 
 Alternatively, you can run `bash scripts/run-tmux-session`, if you want it as a tmux session.
