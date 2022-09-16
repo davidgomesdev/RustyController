@@ -5,6 +5,7 @@ import 'package:rusty_controller/extensions/color_extensions.dart';
 import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/graphql_queries.dart';
 import 'package:rusty_controller/model/led_effects.dart';
+import 'package:rusty_controller/service/store_service.dart';
 
 class ControllerService {
   late GraphQLClient _graphqlClient;
@@ -26,6 +27,23 @@ class ControllerService {
     _graphqlClient.query(QueryOptions(document: gql(healthQuery))).then((_) {
       serviceLocator.get<DiscoveryBloc>().add(ConnectedEvent());
     })._reconnectOnTimeout();
+  }
+
+  void set({required LedEffect effect}) {
+    log.i("Setting effect to '${effect.name}'");
+
+    _effects[effect.type] = effect;
+
+    _sendEffect(effect);
+    _saveEffect(effect);
+  }
+
+  LedEffect get({required EffectType type}) {
+    final effect = _effects[type];
+
+    if (effect == null) throw ArgumentError.notNull("effect");
+
+    return effect;
   }
 
   Future<void> _sendEffect(LedEffect effect) async {
@@ -50,20 +68,10 @@ class ControllerService {
     }, onError: (msg, _) => log.e(msg))._reconnectOnTimeout();
   }
 
-  void set({required LedEffect effect}) {
-    log.i("Setting effect to '${effect.name}'");
-
-    _effects[effect.type] = effect;
-
-    _sendEffect(effect);
-  }
-
-  LedEffect get({required EffectType type}) {
-    final effect = _effects[type];
-
-    if (effect == null) throw ArgumentError.notNull("effect");
-
-    return effect;
+  Future<void> _saveEffect(LedEffect effect) async {
+    if (effect is StorableObject) {
+      serviceLocator.get<StoreService>().save(effect as StorableObject);
+    }
   }
 }
 
