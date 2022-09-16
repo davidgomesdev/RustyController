@@ -5,7 +5,7 @@
    1. create a group called psmove (`sudo groupadd psmove`)
    2. give permission to access the USB devices of PS: create a file
       /etc/udev/rules.d/10-psmove-hidraw-permissions.rules`, with this line:
-      2. `SUBSYSTEM=="usb", ATTR{idVendor}=="054c", MODE="0660", GROUP="psmove"`
+      1. `SUBSYSTEM=="usb", ATTR{idVendor}=="054c", MODE="0660", GROUP="psmove"`
    3. add your user to that group `sudo usermod -a -G psmove your_username`
 
 Then just `export RUST_LOG=info,rusty_controller=debug; cargo run`.
@@ -29,4 +29,4 @@ You can run it every hour or so, by adding the following line on: `crontab -e`.
 0 * * * * ( cd /home/youruser/RustyController && bash server/scripts/auto-update.sh && rusty_controller )
 ```
 
-Alternatively, you can run `bash scripts/run-tmux-session`, if you want it as a tmux session.
+Alternatively, you can run `bash server/scripts/run-tmux-session.sh`, if you want it as a tmux session.
