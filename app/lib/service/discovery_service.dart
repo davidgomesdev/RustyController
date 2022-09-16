@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:rusty_controller/bloc/discovery_bloc.dart';
 import 'package:rusty_controller/extensions/network_extensions.dart';
@@ -30,12 +31,21 @@ class DiscoveryService {
   void discover() async {
     _oldSocket?.close();
     final socket = await _bind();
-    final broadcastAddress = await NetworkInfo().getWifiBroadcast();
+    String? broadcastAddress;
 
-    if (broadcastAddress == null) {
-      log.i('No Wifi broadcast address found');
-      socket.close();
-      return;
+    try {
+      broadcastAddress = await NetworkInfo().getWifiBroadcast();
+
+      if (broadcastAddress == null) {
+        log.i('No Wifi broadcast address found (probably turned off)');
+        socket.close();
+        return;
+      }
+    } on MissingPluginException {
+      log.w(
+          "Couldn't get WiFi broadcast address. (dependency doesn't support the current environment)");
+      broadcastAddress = "/255.255.255.255";
+      log.i('Trying the generic address (255.255.255.255)');
     }
 
     _oldSocket = socket;
