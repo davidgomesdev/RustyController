@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  server-build:
+    runs-on: ubuntu-latest
+    
+    env:
+      CARGO_TERM_COLOR: always
+      
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./server
+
+    steps:
+    - uses: rui314/setup-mold@v1
+    
+    - uses: actions/checkout@v3
+    
+    - name: 🌱 - Install dependencies
+      run: sudo apt-get update; sudo apt-get install -y libusb-1.0-0-dev
+
+    - name: 🔨 - Build
+      run: cargo build --verbose --release
+        
+    - name: 📦 - Copy artifact
+      run: mv server/target/release/rusty_controller rusty_controller
+  
+  app-build:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+       shell: bash
+       working-directory: ./app
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+
+    - name: 🌱 - Get dependencies
+      run: flutter pub get
+      
+    - name: 🔨 - Build Apk
+      run: flutter build apk
+      
+    - name: 📦 - Copy artifact
+      run: mv build/app/outputs/flutter-apk/app-release.apk RustyController.apk
+
+  release:
+    needs: [server-build, app-build]
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./server
+
+    steps:
+    - name: 🌠 - Release
+      uses: ncipollo/release-action@v1.10.0
+      with:
+        artifacts: "rusty_controller,RustyController.apk"
+        token: ${{ secrets.GITHUB_TOKEN }}
+        allowUpdates: true
+        removeArtifacts: true
+        artifactErrorsFailBuild: true
+        prerelease: true
+        name: latest
+        tag: latest
