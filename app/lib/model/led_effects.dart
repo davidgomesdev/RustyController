@@ -76,9 +76,13 @@ class BreathingEffect extends LedEffect implements StorableObject {
   HSVColor color;
   double step;
   double peak;
+  bool breatheFromOff;
 
   BreathingEffect(
-      {required this.color, required this.step, required this.peak});
+      {required this.color,
+      required this.step,
+      required this.peak,
+      required this.breatheFromOff});
 
   @override
   String get graphqlMutation => """
