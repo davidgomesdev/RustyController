@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:rusty_controller/extensions/color_extensions.dart';
 
-class LedColorPicker extends StatelessWidget {
+class LedColorPicker extends StatefulWidget {
   final HSVColor currentColor;
   final bool ignoreValue;
   final void Function(HSVColor) onColorPick;
 
+  /// [ignoreValue] ignores [currentColor.value], overriding to 1.0
   const LedColorPicker(
       {Key? key,
       required this.currentColor,
@@ -15,21 +16,34 @@ class LedColorPicker extends StatelessWidget {
       : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    var hsvColor = currentColor;
+  State<LedColorPicker> createState() => _LedColorPickerState();
+}
 
-    if (ignoreValue) hsvColor = hsvColor.withValue(1.0);
+class _LedColorPickerState extends State<LedColorPicker> {
+  @override
+  Widget build(BuildContext context) {
+    var hsvColor = widget.currentColor;
+
+    if (widget.ignoreValue) hsvColor = hsvColor.withValue(1.0);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: SlidePicker(
         pickerColor: hsvColor.toColor(),
         onColorChanged: (color) {
-          var hsvColor = color.toHSV();
+          var changedHsvColor = color.toHSV();
 
-          if (ignoreValue) hsvColor = hsvColor.withValue(0.0);
+          if (widget.ignoreValue && changedHsvColor.value != hsvColor.value) {
+            // to prevent changing the value slider
+            setState(() {});
+            return;
+          }
 
-          onColorPick(hsvColor);
+          if (widget.ignoreValue) {
+            changedHsvColor = changedHsvColor.withValue(0.0);
+          }
+
+          widget.onColorPick(changedHsvColor);
         },
         colorModel: ColorModel.hsv,
         showParams: false,

@@ -30,7 +30,16 @@ class _BreathingSettingsState extends State<BreathingSettings> {
             onColorPick: (color) {
               if (color.value > effect.peak) effect.peak = color.value;
 
-              bloc.add(BreathingColorEvent(color));
+              if (effect.breatheFromOff) {
+                setState(() {
+                  bloc.add(BreathingColorEvent(color));
+                });
+              } else {
+                // can't `setState`, otherwise the color conversion will
+                // prevent the hue and saturation from sliding
+                // when the value one is at 0.0
+                bloc.add(BreathingColorEvent(color));
+              }
             },
           ),
           Column(
