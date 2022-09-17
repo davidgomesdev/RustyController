@@ -5,7 +5,7 @@ on:
     branches: ["main"]
 
 jobs:
-  server-build:
+  server:
     runs-on: ubuntu-latest
     
     env:
@@ -18,7 +18,7 @@ jobs:
 
     steps:
     - uses: rui314/setup-mold@v1
-    
+
     - uses: actions/checkout@v3
     
     - name: 🌱 - Install dependencies
@@ -30,7 +30,7 @@ jobs:
     - name: 📦 - Copy artifact
       run: mv server/target/release/rusty_controller rusty_controller
   
-  app-build:
+  app:
     runs-on: ubuntu-latest
     
     defaults:
@@ -54,7 +54,7 @@ jobs:
     - name: 📦 - Copy artifact
       run: mv build/app/outputs/flutter-apk/app-release.apk RustyController.apk
 
-  release:
+  upload:
     needs: [server-build, app-build]
     runs-on: ubuntu-latest
     

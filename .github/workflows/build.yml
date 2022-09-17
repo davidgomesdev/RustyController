@@ -6,7 +6,7 @@ on:
     branches-ignore: [ "main" ]
 
 jobs:
-  server-build:
+  server:
     runs-on: ubuntu-latest
     
     env:
@@ -31,7 +31,7 @@ jobs:
     - name: 🧪 - Run tests
       run: cargo test --verbose
   
-  app-build:
+  app:
     runs-on: ubuntu-latest
     
     defaults:
