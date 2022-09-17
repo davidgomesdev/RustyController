@@ -21,8 +21,8 @@ class StoreService {
 
       log.v("Got file of store '${defaultValue.storeName}'");
       return Future.value(value);
-    } on Exception catch (ex) {
-      log.w('Failed to get value for ${defaultValue.storeName}.', ex);
+    } catch (e) {
+      log.w('Failed to get value for ${defaultValue.storeName}.', e);
       log.d('Writing default value provided.');
       return await save(defaultValue);
     }
