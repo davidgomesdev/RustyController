@@ -13,8 +13,11 @@ class ControllerService {
   final Map<EffectType, LedEffect> _effects = {
     EffectType.off: OffEffect(),
     EffectType.static: StaticEffect(color: Colors.black.toHSV()),
-    EffectType.breathing:
-        BreathingEffect(color: Colors.black.toHSV(), step: 0.01, peak: 1.0),
+    EffectType.breathing: BreathingEffect(
+        color: Colors.black.toHSV(),
+        step: 0.01,
+        peak: 1.0,
+        breatheFromOff: false),
     EffectType.rainbow: RainbowEffect(saturation: 1.0, value: 1.0, step: 1),
   };
 

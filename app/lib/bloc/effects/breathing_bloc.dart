@@ -10,6 +10,15 @@ class BreathingBloc
         (event, emit) => emit(state..color = event.currentColor));
     on<BreathingStepEvent>((event, emit) => emit(state..step = event.step));
     on<BreathingPeakEvent>((event, emit) => emit(state..peak = event.peak));
+    on<BreathingFromOffEvent>((event, emit) {
+      if (event.breatheFromOff) {
+        emit(state..breatheFromOff = true);
+      } else {
+        emit(state
+          ..breatheFromOff = false
+          ..color = state.color.withValue(1.0));
+      }
+    });
   }
 }
 
@@ -33,4 +42,10 @@ class BreathingPeakEvent extends BreathingEffectEvent {
   double peak;
 
   BreathingPeakEvent(this.peak);
+}
+
+class BreathingFromOffEvent extends BreathingEffectEvent {
+  bool breatheFromOff;
+
+  BreathingFromOffEvent(this.breatheFromOff);
 }
