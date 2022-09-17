@@ -17,9 +17,6 @@ class BreathingSettings extends StatefulWidget {
 class _BreathingSettingsState extends State<BreathingSettings> {
   final bloc = serviceLocator.get<BreathingBloc>();
 
-  // Whether to light up from being off
-  var breatheFromOff = false;
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BreathingBloc, BreathingEffect>(
@@ -29,7 +26,7 @@ class _BreathingSettingsState extends State<BreathingSettings> {
         children: [
           LedColorPicker(
             currentColor: effect.color,
-            ignoreValue: breatheFromOff,
+            ignoreValue: effect.breatheFromOff,
             onColorPick: (color) {
               if (color.value > effect.peak) effect.peak = color.value;
 
@@ -39,10 +36,10 @@ class _BreathingSettingsState extends State<BreathingSettings> {
           Column(
             children: [
               SwitchListTile.adaptive(
-                  value: breatheFromOff,
+                  value: effect.breatheFromOff,
                   onChanged: (fromOff) {
                     setState(() {
-                      breatheFromOff = fromOff;
+                      bloc.add(BreathingFromOffEvent(fromOff));
                     });
                   },
                   title: const Text("Breathe from off")),

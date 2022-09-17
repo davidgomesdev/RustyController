@@ -22,6 +22,7 @@ BreathingEffect _$BreathingEffectFromJson(Map<String, dynamic> json) =>
           .fromJson(json['color'] as Map<String, dynamic>),
       step: (json['step'] as num).toDouble(),
       peak: (json['peak'] as num).toDouble(),
+      breatheFromOff: json['breatheFromOff'] as bool,
     );
 
 Map<String, dynamic> _$BreathingEffectToJson(BreathingEffect instance) =>
@@ -29,6 +30,7 @@ Map<String, dynamic> _$BreathingEffectToJson(BreathingEffect instance) =>
       'color': const HSVColorJsonConverter().toJson(instance.color),
       'step': instance.step,
       'peak': instance.peak,
+      'breatheFromOff': instance.breatheFromOff,
     };
 
 RainbowEffect _$RainbowEffectFromJson(Map<String, dynamic> json) =>

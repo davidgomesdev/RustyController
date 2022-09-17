@@ -51,7 +51,10 @@ void setupDependencies() {
     () async {
       final savedBreathing = await storeService.get(
           defaultValue: BreathingEffect(
-              color: Colors.black.toHSV(), step: maxBreathingStep, peak: 1.0));
+              color: Colors.black.toHSV(),
+              step: maxBreathingStep,
+              peak: 1.0,
+              breatheFromOff: true));
 
       return BreathingBloc(savedBreathing);
     },
