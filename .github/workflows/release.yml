@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "cicd/fix-release-action"]
 
 jobs:
   build-server:
@@ -28,7 +28,10 @@ jobs:
       run: cargo build --verbose --release
         
     - name: 📦 - Copy artifact
-      run: mv target/release/rusty_controller rusty_controller
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: rusty_controller
+        path: target/release/rusty_controller
   
   build-app:
     runs-on: ubuntu-latest
@@ -52,7 +55,11 @@ jobs:
       run: flutter build apk
       
     - name: 📦 - Copy artifact
-      run: mv build/app/outputs/flutter-apk/app-release.apk RustyController.apk
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: RustyController.apk
+        path: build/app/outputs/flutter-apk/app-release.apk
+
 
   upload:
     needs: [build-server, build-app]
@@ -64,8 +71,20 @@ jobs:
         working-directory: ./server
 
     steps:
+    - name: 📦 - Copy server artifact
+      uses: actions/download-artifact@v3.0.0
+      with:
+        name: rusty_controller
+        path: rusty_controller
+
+    - name: 📦 - Copy app artifact
+      uses: actions/download-artifact@master
+      with:
+        name: RustyController.apk
+        path: RustyController.apk
+
     - name: 🌠 - Release
-      uses: ncipollo/release-action@v1.10.0
+      uses: ncipollo/release-action@v3.0.0
       with:
         artifacts: "rusty_controller,RustyController.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
