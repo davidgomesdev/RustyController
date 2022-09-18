@@ -75,13 +75,11 @@ jobs:
       uses: actions/download-artifact@v3.0.0
       with:
         name: rusty_controller
-        path: rusty_controller
 
     - name: 📦 - Copy app artifact
       uses: actions/download-artifact@v3.0.0
       with:
         name: RustyController.apk
-        path: RustyController.apk
 
     - name: 🌠 - Release
       uses: ncipollo/release-action@v1.10.0
