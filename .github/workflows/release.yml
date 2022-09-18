@@ -31,7 +31,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.0
       with:
         name: rusty_controller
-        path: target/release/rusty_controller
+        path: server/target/release/rusty_controller
   
   build-app:
     runs-on: ubuntu-latest
@@ -58,7 +58,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.0
       with:
         name: RustyController.apk
-        path: build/app/outputs/flutter-apk/app-release.apk
+        path: app/build/app/outputs/flutter-apk/app-release.apk
 
 
   upload:
@@ -78,13 +78,13 @@ jobs:
         path: rusty_controller
 
     - name: 📦 - Copy app artifact
-      uses: actions/download-artifact@master
+      uses: actions/download-artifact@v3.0.0
       with:
         name: RustyController.apk
         path: RustyController.apk
 
     - name: 🌠 - Release
-      uses: ncipollo/release-action@v3.0.0
+      uses: ncipollo/release-action@v1.10.0
       with:
         artifacts: "rusty_controller,RustyController.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
