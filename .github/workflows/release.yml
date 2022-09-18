@@ -2,10 +2,10 @@ name: Release
 
 on:
   push:
-    branches: ["main", "cicd/fixing-app-release"]
+    branches: ["main"]
 
 jobs:
-  server-build:
+  build-server:
     runs-on: ubuntu-latest
     
     env:
@@ -28,9 +28,9 @@ jobs:
       run: cargo build --verbose --release
         
     - name: 📦 - Copy artifact
-      run: mv server/target/release/rusty_controller rusty_controller
+      run: mv target/release/rusty_controller rusty_controller
   
-  app-build:
+  build-app:
     runs-on: ubuntu-latest
     
     defaults:
@@ -55,7 +55,7 @@ jobs:
       run: mv build/app/outputs/flutter-apk/app-release.apk RustyController.apk
 
   upload:
-    needs: [server-build, app-build]
+    needs: [build-server, build-app]
     runs-on: ubuntu-latest
     
     defaults:
