@@ -2,10 +2,10 @@ name: Release
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "cicd/fixing-app-release"]
 
 jobs:
-  server:
+  server-build:
     runs-on: ubuntu-latest
     
     env:
@@ -30,7 +30,7 @@ jobs:
     - name: 📦 - Copy artifact
       run: mv server/target/release/rusty_controller rusty_controller
   
-  app:
+  app-build:
     runs-on: ubuntu-latest
     
     defaults:
