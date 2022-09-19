@@ -53,12 +53,14 @@ jobs:
       
     - name: 🔨 - Build Apk
       run: flutter build apk
-      
+    
+    - run: mv app/build/app/outputs/flutter-apk/app-release.apk ./RustyController.apk
+
     - name: 📦 - Copy artifact
       uses: actions/upload-artifact@v3.1.0
       with:
         name: RustyController.apk
-        path: app/build/app/outputs/flutter-apk/app-release.apk
+        path: RustyController.apk
 
 
   upload:
@@ -76,7 +78,7 @@ jobs:
       with:
         name: RustyController.apk
 
-    - run: pwd; ls; ls *; ls */*
+    - run: ls
 
     - name: 🌠 - Release
       uses: ncipollo/release-action@v1.10.0
