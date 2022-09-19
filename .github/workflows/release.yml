@@ -81,6 +81,8 @@ jobs:
       with:
         name: RustyController.apk
 
+    - run: pwd; ls; ls *; ls */*
+
     - name: 🌠 - Release
       uses: ncipollo/release-action@v1.10.0
       with:
