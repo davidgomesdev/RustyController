@@ -28,7 +28,10 @@ jobs:
       run: cargo build --verbose --release
         
     - name: 📦 - Copy artifact
-      run: mv target/release/rusty_controller rusty_controller
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: rusty_controller
+        path: server/target/release/rusty_controller
   
   build-app:
     runs-on: ubuntu-latest
@@ -50,20 +53,33 @@ jobs:
       
     - name: 🔨 - Build Apk
       run: flutter build apk
-      
+    
+    - run: mv build/app/outputs/flutter-apk/app-release.apk ../RustyController.apk
+
     - name: 📦 - Copy artifact
-      run: mv build/app/outputs/flutter-apk/app-release.apk RustyController.apk
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: RustyController.apk
+        path: RustyController.apk
+
 
   upload:
     needs: [build-server, build-app]
     runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./server
 
     steps:
+    - name: 📦 - Copy server artifact
+      uses: actions/download-artifact@v3.0.0
+      with:
+        name: rusty_controller
+
+    - name: 📦 - Copy app artifact
+      uses: actions/download-artifact@v3.0.0
+      with:
+        name: RustyController.apk
+
+    - run: ls
+
     - name: 🌠 - Release
       uses: ncipollo/release-action@v1.10.0
       with:
