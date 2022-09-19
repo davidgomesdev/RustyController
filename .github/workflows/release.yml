@@ -64,11 +64,6 @@ jobs:
   upload:
     needs: [build-server, build-app]
     runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./server
 
     steps:
     - name: 📦 - Copy server artifact
