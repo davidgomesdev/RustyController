@@ -54,7 +54,7 @@ jobs:
     - name: 🔨 - Build Apk
       run: flutter build apk
     
-    - run: mv app/build/app/outputs/flutter-apk/app-release.apk ./RustyController.apk
+    - run: mv build/app/outputs/flutter-apk/app-release.apk ../RustyController.apk
 
     - name: 📦 - Copy artifact
       uses: actions/upload-artifact@v3.1.0
