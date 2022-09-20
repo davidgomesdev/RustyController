@@ -7,6 +7,7 @@ use log::{debug, error, info};
 use tokio::{sync::watch::Receiver, time};
 use tokio::net::UdpSocket;
 use tokio::task::JoinHandle;
+use tokio::time::{Instant, MissedTickBehavior};
 
 use ps_move_api::LedEffect;
 
@@ -26,13 +27,14 @@ pub async fn run_move(rx: Receiver<LedEffect>) {
 
     let controllers = Arc::new(Mutex::new(PsMoveControllers::new()));
 
-    spawn_set_effect_task(controllers.clone(), rx);
-    spawn_list_task(controllers.clone(), api);
-    spawn_update_task(controllers);
+    spawn_set_requests_task(controllers.clone(), rx);
+    spawn_effect_update_task(controllers.clone());
+    spawn_controller_list_task(controllers.clone(), api);
+    spawn_controller_update_task(controllers);
     spawn_ip_discovery_task();
 }
 
-fn spawn_list_task(
+fn spawn_controller_list_task(
     controllers: Arc<Mutex<PsMoveControllers>>,
     mut api: PsMoveApi,
 ) -> JoinHandle<()> {
@@ -47,7 +49,7 @@ fn spawn_list_task(
 
             new_controllers
                 .into_iter()
-                .for_each(|controller| update_list(&mut (controllers.list), controller))
+                .for_each(|controller| update_controller_list(&mut (controllers.list), controller))
         }
     })
 }
@@ -71,7 +73,10 @@ fn is_connected(
     is_connected
 }
 
-fn update_list(controllers: &mut Vec<Box<PsMoveController>>, controller: Box<PsMoveController>) {
+fn update_controller_list(
+    controllers: &mut Vec<Box<PsMoveController>>,
+    controller: Box<PsMoveController>,
+) {
     let current_controller = controllers.iter_mut().find(|current_controller| {
         return current_controller.bt_address == controller.bt_address;
     });
@@ -98,7 +103,7 @@ fn update_list(controllers: &mut Vec<Box<PsMoveController>>, controller: Box<PsM
     }
 }
 
-fn spawn_set_effect_task(
+fn spawn_set_requests_task(
     controllers: Arc<Mutex<PsMoveControllers>>,
     mut rx: Receiver<LedEffect>,
 ) -> JoinHandle<()> {
@@ -117,12 +122,29 @@ fn spawn_set_effect_task(
     })
 }
 
-fn spawn_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()> {
+fn spawn_effect_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut interval = time::interval(Duration::from_nanos(1));
+        let mut interval = time::interval(Duration::from_millis(1));
 
         loop {
             interval.tick().await;
+
+            let mut controllers = controllers.lock().unwrap();
+
+            controllers.list.iter_mut().for_each(|controller| {
+                controller.transform_led();
+            });
+        }
+    })
+}
+
+fn spawn_controller_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()> {
+    tokio::spawn(async move {
+        let mut interval = time::interval(Duration::from_millis(1));
+
+        loop {
+            interval.tick().await;
+
             let mut controllers = controllers.lock().unwrap();
 
             controllers.list.iter_mut().for_each(|controller| {
@@ -134,14 +156,16 @@ fn spawn_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<(
                         controller.bt_address
                     );
                 }
-            })
+            });
         }
     })
 }
 
 fn spawn_ip_discovery_task() -> JoinHandle<Option<()>> {
     tokio::spawn(async {
-        let socket = UdpSocket::bind(format!("0.0.0.0:{HANDSHAKE_BEGIN_PORT}")).await.expect("Failed binding");
+        let socket = UdpSocket::bind(format!("0.0.0.0:{HANDSHAKE_BEGIN_PORT}"))
+            .await
+            .expect("Failed binding");
         info!("Binding on {}", HANDSHAKE_BEGIN_PORT);
 
         socket.set_broadcast(true).unwrap();
@@ -164,7 +188,11 @@ fn spawn_ip_discovery_task() -> JoinHandle<Option<()>> {
                 continue;
             }
 
-            info!("Received Rusty handshake begin from {}:{}!", src.ip(), src.port());
+            info!(
+                "Received Rusty handshake begin from {}:{}!",
+                src.ip(),
+                src.port()
+            );
 
             src.set_port(HANDSHAKE_END_PORT);
 

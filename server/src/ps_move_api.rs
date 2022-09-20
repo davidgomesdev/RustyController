@@ -18,7 +18,7 @@ const PS_MOVE_PRODUCT_ID: u16 = 0x03d5;
 
 const PS_MOVE_BT_ADDR_GET_SIZE: usize = 16;
 
-pub const MIN_LED_PWM_FREQUENCY: u64 = 733;
+pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
 pub const MAX_LED_PWM_FREQUENCY: u64 = 0x24e6;
 
 #[allow(unused)]
@@ -169,8 +169,7 @@ impl PsMoveApi {
                             Err(err) => error!("Couldn't open device. Caused by: {}", err),
                         }
                     } else {
-                        address = Self::get_bt_address(&device)
-                            .unwrap_or(String::from(""))
+                        address = Self::get_bt_address(&device).unwrap_or(String::from(""))
                     }
                 } else {
                     connection_type = PsMoveConnectionType::Bluetooth;
@@ -374,9 +373,7 @@ impl PsMoveController {
     }
 
     pub fn update(&mut self) -> bool {
-        let new_hsv = self.transform_led();
-
-        if !self.update_hsv_and_rumble(new_hsv) {
+        if !self.update_hsv_and_rumble() {
             return false;
         }
 
@@ -393,11 +390,11 @@ impl PsMoveController {
         return true;
     }
 
-    fn transform_led(&mut self) -> Hsv {
+    pub fn transform_led(&mut self) {
         let effect = &mut self.effect;
         let current_hsv = self.setting.led;
 
-        match *effect {
+        self.setting.led = match *effect {
             LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
             LedEffect::Static { hsv } => hsv,
             LedEffect::Breathing {
@@ -440,15 +437,13 @@ impl PsMoveController {
         }
     }
 
-    fn update_hsv_and_rumble(&mut self, hsv: Hsv) -> bool {
-        let setting = &mut self.setting;
-        let request = build_set_led_and_rumble_request(hsv, setting.rumble);
+    fn update_hsv_and_rumble(&mut self) -> bool {
+        let request = build_set_led_and_rumble_request(self.setting.led, self.setting.rumble);
 
         let res = self.device.write(&request);
 
         match res {
             Ok(_) => {
-                setting.led = hsv;
                 true
             }
             Err(err) => {
