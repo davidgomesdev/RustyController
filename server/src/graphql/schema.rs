@@ -18,6 +18,12 @@ enum HealthStatus {
     Error,
 }
 
+#[derive(GraphQLEnum)]
+enum MutationResponse {
+    Success,
+    ServerError,
+}
+
 pub struct QueryRoot;
 
 #[juniper::graphql_object(Context = Context)]
@@ -33,15 +39,15 @@ pub struct MutationRoot;
 #[juniper::graphql_object(Context = Context)]
 impl MutationRoot {
     #[graphql(description = "Turn led off")]
-    fn off(ctx: &Context) -> FieldResult<i32> {
+    fn off(ctx: &Context) -> FieldResult<MutationResponse> {
         return match ctx.tx.send(LedEffect::Off) {
-            Ok(_) => Ok(0),
-            Err(_) => Ok(1),
+            Ok(_) => Ok(MutationResponse::Success),
+            Err(_) => Ok(MutationResponse::ServerError),
         };
     }
 
     #[graphql(description = "Keep led in the specified setting")]
-    fn r#static(ctx: &Context, h: f64, s: f64, v: f64) -> FieldResult<i32> {
+    fn r#static(ctx: &Context, h: f64, s: f64, v: f64) -> FieldResult<MutationResponse> {
         if h < 0.0 || h > 360.0 {
             return Err(FieldError::new("Hue must be between 0.0 and 360.0!", Value::Null))
         }
@@ -57,8 +63,8 @@ impl MutationRoot {
         };
 
         return match ctx.tx.send(effect) {
-            Ok(_) => Ok(0),
-            Err(_) => Ok(1),
+            Ok(_) => Ok(MutationResponse::Success),
+            Err(_) => Ok(MutationResponse::ServerError),
         };
     }
 
@@ -70,7 +76,7 @@ impl MutationRoot {
         initial_v: f64,
         step: f64,
         peak: f64,
-    ) -> FieldResult<i32> {
+    ) -> FieldResult<MutationResponse> {
         if step > peak {
             return Err(FieldError::new("Step can't be higher than peak!", Value::Null))
         }
@@ -99,13 +105,13 @@ impl MutationRoot {
         };
 
         return match ctx.tx.send(effect) {
-            Ok(_) => Ok(0),
-            Err(_) => Ok(1),
+            Ok(_) => Ok(MutationResponse::Success),
+            Err(_) => Ok(MutationResponse::ServerError),
         };
     }
 
     #[graphql(description = "Cycle hue by [step]")]
-    fn rainbow(ctx: &Context, s: f64, v: f64, step: f64) -> FieldResult<i32> {
+    fn rainbow(ctx: &Context, s: f64, v: f64, step: f64) -> FieldResult<MutationResponse> {
         if step > 360.0 {
             return Err(FieldError::new("Step can't be higher than max hue (360)!", Value::Null))
         }
@@ -123,8 +129,8 @@ impl MutationRoot {
         };
 
         return match ctx.tx.send(effect) {
-            Ok(_) => Ok(0),
-            Err(_) => Ok(1),
+            Ok(_) => Ok(MutationResponse::Success),
+            Err(_) => Ok(MutationResponse::ServerError),
         };
     }
 }
