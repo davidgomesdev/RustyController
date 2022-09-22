@@ -24,15 +24,14 @@ pub fn spawn(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()> {
 
                 if res.is_err() {
                     let bt_address = &controller.bt_address;
-                    warn!(
-                        "Error updating controller with address '{}'!",
-                        *bt_address
-                    );
+                    warn!("Error updating controller with address '{}'!", *bt_address);
                     failed_addresses.push(bt_address.clone());
                 }
             });
 
-            controllers.list.retain(|c| !failed_addresses.contains(&c.bt_address));
+            controllers
+                .list
+                .retain(|c| !failed_addresses.contains(&c.bt_address));
         }
     })
 }

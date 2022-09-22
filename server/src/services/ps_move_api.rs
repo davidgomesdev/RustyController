@@ -2,11 +2,11 @@ use std::ffi::{CStr, CString};
 use std::str;
 
 use hidapi::{DeviceInfo, HidApi, HidDevice};
-use log::{debug, error, info};
+use log::{debug, error, info, trace};
 use palette::{FromColor, Hsv, Hue, Srgb};
 use strum_macros::Display;
 
-use crate::ps_move_api::PsMoveBatteryLevel::{
+use PsMoveBatteryLevel::{
     Charged, Charging, EightyPercent, Empty, FortyPercent, Full, SixtyPercent, TwentyPercent,
     Unknown,
 };
@@ -249,7 +249,7 @@ impl PsMoveApi {
                     addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]
                 );
 
-                info!("Got bluetooth address {}", addr);
+                debug!("Got bluetooth address {}", addr);
 
                 Some(addr)
             }

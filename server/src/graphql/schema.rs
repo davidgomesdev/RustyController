@@ -4,7 +4,7 @@ use juniper::{EmptySubscription, FieldError, RootNode, Value};
 use juniper::{FieldResult, GraphQLEnum, GraphQLInputObject};
 use tokio::sync::watch::Sender;
 
-use crate::ps_move_api::{build_hsv, LedEffect};
+use crate::services::ps_move_api::{build_hsv, LedEffect};
 
 pub struct Context {
     pub tx: Arc<Sender<LedEffect>>,

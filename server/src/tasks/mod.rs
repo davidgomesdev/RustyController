@@ -1,4 +1,4 @@
-use crate::ps_move_api::PsMoveController;
+use crate::services::ps_move_api::PsMoveController;
 
 pub mod effect_update_task;
 pub mod ip_discovery_task;
