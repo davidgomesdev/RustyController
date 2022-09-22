@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use log::error;
+use log::warn;
 use tokio::task::JoinHandle;
 use tokio::time;
 
@@ -17,17 +17,22 @@ pub fn spawn(controllers: Arc<Mutex<PsMoveControllers>>) -> JoinHandle<()> {
             interval.tick().await;
 
             let mut controllers = controllers.lock().unwrap();
+            let mut failed_addresses = Vec::<String>::new();
 
             controllers.list.iter_mut().for_each(|controller| {
                 let res = controller.update();
 
                 if res.is_err() {
-                    error!(
+                    let bt_address = &controller.bt_address;
+                    warn!(
                         "Error updating controller with address '{}'!",
-                        controller.bt_address
+                        *bt_address
                     );
+                    failed_addresses.push(bt_address.clone());
                 }
             });
+
+            controllers.list.retain(|c| !failed_addresses.contains(&c.bt_address));
         }
     })
 }
