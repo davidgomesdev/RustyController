@@ -97,8 +97,11 @@ impl PsMoveApi {
         controllers: &mut impl Iterator<Item=&'a DeviceInfo>,
     ) {
         current_controllers.retain(|controller| {
-            let is_connected =
-                controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path);
+            let is_connected = controllers.any(|dev_info| {
+                let path = dev_info.path().to_str().unwrap();
+
+                controller.has_same_path(path)
+            });
 
             if !is_connected {
                 info!(
@@ -118,9 +121,11 @@ impl PsMoveApi {
     ) -> Vec<Box<PsMoveController>> {
         controllers
             .filter(|dev_info| {
-                !current_controllers
-                    .iter()
-                    .any(|controller| dev_info.path().to_str().unwrap() == controller.path)
+                !current_controllers.iter().any(|controller| {
+                    let path = dev_info.path().to_str().unwrap();
+
+                    path == controller.bt_path || path == controller.usb_path
+                })
             })
             .map(|dev_info| {
                 let serial_number = CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
@@ -139,6 +144,8 @@ impl PsMoveApi {
         path: &CStr,
     ) -> Option<Box<PsMoveController>> {
         let path_str = String::from(path.to_str().unwrap());
+        let mut bt_path = String::new();
+        let mut usb_path = String::new();
         let mut address = String::from(serial_number.to_str().unwrap_or(""));
 
         let device = if address.is_empty() && !path_str.is_empty() {
@@ -162,36 +169,40 @@ impl PsMoveApi {
 
                 if address.is_empty() {
                     connection_type = PsMoveConnectionType::USB;
+                    usb_path = path_str.clone();
 
                     if cfg!(windows) {
-                        debug!("Getting bluetooth address by special device, due to Windows.");
-                        let mut bt_path_str = path_str.clone();
+                        trace!("Getting bluetooth address by special device, due to Windows.");
+                        bt_path = path_str.clone();
 
-                        bt_path_str = bt_path_str
+                        let magic_bt_path = bt_path
+                            .clone()
                             .replace(MAGIC_PATH, WINDOWS_BLUETOOTH_MAGIC_PATH)
                             .replace("&0000#", "&0001#");
 
                         match self
                             .hid
-                            .open_path(&*CString::new(bt_path_str.clone()).unwrap())
+                            .open_path(&*CString::new(magic_bt_path.clone()).unwrap())
                         {
                             Ok(special_bt_device) => {
-                                debug!("Got special device for bluetooth.");
+                                trace!("Got special device for bluetooth.");
                                 address = Self::get_bt_address(&special_bt_device)
                                     .unwrap_or(String::from(""));
                             }
                             Err(err) => error!("Couldn't open device. Caused by: {}", err),
                         }
                     } else {
-                        address = Self::get_bt_address(&device).unwrap_or(String::from(""))
+                        address = Self::get_bt_address(&device).unwrap_or(String::from(""));
                     }
                 } else {
                     connection_type = PsMoveConnectionType::Bluetooth;
+                    bt_path = path_str.clone();
                 }
 
                 Some(Box::new(PsMoveController::new(
                     device,
-                    path_str,
+                    bt_path,
+                    usb_path,
                     address,
                     connection_type,
                 )))
@@ -225,13 +236,20 @@ impl PsMoveApi {
         mut res: Vec<Box<PsMoveController>>,
         curr: Box<PsMoveController>,
     ) -> Vec<Box<PsMoveController>> {
-        let dupe = res
-            .iter_mut()
-            .find(|controller| controller.bt_address == curr.bt_address);
+        let dupe = res.iter_mut().find(|controller| {
+            controller.bt_address == curr.bt_address || controller.usb_path == curr.usb_path
+        });
 
         match dupe {
             None => res.push(curr),
-            Some(dupe) => dupe.connection_type = PsMoveConnectionType::USBAndBluetooth,
+            Some(dupe) => {
+                if curr.connection_type == PsMoveConnectionType::USB {
+                    dupe.usb_path = curr.usb_path;
+                } else {
+                    dupe.bt_path = curr.bt_path;
+                }
+                dupe.connection_type = PsMoveConnectionType::USBAndBluetooth
+            }
         }
         res
     }
@@ -263,7 +281,8 @@ impl PsMoveApi {
 
 pub struct PsMoveController {
     device: HidDevice,
-    path: String,
+    bt_path: String,
+    usb_path: String,
     pub bt_address: String,
     pub effect: LedEffect,
     pub setting: PsMoveSetting,
@@ -277,7 +296,7 @@ pub struct PsMoveSetting {
     rumble: f32,
 }
 
-#[derive(Display, PartialEq)]
+#[derive(Display, PartialEq, Copy, Clone)]
 pub enum PsMoveConnectionType {
     USB,
     Bluetooth,
@@ -316,13 +335,15 @@ impl PsMoveBatteryLevel {
 impl PsMoveController {
     fn new(
         device: HidDevice,
-        path: String,
+        bt_path: String,
+        usb_path: String,
         serial_number: String,
         connection_type: PsMoveConnectionType,
     ) -> PsMoveController {
         PsMoveController {
             device,
-            path,
+            bt_path,
+            usb_path,
             bt_address: serial_number,
             effect: LedEffect::Off,
             setting: PsMoveSetting {
@@ -451,6 +472,14 @@ impl PsMoveController {
         }
     }
 
+    pub fn has_same_path(&self, path: &str) -> bool {
+        match self.connection_type {
+            PsMoveConnectionType::USB => path == self.usb_path,
+            PsMoveConnectionType::Bluetooth => path == self.bt_path,
+            PsMoveConnectionType::USBAndBluetooth => path == self.usb_path || path == self.bt_path,
+        }
+    }
+
     fn update_hsv_and_rumble(&self) -> Result<(), ()> {
         let request = build_set_led_and_rumble_request(self.setting.led, self.setting.rumble);
 
@@ -467,13 +496,14 @@ impl PsMoveController {
 
     fn update_battery(&mut self, battery: u8) {
         let curr_battery = PsMoveBatteryLevel::from_byte(battery);
+        let last_battery = &self.battery;
 
-        if curr_battery != self.battery {
-            if self.battery == Unknown {
-                info!("Battery status of {} is {}", self.bt_address, curr_battery);
+        if curr_battery != *last_battery {
+            if *last_battery == Unknown {
+                info!("Controller battery status known. ('{}' at {})", self.bt_address, curr_battery);
             } else {
                 info!(
-                    "Battery status of {} changed to {}",
+                    "Controller battery status changed. ('{}' to {})",
                     self.bt_address, curr_battery
                 );
             }
