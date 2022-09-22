@@ -43,6 +43,8 @@ fn spawn_controller_list_task(
         loop {
             interval.tick().await;
 
+            api.refresh();
+
             let mut controllers = controllers.lock().unwrap();
             let new_controllers = api.list(&mut controllers.list);
 
@@ -147,9 +149,9 @@ fn spawn_controller_update_task(controllers: Arc<Mutex<PsMoveControllers>>) -> J
             let mut controllers = controllers.lock().unwrap();
 
             controllers.list.iter_mut().for_each(|controller| {
-                let is_ok = controller.update();
+                let res = controller.update();
 
-                if !is_ok {
+                if res.is_err() {
                     error!(
                         "Error updating controller with address '{}'!",
                         controller.bt_address

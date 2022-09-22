@@ -66,16 +66,20 @@ impl PsMoveApi {
         }
     }
 
-    pub fn list(
-        &mut self,
-        current_controllers: &mut Vec<Box<PsMoveController>>,
-    ) -> Vec<Box<PsMoveController>> {
+    pub fn refresh(&mut self) {
         let result = self.hid.refresh_devices();
 
         if result.is_err() {
             error!("Failed to refresh devices {}", result.unwrap_err());
-            return Vec::new();
         }
+    }
+
+    /// Returns the current devices, found in the last [`Self::refresh()`] call.
+    /// (the refresh is expensive)
+    pub fn list(
+        &mut self,
+        current_controllers: &mut Vec<Box<PsMoveController>>,
+    ) -> Vec<Box<PsMoveController>> {
         let mut controllers = self
             .hid
             .device_list()
@@ -85,7 +89,7 @@ impl PsMoveApi {
 
         let controllers = self.connect_new_controllers(current_controllers, &mut controllers);
 
-        return controllers;
+        controllers
     }
 
     fn remove_disconnected<'a>(
@@ -93,7 +97,17 @@ impl PsMoveApi {
         controllers: &mut impl Iterator<Item=&'a DeviceInfo>,
     ) {
         current_controllers.retain(|controller| {
-            controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path)
+            let is_connected =
+                controllers.any(|dev_info| dev_info.path().to_str().unwrap() == controller.path);
+
+            if !is_connected {
+                info!(
+                    "Controller disconnected. ('{}' by {})",
+                    controller.bt_address, controller.connection_type
+                )
+            }
+
+            is_connected
         });
     }
 
@@ -372,9 +386,9 @@ impl PsMoveController {
         }
     }
 
-    pub fn update(&mut self) -> bool {
-        if !self.update_hsv_and_rumble() {
-            return false;
+    pub fn update(&mut self) -> Result<(), ()> {
+        if self.update_hsv_and_rumble().is_err() {
+            return Err(());
         }
 
         let mut data = [0 as u8; 44];
@@ -387,7 +401,7 @@ impl PsMoveController {
             }
         }
 
-        return true;
+        return Ok(());
     }
 
     pub fn transform_led(&mut self) {
@@ -437,18 +451,16 @@ impl PsMoveController {
         }
     }
 
-    fn update_hsv_and_rumble(&mut self) -> bool {
+    fn update_hsv_and_rumble(&self) -> Result<(), ()> {
         let request = build_set_led_and_rumble_request(self.setting.led, self.setting.rumble);
 
         let res = self.device.write(&request);
 
         match res {
-            Ok(_) => {
-                true
-            }
+            Ok(_) => Ok(()),
             Err(err) => {
                 error!("Failed to set HSV {}", err);
-                false
+                Err(())
             }
         }
     }
