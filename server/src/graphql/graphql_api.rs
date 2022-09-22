@@ -13,7 +13,7 @@ use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
 use tokio::sync::watch::Sender;
 
-use crate::services::ps_move_api::LedEffect;
+use crate::ps_move::models::LedEffect;
 
 use super::schema::{Context, create_schema, Schema};
 

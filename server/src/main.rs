@@ -4,13 +4,12 @@ use log::{error, info};
 use tokio::sync::watch;
 
 use graphql::graphql_api;
-
-use crate::services::ps_move_api::LedEffect;
+use ps_move::models::LedEffect;
 
 mod graphql;
 mod spawn_tasks;
 mod tasks;
-mod services;
+mod ps_move;
 
 #[tokio::main]
 async fn main() {

@@ -1,10 +1,10 @@
-use crate::services::ps_move_api::PsMoveController;
+use crate::ps_move::controller::PsMoveController;
 
-pub mod effect_update_task;
-pub mod ip_discovery_task;
-pub mod list_controllers_task;
-pub mod set_mutations_task;
-pub mod update_controllers_task;
+pub mod effect_update;
+pub mod ip_discovery;
+pub mod list_controllers;
+pub mod set_mutations;
+pub mod update_controllers;
 
 pub struct PsMoveControllers {
     pub list: Vec<Box<PsMoveController>>,

@@ -4,7 +4,7 @@ use log::info;
 use tokio::sync::watch::Receiver;
 use tokio::task::JoinHandle;
 
-use crate::LedEffect;
+use crate::ps_move::models::LedEffect;
 use crate::tasks::PsMoveControllers;
 
 pub fn spawn(

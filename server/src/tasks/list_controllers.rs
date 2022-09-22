@@ -5,7 +5,8 @@ use log::info;
 use tokio::task::JoinHandle;
 use tokio::time;
 
-use crate::services::ps_move_api::{MAX_LED_PWM_FREQUENCY, PsMoveApi, PsMoveController};
+use crate::ps_move::api::PsMoveApi;
+use crate::ps_move::controller::{MAX_LED_PWM_FREQUENCY, PsMoveController};
 use crate::tasks::PsMoveControllers;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(500);
