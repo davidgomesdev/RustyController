@@ -122,20 +122,20 @@ impl MutationRoot {
     }
 
     #[graphql(description = "Cycle through colors.")]
-    fn rainbow(ctx: &Context, s: f64, v: f64, step: f64) -> FieldResult<MutationResponse> {
-        if step > 360.0 {
+    fn rainbow(ctx: &Context, input: RainbowEffectInput) -> FieldResult<MutationResponse> {
+        if input.step > 360.0 {
             return Err(FieldError::new(
                 "Step can't be higher than max hue (360)!",
                 Value::Null,
             ));
         }
-        if s < 0.0 || s > 1.0 {
+        if input.saturation < 0.0 || input.saturation > 1.0 {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
-        if v < 0.0 || v > 1.0 {
+        if input.value < 0.0 || input.value > 1.0 {
             return Err(FieldError::new(
                 "Value must be between 0.0 and 1.0!",
                 Value::Null,
@@ -143,9 +143,9 @@ impl MutationRoot {
         }
 
         let effect = LedEffect::Rainbow {
-            saturation: s as f32,
-            value: v as f32,
-            step: step as f32,
+            saturation: input.saturation as f32,
+            value: input.value as f32,
+            step: input.step as f32,
         };
 
         return match ctx.tx.send(effect) {
@@ -179,9 +179,18 @@ struct BreathingEffectInput {
     hue: f64,
     saturation: f64,
     initial_value: f64,
+    #[graphql(description = "Amount that the value changes per update.")]
     step: f64,
-    #[graphql(description = "Defines the max value that the controller breathes to.")]
+    #[graphql(description = "Defines the max value/brightness that the controller breathes to.")]
     peak: f64,
+}
+
+#[derive(GraphQLInputObject)]
+struct RainbowEffectInput {
+    saturation: f64,
+    value: f64,
+    #[graphql(description = "Amount that the hue/color changes per update.")]
+    step: f64,
 }
 
 pub type Schema = RootNode<'static, QueryRoot, MutationRoot, EmptySubscription<Context>>;
