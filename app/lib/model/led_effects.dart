@@ -12,6 +12,8 @@ abstract class LedEffect {
 
   String get graphqlMutation;
 
+  Map<String, dynamic> get graphqlVariables;
+
   StorableObject? get storeObject => null;
 }
 
@@ -25,6 +27,9 @@ class NoEffect extends LedEffect {
 
   @override
   String get graphqlMutation => "";
+
+  @override
+  Map<String, dynamic> get graphqlVariables => {};
 }
 
 class OffEffect extends LedEffect {
@@ -37,6 +42,9 @@ class OffEffect extends LedEffect {
       off
     }
   """;
+
+  @override
+  Map<String, dynamic> get graphqlVariables => {};
 }
 
 @JsonSerializable()
@@ -51,14 +59,14 @@ class StaticEffect extends LedEffect implements StorableObject {
 
   @override
   String get graphqlMutation => """
-    mutation SetLedStatic {
-      static(input: {
-        hue: ${color.hue},
-        saturation: ${color.saturation},
-        value: ${color.value}
-      })
+    mutation SetLedStatic(\$input: StaticEffectInput!) {
+      static(input: \$input)
     }
   """;
+
+  @override
+  Map<String, dynamic> get graphqlVariables =>
+      {"hue": color.hue, "saturation": color.saturation, "value": color.value};
 
   @override
   String get storeName => "static";
@@ -90,16 +98,19 @@ class BreathingEffect extends LedEffect implements StorableObject {
 
   @override
   String get graphqlMutation => """
-    mutation SetLedBreathing {
-      breathing(input: {
-        hue: ${color.hue},
-        saturation: ${color.saturation},
-        initialValue: ${color.value},
-        step: $step,
-        peak: $peak
-      })
+    mutation SetLedBreathing(\$input: BreathingEffectInput!) {
+      breathing(input: \$input)
     }
   """;
+
+  @override
+  Map<String, dynamic> get graphqlVariables => {
+        "hue": color.hue,
+        "saturation": color.saturation,
+        "initialValue": color.value,
+        "step": step,
+        "peak": peak
+      };
 
   @override
   String get storeName => "breathing";
@@ -126,14 +137,14 @@ class RainbowEffect extends LedEffect implements StorableObject {
 
   @override
   String get graphqlMutation => """
-    mutation SetLedRainbow {
-      rainbow(input: {
-        saturation: $saturation,
-        value: $value,
-        step: $step
-      })
+    mutation SetLedRainbow(\$input: RainbowEffectInput!) {
+      rainbow(input: \$input)
     }
   """;
+
+  @override
+  Map<String, dynamic> get graphqlVariables =>
+      {"saturation": saturation, "value": value, "step": step};
 
   @override
   String get storeName => "rainbow";

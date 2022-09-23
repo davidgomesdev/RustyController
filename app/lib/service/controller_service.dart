@@ -53,10 +53,12 @@ class ControllerService {
 
   Future<void> _sendEffect(LedEffect effect) async {
     log.i("Sending mutation for '${effect.name}' effect");
-    log.d("Mutation request: ${effect.graphqlMutation}");
+    log.d("Mutation input: ${effect.graphqlVariables}");
 
     await _graphqlClient
-        .mutate(MutationOptions(document: gql(effect.graphqlMutation)))
+        .mutate(MutationOptions(
+            document: gql(effect.graphqlMutation),
+            variables: {"input": effect.graphqlVariables}))
         .then((msg) {
       if (msg.hasException) {
         final exception = msg.exception!.linkException;
@@ -67,8 +69,13 @@ class ControllerService {
         }
 
         log.e(msg.exception);
+        return;
+      }
+
+      if (msg.data?[effect.type.name] == "SUCCESS") {
+        log.i("Mutation succeeded");
       } else {
-        log.d(msg);
+        log.w("Server didn't respond successfully to mutation.", msg.data);
       }
     }, onError: (msg, _) => log.e(msg))._reconnectOnTimeout();
   }
