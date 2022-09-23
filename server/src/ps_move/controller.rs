@@ -1,9 +1,11 @@
-use hidapi::HidDevice;
-use log::{error, info};
+use hidapi::{HidDevice, HidError};
+use log::{debug, error, info};
 use palette::{FromColor, Hsv, Hue, Srgb};
 
 use crate::LedEffect;
-use crate::ps_move::models::{PsMoveBatteryLevel, PsMoveConnectionType, PsMoveDataInput, PsMoveRequestType, PsMoveSetting};
+use crate::ps_move::models::{
+    PsMoveBatteryLevel, PsMoveConnectionType, PsMoveDataInput, PsMoveRequestType, PsMoveSetting,
+};
 use crate::ps_move::models::PsMoveBatteryLevel::Unknown;
 
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
@@ -168,6 +170,18 @@ impl PsMoveController {
         match res {
             Ok(_) => Ok(()),
             Err(err) => {
+                let err = &err;
+
+                match err {
+                    HidError::HidApiError { message } => {
+                        // This is an error that sometimes occurs when there's a connection drop
+                        if message == "Overlapped I/O operation is in progress." {
+                            debug!("Couldn't set HSV due to {}", err);
+                            return Ok(())
+                        }
+                    }
+                    _ => {},
+                }
                 error!("Failed to set HSV {}", err);
                 Err(())
             }
@@ -180,7 +194,10 @@ impl PsMoveController {
 
         if curr_battery != *last_battery {
             if *last_battery == Unknown {
-                info!("Controller battery status known. ('{}' at {})", self.bt_address, curr_battery);
+                info!(
+                    "Controller battery status known. ('{}' at {})",
+                    self.bt_address, curr_battery
+                );
             } else {
                 info!(
                     "Controller battery status changed. ('{}' to {})",
