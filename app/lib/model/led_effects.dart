@@ -52,7 +52,11 @@ class StaticEffect extends LedEffect implements StorableObject {
   @override
   String get graphqlMutation => """
     mutation SetLedStatic {
-      static(h: ${color.hue}, s: ${color.saturation}, v: ${color.value})
+      static(input: {
+        hue: ${color.hue},
+        saturation: ${color.saturation},
+        value: ${color.value}
+      })
     }
   """;
 
@@ -87,7 +91,13 @@ class BreathingEffect extends LedEffect implements StorableObject {
   @override
   String get graphqlMutation => """
     mutation SetLedBreathing {
-      breathing(h: ${color.hue}, s: ${color.saturation}, initialV: ${color.value}, step: $step, peak: $peak)
+      breathing(input: {
+        hue: ${color.hue},
+        saturation: ${color.saturation},
+        initialValue: ${color.value},
+        step: $step,
+        peak: $peak
+      })
     }
   """;
 
@@ -117,7 +127,11 @@ class RainbowEffect extends LedEffect implements StorableObject {
   @override
   String get graphqlMutation => """
     mutation SetLedRainbow {
-      rainbow(s: $saturation, v: $value, step: $step)
+      rainbow(input: {
+        saturation: $saturation,
+        value: $value,
+        step: $step
+      })
     }
   """;
 
