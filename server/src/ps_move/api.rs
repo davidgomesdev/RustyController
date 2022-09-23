@@ -36,48 +36,20 @@ impl PsMoveApi {
 
     /// Returns the current devices, found in the last [`Self::refresh()`] call.
     /// (the refresh is expensive)
-    pub fn list(
-        &mut self,
-        current_controllers: &mut Vec<Box<PsMoveController>>,
-    ) -> Vec<Box<PsMoveController>> {
+    pub fn list(&mut self) -> Vec<Box<PsMoveController>> {
         let mut controllers: Vec<&DeviceInfo> = self
             .hid
             .device_list()
             .filter(|dev_info| Self::is_move_controller(dev_info))
             .collect();
 
-        Self::remove_disconnected(current_controllers, &mut controllers);
-
-        let controllers = self.connect_new_controllers(current_controllers, &mut controllers);
+        let controllers = self.connect_new_controllers(&mut controllers);
 
         controllers
     }
 
-    fn remove_disconnected<'a>(
-        current_controllers: &mut Vec<Box<PsMoveController>>,
-        controllers: &mut Vec<&DeviceInfo>,
-    ) {
-        current_controllers.retain(|controller| {
-            let is_connected = controllers.iter().any(|dev_info| {
-                let path = dev_info.path().to_str().unwrap();
-
-                controller.has_same_path(path)
-            });
-
-            if !is_connected {
-                info!(
-                    "Controller disconnected. ('{}' by {})",
-                    controller.bt_address, controller.connection_type
-                )
-            }
-
-            is_connected
-        });
-    }
-
     fn connect_new_controllers(
         &self,
-        current_controllers: &mut Vec<Box<PsMoveController>>,
         controllers: &mut Vec<&DeviceInfo>,
     ) -> Vec<Box<PsMoveController>> {
         controllers

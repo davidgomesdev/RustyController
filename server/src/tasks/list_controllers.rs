@@ -20,14 +20,38 @@ pub fn spawn(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi) -> 
 
             api.refresh();
 
-            let mut controllers = controllers.lock().unwrap();
-            let new_controllers = api.list(&mut controllers.list);
+            let new_controllers = api.list();
+            {
+                let mut controllers = controllers.lock().unwrap();
 
-            new_controllers
-                .into_iter()
-                .for_each(|controller| update_controller_list(&mut (controllers.list), controller))
+                remove_disconnected_controllers(&mut controllers.list, &new_controllers);
+
+                new_controllers
+                    .into_iter()
+                    .for_each(|controller| update_controller_list(&mut (controllers.list), controller));
+            }
         }
     })
+}
+
+fn remove_disconnected_controllers(
+    current_controllers: &mut Vec<Box<PsMoveController>>,
+    controllers: &Vec<Box<PsMoveController>>,
+) {
+    current_controllers.retain(|controller| {
+        let is_connected = controllers.iter().any(|other| {
+            controller.bt_address == other.bt_address
+        });
+
+        if !is_connected {
+            info!(
+                    "Controller disconnected. ('{}' by {})",
+                    controller.bt_address, controller.connection_type
+                )
+        }
+
+        is_connected
+    });
 }
 
 fn update_controller_list(
