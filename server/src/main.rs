@@ -4,11 +4,12 @@ use log::{error, info};
 use tokio::sync::watch;
 
 use graphql::graphql_api;
-use ps_move_api::LedEffect;
+use ps_move::models::LedEffect;
 
 mod graphql;
-mod move_task;
-mod ps_move_api;
+mod spawn_tasks;
+mod tasks;
+mod ps_move;
 
 #[tokio::main]
 async fn main() {
@@ -16,7 +17,7 @@ async fn main() {
 
     let (tx, rx) = watch::channel(LedEffect::Off);
 
-    tokio::spawn(move_task::run_move(rx));
+    tokio::spawn(spawn_tasks::run_move(rx));
     match graphql_api::start(Arc::new(tx)).await {
         Ok(_) => {}
         Err(err) => { error!("Couldn't start GraphQL! {}", err) }

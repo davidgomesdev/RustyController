@@ -1,1 +1,1 @@
-const healthQuery = "query { health }";
+const healthQuery = "query CheckServiceHealth { health }";

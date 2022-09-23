@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:rusty_controller/bloc/discovery_bloc.dart';
 import 'package:rusty_controller/extensions/color_extensions.dart';
+import 'package:rusty_controller/global_consts.dart';
 import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/graphql_queries.dart';
 import 'package:rusty_controller/model/led_effects.dart';
@@ -15,10 +16,11 @@ class ControllerService {
     EffectType.static: StaticEffect(color: Colors.black.toHSV()),
     EffectType.breathing: BreathingEffect(
         color: Colors.black.toHSV(),
-        step: 0.01,
-        peak: 1.0,
+        step: maxBreathingStep,
+        peak: maxBreathingStep,
         breatheFromOff: false),
-    EffectType.rainbow: RainbowEffect(saturation: 1.0, value: 1.0, step: 1),
+    EffectType.rainbow: RainbowEffect(
+        saturation: 1.0, value: maxRainbowStep, step: maxRainbowStep),
   };
 
   void connect(String ip) {
