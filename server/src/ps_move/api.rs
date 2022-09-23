@@ -2,7 +2,7 @@ use std::ffi::{CStr, CString};
 use std::str;
 
 use hidapi::{DeviceInfo, HidApi, HidDevice};
-use log::{debug, error, info, trace};
+use log::{error, info, trace};
 use palette::Hsv;
 
 use crate::ps_move::controller::PsMoveController;
@@ -40,10 +40,11 @@ impl PsMoveApi {
         &mut self,
         current_controllers: &mut Vec<Box<PsMoveController>>,
     ) -> Vec<Box<PsMoveController>> {
-        let mut controllers = self
+        let mut controllers: Vec<&DeviceInfo> = self
             .hid
             .device_list()
-            .filter(|dev_info| Self::is_move_controller(dev_info));
+            .filter(|dev_info| Self::is_move_controller(dev_info))
+            .collect();
 
         Self::remove_disconnected(current_controllers, &mut controllers);
 
@@ -54,10 +55,10 @@ impl PsMoveApi {
 
     fn remove_disconnected<'a>(
         current_controllers: &mut Vec<Box<PsMoveController>>,
-        controllers: &mut impl Iterator<Item=&'a DeviceInfo>,
+        controllers: &mut Vec<&DeviceInfo>,
     ) {
         current_controllers.retain(|controller| {
-            let is_connected = controllers.any(|dev_info| {
+            let is_connected = controllers.iter().any(|dev_info| {
                 let path = dev_info.path().to_str().unwrap();
 
                 controller.has_same_path(path)
@@ -77,16 +78,10 @@ impl PsMoveApi {
     fn connect_new_controllers(
         &self,
         current_controllers: &mut Vec<Box<PsMoveController>>,
-        controllers: &mut dyn Iterator<Item=&DeviceInfo>,
+        controllers: &mut Vec<&DeviceInfo>,
     ) -> Vec<Box<PsMoveController>> {
         controllers
-            .filter(|dev_info| {
-                !current_controllers.iter().any(|controller| {
-                    let path = dev_info.path().to_str().unwrap();
-
-                    path == controller.bt_path || path == controller.usb_path
-                })
-            })
+            .iter()
             .map(|dev_info| {
                 let serial_number = CString::new(dev_info.serial_number().unwrap_or("")).unwrap();
 
@@ -133,9 +128,8 @@ impl PsMoveApi {
 
                     if cfg!(windows) {
                         trace!("Getting bluetooth address by special device, due to Windows.");
-                        bt_path = path_str.clone();
 
-                        let magic_bt_path = bt_path
+                        let magic_bt_path = path_str
                             .clone()
                             .replace(MAGIC_PATH, WINDOWS_BLUETOOTH_MAGIC_PATH)
                             .replace("&0000#", "&0001#");
@@ -197,7 +191,7 @@ impl PsMoveApi {
         curr: Box<PsMoveController>,
     ) -> Vec<Box<PsMoveController>> {
         let dupe = res.iter_mut().find(|controller| {
-            controller.bt_address == curr.bt_address || controller.usb_path == curr.usb_path
+            controller.bt_address == curr.bt_address
         });
 
         match dupe {
@@ -208,7 +202,7 @@ impl PsMoveApi {
                 } else {
                     dupe.bt_path = curr.bt_path;
                 }
-                dupe.connection_type = PsMoveConnectionType::USBAndBluetooth
+                dupe.connection_type = PsMoveConnectionType::USBAndBluetooth;
             }
         }
         res
@@ -227,7 +221,7 @@ impl PsMoveApi {
                     addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]
                 );
 
-                debug!("Got bluetooth address {}", addr);
+                trace!("Got bluetooth address {}", addr);
 
                 Some(addr)
             }

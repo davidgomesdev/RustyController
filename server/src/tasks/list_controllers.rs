@@ -11,10 +11,7 @@ use crate::tasks::PsMoveControllers;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(500);
 
-pub fn spawn(
-    controllers: Arc<Mutex<PsMoveControllers>>,
-    mut api: PsMoveApi,
-) -> JoinHandle<()> {
+pub fn spawn(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi) -> JoinHandle<()> {
     tokio::spawn(async move {
         let mut interval = time::interval(INTERVAL_DURATION);
 
@@ -37,9 +34,9 @@ fn update_controller_list(
     controllers: &mut Vec<Box<PsMoveController>>,
     controller: Box<PsMoveController>,
 ) {
-    let current_controller = controllers.iter_mut().find(|current_controller| {
-        return current_controller.bt_address == controller.bt_address;
-    });
+    let current_controller = controllers
+        .iter_mut()
+        .find(|current_controller| current_controller.bt_address == controller.bt_address);
 
     match current_controller {
         Some(current_controller) => {
