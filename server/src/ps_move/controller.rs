@@ -1,5 +1,3 @@
-use std::str;
-
 use hidapi::HidDevice;
 use log::{error, info};
 use palette::{FromColor, Hsv, Hue, Srgb};
@@ -159,14 +157,6 @@ impl PsMoveController {
                 // similar to breathing, the step is relative to the max possible value
                 current_hsv.shift_hue(step * 360.0)
             }
-        }
-    }
-
-    pub fn has_same_path(&self, path: &str) -> bool {
-        match self.connection_type {
-            PsMoveConnectionType::USB => path == self.usb_path,
-            PsMoveConnectionType::Bluetooth => path == self.bt_path,
-            PsMoveConnectionType::USBAndBluetooth => path == self.usb_path || path == self.bt_path,
         }
     }
 

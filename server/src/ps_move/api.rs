@@ -2,7 +2,7 @@ use std::ffi::{CStr, CString};
 use std::str;
 
 use hidapi::{DeviceInfo, HidApi, HidDevice};
-use log::{error, info, trace};
+use log::{error, trace};
 use palette::Hsv;
 
 use crate::ps_move::controller::PsMoveController;
