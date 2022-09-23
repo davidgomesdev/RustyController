@@ -19,8 +19,8 @@ class ControllerService {
         step: maxBreathingStep,
         peak: maxBreathingStep,
         breatheFromOff: false),
-    EffectType.rainbow: RainbowEffect(
-        saturation: 1.0, value: maxRainbowStep, step: maxRainbowStep),
+    EffectType.rainbow:
+        RainbowEffect(saturation: 1.0, value: 1.0, step: maxRainbowStep),
   };
 
   void connect(String ip) {
