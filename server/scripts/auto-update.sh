@@ -30,7 +30,7 @@ update () {
     cd RustyController/server/ || exit 1
 
     cargo build --release || exit
-    mv target/release/rusty_controller "$RUSTY_HOME_DIR/rusty_controller" || exit
+    cp target/release/rusty_controller "$RUSTY_HOME_DIR/rusty_controller" || exit
 
     echo "$newest_hash" > "$HASH_FILE"
     echo "$SUCCESS* Updated successfully!$RESET"
