@@ -16,11 +16,11 @@ pub fn spawn(
             let mut controllers = controllers.lock().unwrap();
             let effect = *rx.borrow();
 
-            info!("Received '{:?}' effect", effect);
+            info!("Received '{}' effect", effect);
 
             controllers.iter_mut().for_each(|controller| {
                 controller.set_led_effect(effect);
-                info!("Controller '{}' set to {:?}", controller.bt_address, effect);
+                info!("Controller '{}' set to {}", controller.bt_address, effect);
             });
         }
     })

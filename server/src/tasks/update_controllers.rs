@@ -26,7 +26,7 @@ pub fn spawn(controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>) -> JoinHandle<
                     let bt_address = &controller.bt_address;
 
                     info!(
-                        "Controller disconnected during update. ('{}' by {:?})",
+                        "Controller disconnected during update. ('{}' by {})",
                         *bt_address, controller.connection_type
                     );
 

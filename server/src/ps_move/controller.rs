@@ -222,12 +222,12 @@ impl PsMoveController {
         if curr_battery != *last_battery {
             if *last_battery == Unknown {
                 info!(
-                    "Controller battery status known. ('{}' at {:?})",
+                    "Controller battery status known. ('{}' at {})",
                     self.bt_address, curr_battery
                 );
             } else {
                 info!(
-                    "Controller battery status changed. ('{}' to {:?})",
+                    "Controller battery status changed. ('{}' to {})",
                     self.bt_address, curr_battery
                 );
             }

@@ -1,8 +1,9 @@
 use palette::Hsv;
+use strum_macros::Display;
 
 use crate::ps_move::models::BatteryLevel::*;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Display)]
 pub enum LedEffect {
     Off,
     Static {
@@ -27,14 +28,14 @@ pub struct MoveSetting {
     pub rumble: f32,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Display, PartialEq, Copy, Clone)]
 pub enum ConnectionType {
     USB,
     Bluetooth,
     USBAndBluetooth,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct ControllerInfo {
     pub serial_number: String,
     pub bt_path: String,
@@ -90,7 +91,7 @@ pub(super) enum MoveRequestType {
     GetFirmwareInfo = 0xF9,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Display, PartialEq)]
 pub enum BatteryLevel {
     Unknown,
     Empty,

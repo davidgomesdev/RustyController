@@ -65,7 +65,7 @@ fn update_changed_controllers(
                 };
 
                 info!(
-                    "Controller connection changed. ('{}' to {:?})",
+                    "Controller connection changed. ('{}' to {})",
                     controller.bt_address, controller.connection_type
                 );
                 controller.connection_type = connection_type;
@@ -84,7 +84,7 @@ fn remove_disconnected_controllers(
 
         if is_disconnected {
             info!(
-                "Controller disconnected. ('{}' by {:?})",
+                "Controller disconnected. ('{}' by {})",
                 controller.bt_address, controller.connection_type
             );
         }
@@ -106,14 +106,14 @@ fn add_connected_controllers(
             if controller.connection_type != current_controller.connection_type {
                 current_controller.merge_with(&controller);
                 info!(
-                    "Controller connection changed. ('{}' to {:?})",
+                    "Controller connection changed. ('{}' to {})",
                     current_controller.bt_address, current_controller.connection_type
                 );
             }
         }
         None => {
             info!(
-                "New controller! ('{}' by {:?})",
+                "New controller! ('{}' by {})",
                 controller.bt_address, controller.connection_type
             );
 
