@@ -1,25 +1,22 @@
-use hidapi::{HidDevice, HidError};
+use hidapi::{DeviceInfo, HidDevice, HidError};
 use log::{debug, error, info};
 use palette::{FromColor, Hsv, Hue, Srgb};
 
 use crate::LedEffect;
-use crate::ps_move::models::{
-    PsMoveBatteryLevel, PsMoveConnectionType, PsMoveDataInput, PsMoveRequestType, PsMoveSetting,
-};
-use crate::ps_move::models::PsMoveBatteryLevel::Unknown;
+use crate::ps_move::models::{BatteryLevel, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting};
+use crate::ps_move::models::BatteryLevel::Unknown;
 
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
 pub const MAX_LED_PWM_FREQUENCY: u64 = 0x24e6;
 
 pub struct PsMoveController {
     device: HidDevice,
-    pub(super) bt_path: String,
-    pub(super) usb_path: String,
+    pub(super) info: ControllerInfo,
     pub bt_address: String,
     pub effect: LedEffect,
-    pub setting: PsMoveSetting,
-    pub connection_type: PsMoveConnectionType,
-    pub battery: PsMoveBatteryLevel,
+    pub setting: MoveSetting,
+    pub battery: BatteryLevel,
+    pub connection_type: ConnectionType,
 }
 
 impl PsMoveController {
@@ -27,16 +24,21 @@ impl PsMoveController {
         device: HidDevice,
         bt_path: String,
         usb_path: String,
-        serial_number: String,
-        connection_type: PsMoveConnectionType,
+        bt_address: String,
+        connection_type: ConnectionType,
     ) -> PsMoveController {
-        PsMoveController {
-            device,
+        let info = ControllerInfo::new(
+            bt_address.clone(),
             bt_path,
             usb_path,
-            bt_address: serial_number,
+        );
+
+        PsMoveController {
+            device,
+            info,
+            bt_address,
             effect: LedEffect::Off,
-            setting: PsMoveSetting {
+            setting: MoveSetting {
                 led: Hsv::from_components((0.0, 0.0, 0.0)),
                 rumble: 0.0,
             },
@@ -105,8 +107,8 @@ impl PsMoveController {
         let mut data = [0 as u8; 44];
 
         if self.device.read(&mut data).is_ok() {
-            if data[0] == PsMoveRequestType::GetInput as u8 {
-                let data = PsMoveDataInput::new(data);
+            if data[0] == MoveRequestType::GetInput as u8 {
+                let data = DataInput::new(data);
 
                 self.update_battery(data.battery);
             }
@@ -189,7 +191,7 @@ impl PsMoveController {
     }
 
     fn update_battery(&mut self, battery: u8) {
-        let curr_battery = PsMoveBatteryLevel::from_byte(battery);
+        let curr_battery = BatteryLevel::from_byte(battery);
         let last_battery = &self.battery;
 
         if curr_battery != *last_battery {
@@ -215,7 +217,7 @@ fn build_set_led_pwm_request(frequency: u64) -> [u8; 7] {
     }
 
     return [
-        PsMoveRequestType::SetLEDPWMFrequency as u8,
+        MoveRequestType::SetLEDPWMFrequency as u8,
         0x41,
         0,
         (frequency & 0xFF) as u8,
@@ -230,7 +232,7 @@ fn build_set_led_and_rumble_request(hsv: Hsv, rumble: f32) -> [u8; 8] {
     let rgb = hsv_to_rgb(hsv, f32_to_u8);
 
     return [
-        PsMoveRequestType::SetLED as u8,
+        MoveRequestType::SetLED as u8,
         0,
         rgb[0],
         rgb[1],

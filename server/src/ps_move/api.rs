@@ -6,7 +6,7 @@ use log::{error, trace};
 use palette::Hsv;
 
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::models::{PsMoveConnectionType, PsMoveRequestType};
+use crate::ps_move::models::{ConnectionType, MoveRequestType};
 
 const MAGIC_PATH: &str = "&Col01#";
 const WINDOWS_BLUETOOTH_MAGIC_PATH: &str = "&Col02#";
@@ -71,65 +71,50 @@ impl PsMoveApi {
         path: &CStr,
     ) -> Option<Box<PsMoveController>> {
         let path_str = String::from(path.to_str().unwrap());
-        let mut bt_path = String::new();
-        let mut usb_path = String::new();
-        let mut address = String::from(serial_number.to_str().unwrap_or(""));
+        let mut bt_address = String::from(serial_number.to_str().unwrap_or(""));
 
-        let device = if address.is_empty() && !path_str.is_empty() {
+        let connection_type = if bt_address.is_empty() {
+            ConnectionType::USB
+        } else {
+            ConnectionType::Bluetooth
+        };
+
+        let device = if bt_address.is_empty() && !path_str.is_empty() {
             self.hid.open_path(path)
         } else {
             self.hid
-                .open_serial(PS_MOVE_VENDOR_ID, PS_MOVE_PRODUCT_ID, &*address)
+                .open_serial(PS_MOVE_VENDOR_ID, PS_MOVE_PRODUCT_ID, &*bt_address)
         };
 
         match device {
             Ok(device) => {
+                let mut bt_path = String::new();
+                let mut usb_path = String::new();
+
                 match device.set_blocking_mode(false) {
                     Ok(_) => {}
                     Err(err) => {
-                        error!("Unable to set '{}' to nonblocking {}", address, err);
+                        error!("Unable to set '{}' to nonblocking {}", bt_address, err);
                         return None;
                     }
                 }
 
-                let connection_type;
-
-                if address.is_empty() {
-                    connection_type = PsMoveConnectionType::USB;
+                if connection_type == ConnectionType::USB {
                     usb_path = path_str.clone();
-
-                    if cfg!(windows) {
-                        trace!("Getting bluetooth address by special device, due to Windows.");
-
-                        let magic_bt_path = path_str
-                            .clone()
-                            .replace(MAGIC_PATH, WINDOWS_BLUETOOTH_MAGIC_PATH)
-                            .replace("&0000#", "&0001#");
-
-                        match self
-                            .hid
-                            .open_path(&*CString::new(magic_bt_path.clone()).unwrap())
-                        {
-                            Ok(special_bt_device) => {
-                                trace!("Got special device for bluetooth.");
-                                address = Self::get_bt_address(&special_bt_device)
-                                    .unwrap_or(String::from(""));
-                            }
-                            Err(err) => error!("Couldn't open device. Caused by: {}", err),
-                        }
+                    bt_address = if cfg!(windows) {
+                        self.get_bt_address_on_windows(&path_str, &mut bt_address)
                     } else {
-                        address = Self::get_bt_address(&device).unwrap_or(String::from(""));
+                        Self::get_bt_address(&device).unwrap_or(String::from(""))
                     }
                 } else {
-                    connection_type = PsMoveConnectionType::Bluetooth;
-                    bt_path = path_str.clone();
+                    bt_path = path_str
                 }
 
                 Some(Box::new(PsMoveController::new(
                     device,
                     bt_path,
                     usb_path,
-                    address,
+                    bt_address,
                     connection_type,
                 )))
             }
@@ -137,6 +122,29 @@ impl PsMoveApi {
                 error!("Couldn't open '{}'. Caused by {}", path_str, err);
                 None
             }
+        }
+    }
+
+    fn get_bt_address_on_windows(&self, path_str: &String, address: &mut String) -> String {
+        trace!("Getting bluetooth address by special device, due to Windows.");
+
+        let magic_bt_path = path_str
+            .replace(MAGIC_PATH, WINDOWS_BLUETOOTH_MAGIC_PATH)
+            .replace("&0000#", "&0001#");
+
+        match self
+            .hid
+            .open_path(&*CString::new(magic_bt_path.clone()).unwrap())
+        {
+            Ok(special_bt_device) => {
+                trace!("Got special device for bluetooth.");
+                Self::get_bt_address(&special_bt_device)
+                    .unwrap_or(String::from(""))
+            }
+            Err(err) => {
+                error!("Couldn't open device. Caused by: {}", err);
+                String::from("")
+            },
         }
     }
 
@@ -169,12 +177,12 @@ impl PsMoveApi {
         match dupe {
             None => res.push(curr),
             Some(dupe) => {
-                if curr.connection_type == PsMoveConnectionType::USB {
-                    dupe.usb_path = curr.usb_path;
+                if curr.connection_type == ConnectionType::USB {
+                    dupe.info.usb_path = curr.info.usb_path;
                 } else {
-                    dupe.bt_path = curr.bt_path;
+                    dupe.info.bt_path = curr.info.bt_path;
                 }
-                dupe.connection_type = PsMoveConnectionType::USBAndBluetooth;
+                dupe.connection_type = ConnectionType::USBAndBluetooth;
             }
         }
         res
@@ -208,7 +216,7 @@ impl PsMoveApi {
 fn build_get_bt_addr_request() -> [u8; PS_MOVE_BT_ADDR_GET_SIZE] {
     let mut request = [0; PS_MOVE_BT_ADDR_GET_SIZE];
 
-    request[0] = PsMoveRequestType::GetBluetoothAddr as u8;
+    request[0] = MoveRequestType::GetBluetoothAddr as u8;
 
     return request;
 }
