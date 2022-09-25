@@ -10,47 +10,62 @@ RESET=$(tput sgr0)
 # Vars
 
 REPO_URL="https://github.com/LegendL3n/RustyController"
-LATEST_URL="$REPO_URL/releases/download/latest/rusty_controller"
 RUSTY_HOME_DIR="$HOME/RustyController"
-HASH_FILE="$RUSTY_HOME_DIR/rusty_controller.sha256"
+BINARY_PATH="$RUSTY_HOME_DIR/server/target/release/rusty_controller"
+HASH_FILE="$RUSTY_HOME_DIR/current.sha256"
 
-cd /tmp || exit 1
-rm rusty_controller 2> /dev/null
+cd "$HOME" || exit 1
 
-wget -q "$LATEST_URL" || exit
-newest_hash=$(sha256sum "rusty_controller" | gawk '{print $1}')
-
-rm rusty_controller
-
-update () {
+build () {
     echo "$INFO* Updating...$RESET"
-    rm -rf ./RustyController 2> /dev/null
 
-    git clone "$REPO_URL" || exit
-    cd RustyController/server/ || exit 1
+    git reset --hard || exit 1
+    git pull || exit
+    cd server/ || exit 1
 
     cargo build --release || exit
-    cp target/release/rusty_controller "$RUSTY_HOME_DIR/rusty_controller" || exit
+
+    newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
 
     echo "$newest_hash" > "$HASH_FILE"
     echo "$SUCCESS* Updated successfully!$RESET"
+    cd ..
 }
 
-if [[ ! -f "$RUSTY_HOME_DIR/rusty_controller" ]]; then
-  echo "$WARNING* Rusty binary not found.$RESET"
-  update
+launch () {
+  echo "$SUCCESS* Launching built version...$RESET"
+  . "$RUSTY_HOME_DIR/server/scripts/run-tmux-session.sh"
+}
+
+if [[ ! -d "$RUSTY_HOME_DIR" ]]; then
+  echo "$WARNING* Rusty not found. Cloning...$RESET"
+  git clone "$REPO_URL"
+
+  build
+  launch
   exit 0
 fi
 
-if [[ -f "$RUSTY_HOME_DIR/rusty_controller.sha256" ]]; then
-    if [[ "$newest_hash" != $(cat "$HASH_FILE") ]]; then
-        echo "$INFO* Found a new version!$RESET"
-        update
-    else
-        echo "$INFO* Version is already up-to-date.$RESET"
-        exit 0
-    fi
+cd "$RUSTY_HOME_DIR" || exit 1
+
+if [[ -f "$HASH_FILE" ]]; then
+  if [ ! -f "$BINARY_PATH" ]; then
+    echo "$INFO* Binary not found, building...$RESET"
+    build
+    launch
+    exit 0
+  fi
+
+  newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
+  build
+  if [[ "$newest_hash" != $(cat "$HASH_FILE") ]]; then
+      echo "$INFO* Built a new version!$RESET"
+      launch
+  else
+      echo "$INFO* Version is already up-to-date.$RESET"
+  fi
 else
     echo "$WARNING* Couldn't find current hash. Updating to latest version anyway.$RESET"
-    update
+    build
+    launch
 fi

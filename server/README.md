@@ -21,12 +21,12 @@ I do the pairing manually with [psmoveapi](https://github.com/thp/psmoveapi/rele
 
 Currently, there's a GitHub action that runs on every `main` branch push, releasing/replacing the latest build.
 
-The [auto-update](scripts/auto-update.sh) script updates the server to that latest build, in case it is outdated.
+The [auto-update](scripts/auto-update.sh) script, however, doesn't look for that build, it clones/pulls `main`, builds
+the binary and runs [run-tmux-session.sh](scripts/run-tmux-session.sh) if newer, which re-launches Rusty, with minimal
+downtime. (only after having it built essentially)
 
 You can run it every hour or so, by adding the following line on: `crontab -e`.
 
 ```bash
-0 * * * * ( cd /home/youruser/RustyController && bash server/scripts/auto-update.sh && rusty_controller )
+0 * * * * ( cd /home/youruser/RustyController && cp server/scripts/auto-update.sh /tmp/rusty-auto-update.sh && bash /tmp/rusty-auto-update.sh )
 ```
-
-Alternatively, you can run `bash server/scripts/run-tmux-session.sh`, if you want it as a tmux session.
