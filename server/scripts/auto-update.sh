@@ -23,7 +23,7 @@ build () {
     git pull || exit
     cd server/ || exit 1
 
-    cargo build --release || exit
+    time cargo build --release || exit
 
     newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
 
