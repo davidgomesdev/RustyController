@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use log::warn;
+use log::info;
 use tokio::task::JoinHandle;
 use tokio::time;
 
@@ -24,13 +24,17 @@ pub fn spawn(controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>) -> JoinHandle<
 
                 if res.is_err() {
                     let bt_address = &controller.bt_address;
-                    warn!("Error updating controller with address '{}'!", *bt_address);
+
+                    info!(
+                        "Controller disconnected during update. ('{}' by {:?})",
+                        *bt_address, controller.connection_type
+                    );
+
                     failed_addresses.push(bt_address.clone());
                 }
             });
 
-            // controllers
-            //     .retain(|c| !failed_addresses.contains(&c.bt_address));
+            controllers.retain(|c| !failed_addresses.contains(&c.bt_address));
         }
     })
 }
