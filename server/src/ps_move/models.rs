@@ -35,7 +35,7 @@ pub enum ConnectionType {
     USBAndBluetooth,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ControllerInfo {
     pub serial_number: String,
     pub bt_path: String,

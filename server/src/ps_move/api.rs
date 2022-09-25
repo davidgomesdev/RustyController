@@ -80,10 +80,24 @@ impl PsMoveApi {
     ) {
         old_controllers
             .iter()
+            .filter(|ctl| ctl.connection_type != ConnectionType::USBAndBluetooth)
             .filter(|ctl| {
                 !current_controllers
                     .iter()
                     .any(|info| ctl.is_same_device(info))
+            })
+            .for_each(|ctl| result.disconnected.push(ctl.info.clone()));
+
+        old_controllers
+            .iter()
+            .filter(|ctl| ctl.connection_type == ConnectionType::USBAndBluetooth)
+            .filter(|ctl| {
+                !current_controllers.iter().any(|info| {
+                    ctl.is_same_device(info)
+                        && current_controllers
+                        .iter()
+                        .any(|other| ctl.is_same_device(other) && info != other)
+                })
             })
             .for_each(|ctl| result.disconnected.push(ctl.info.clone()));
     }
