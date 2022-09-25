@@ -102,7 +102,7 @@ impl PsMoveApi {
                 if connection_type == ConnectionType::USB {
                     usb_path = path_str.clone();
                     bt_address = if cfg!(windows) {
-                        self.get_bt_address_on_windows(&path_str, &mut bt_address)
+                        self.get_bt_address_on_windows(&path_str)
                     } else {
                         Self::get_bt_address(&device).unwrap_or(String::from(""))
                     }
@@ -125,7 +125,7 @@ impl PsMoveApi {
         }
     }
 
-    fn get_bt_address_on_windows(&self, path_str: &String, address: &mut String) -> String {
+    fn get_bt_address_on_windows(&self, path_str: &String) -> String {
         trace!("Getting bluetooth address by special device, due to Windows.");
 
         let magic_bt_path = path_str

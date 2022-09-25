@@ -1,4 +1,4 @@
-use hidapi::{DeviceInfo, HidDevice, HidError};
+use hidapi::{HidDevice, HidError};
 use log::{debug, error, info};
 use palette::{FromColor, Hsv, Hue, Srgb};
 
