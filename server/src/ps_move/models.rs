@@ -1,24 +1,8 @@
 use palette::Hsv;
-use strum_macros::Display;
 
-use crate::ps_move::models::PsMoveBatteryLevel::*;
+use crate::ps_move::models::BatteryLevel::*;
 
-#[allow(unused)]
-pub enum PsMoveRequestType {
-    GetInput = 0x01,
-    SetLED = 0x06,
-    SetLEDPWMFrequency = 0x03,
-    GetBluetoothAddr = 0x04,
-    BluetoothAddr = 0x05,
-    GetCalibration = 0x10,
-    SetAuthChallenge = 0xA0,
-    GetAuthResponse = 0xA1,
-    GetExtDeviceInfo = 0xE0,
-    SetDFUMode = 0xF2,
-    GetFirmwareInfo = 0xF9,
-}
-
-#[derive(Clone, Copy, Display)]
+#[derive(Clone, Copy, Debug)]
 pub enum LedEffect {
     Off,
     Static {
@@ -38,20 +22,76 @@ pub enum LedEffect {
 }
 
 #[derive(Clone)]
-pub struct PsMoveSetting {
+pub struct MoveSetting {
     pub led: Hsv,
     pub rumble: f32,
 }
 
-#[derive(Display, PartialEq, Copy, Clone)]
-pub enum PsMoveConnectionType {
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum ConnectionType {
     USB,
     Bluetooth,
     USBAndBluetooth,
 }
 
-#[derive(Display, PartialEq)]
-pub enum PsMoveBatteryLevel {
+#[derive(Debug, Clone, PartialEq)]
+pub struct ControllerInfo {
+    pub serial_number: String,
+    pub bt_path: String,
+    pub usb_path: String,
+}
+
+impl ControllerInfo {
+    pub(super) fn from(
+        serial_number: &str,
+        path: &str,
+    ) -> ControllerInfo {
+        let serial_number = String::from(serial_number);
+        let path = String::from(path);
+
+        if serial_number.is_empty() {
+            ControllerInfo {
+                serial_number,
+                bt_path: String::new(),
+                usb_path: path,
+            }
+        } else {
+            ControllerInfo {
+                serial_number,
+                bt_path: path,
+                usb_path: String::new(),
+            }
+        }
+    }
+
+    pub(super) fn new(serial_number: String,
+                      bt_path: String,
+                      usb_path: String) -> ControllerInfo {
+        ControllerInfo {
+            serial_number,
+            bt_path,
+            usb_path,
+        }
+    }
+}
+
+#[allow(unused)]
+pub(super) enum MoveRequestType {
+    GetInput = 0x01,
+    SetLED = 0x06,
+    SetLEDPWMFrequency = 0x03,
+    GetBluetoothAddr = 0x04,
+    BluetoothAddr = 0x05,
+    GetCalibration = 0x10,
+    SetAuthChallenge = 0xA0,
+    GetAuthResponse = 0xA1,
+    GetExtDeviceInfo = 0xE0,
+    SetDFUMode = 0xF2,
+    GetFirmwareInfo = 0xF9,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum BatteryLevel {
     Unknown,
     Empty,
     TwentyPercent,
@@ -63,8 +103,8 @@ pub enum PsMoveBatteryLevel {
     Charged,
 }
 
-impl PsMoveBatteryLevel {
-    pub fn from_byte(byte: u8) -> PsMoveBatteryLevel {
+impl BatteryLevel {
+    pub fn from_byte(byte: u8) -> BatteryLevel {
         match byte {
             0x00 => Empty,
             0x01 => TwentyPercent,
@@ -81,7 +121,7 @@ impl PsMoveBatteryLevel {
 
 /// Adapted from [psmoveapi's source](https://github.com/thp/psmoveapi/blob/master/src/psmove.c)
 #[allow(unused)]
-pub struct PsMoveDataInput {
+pub(super) struct DataInput {
     // message type, must be PSMove_Req_GetInput
     pub msg_type: u8,
     pub buttons1: u8,
@@ -148,9 +188,9 @@ pub struct PsMoveDataInput {
     time_low: u8,
 }
 
-impl PsMoveDataInput {
-    pub(super) fn new(req: [u8; 44]) -> PsMoveDataInput {
-        PsMoveDataInput {
+impl DataInput {
+    pub fn new(req: [u8; 44]) -> DataInput {
+        DataInput {
             msg_type: req[0],
             buttons1: req[1],
             buttons2: req[2],
