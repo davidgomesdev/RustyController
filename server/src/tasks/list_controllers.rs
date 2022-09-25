@@ -7,11 +7,10 @@ use tokio::time;
 
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::{MAX_LED_PWM_FREQUENCY, PsMoveController};
-use crate::tasks::PsMoveControllers;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(500);
 
-pub fn spawn(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi) -> JoinHandle<()> {
+pub fn spawn(controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>, mut api: PsMoveApi) -> JoinHandle<()> {
     tokio::spawn(async move {
         let mut interval = time::interval(INTERVAL_DURATION);
 
@@ -21,15 +20,13 @@ pub fn spawn(controllers: Arc<Mutex<PsMoveControllers>>, mut api: PsMoveApi) -> 
             api.refresh();
 
             let new_controllers = api.list();
-            {
-                let mut controllers = controllers.lock().unwrap();
+            let mut controllers = controllers.lock().unwrap();
 
-                remove_disconnected_controllers(&mut controllers.list, &new_controllers);
+            remove_disconnected_controllers(&mut controllers, &new_controllers);
 
-                new_controllers
-                    .into_iter()
-                    .for_each(|controller| update_controller_list(&mut (controllers.list), controller));
-            }
+            new_controllers
+                .into_iter()
+                .for_each(|controller| update_controller_list(&mut (controllers), controller));
         }
     })
 }

@@ -87,7 +87,7 @@ impl PsMoveApi {
                 match device.set_blocking_mode(false) {
                     Ok(_) => {}
                     Err(err) => {
-                        error!("Unable to set {} to nonblocking {}", address, err);
+                        error!("Unable to set '{}' to nonblocking {}", address, err);
                         return None;
                     }
                 }
