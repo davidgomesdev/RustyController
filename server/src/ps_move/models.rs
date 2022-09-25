@@ -37,19 +37,19 @@ pub enum ConnectionType {
 
 #[derive(Clone)]
 pub struct ControllerInfo {
-    pub(super) bt_address: String,
-    pub(super) bt_path: String,
-    pub(super) usb_path: String,
+    pub serial_number: String,
+    pub bt_path: String,
+    pub usb_path: String,
 }
 
 impl ControllerInfo {
     pub(super) fn new(
-        bt_address: String,
+        serial_number: String,
         bt_path: String,
         usb_path: String,
     ) -> ControllerInfo {
         ControllerInfo {
-            bt_address,
+            serial_number,
             bt_path,
             usb_path,
         }

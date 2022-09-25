@@ -3,7 +3,9 @@ use log::{debug, error, info};
 use palette::{FromColor, Hsv, Hue, Srgb};
 
 use crate::LedEffect;
-use crate::ps_move::models::{BatteryLevel, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting};
+use crate::ps_move::models::{
+    BatteryLevel, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting,
+};
 use crate::ps_move::models::BatteryLevel::Unknown;
 
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
@@ -22,16 +24,13 @@ pub struct PsMoveController {
 impl PsMoveController {
     pub(super) fn new(
         device: HidDevice,
+        serial_number: String,
         bt_path: String,
         usb_path: String,
         bt_address: String,
         connection_type: ConnectionType,
     ) -> PsMoveController {
-        let info = ControllerInfo::new(
-            bt_address.clone(),
-            bt_path,
-            usb_path,
-        );
+        let info = ControllerInfo::new(serial_number, bt_path, usb_path);
 
         PsMoveController {
             device,
@@ -44,6 +43,16 @@ impl PsMoveController {
             },
             connection_type,
             battery: Unknown,
+        }
+    }
+
+    pub fn is_same_device(&self, info: &ControllerInfo) -> bool {
+        match self.connection_type {
+            ConnectionType::USB => self.info.usb_path == info.usb_path,
+            ConnectionType::Bluetooth => self.info.bt_path == info.bt_path,
+            ConnectionType::USBAndBluetooth => {
+                self.info.usb_path == info.usb_path || self.info.bt_path == info.bt_path
+            }
         }
     }
 
@@ -179,10 +188,10 @@ impl PsMoveController {
                         // This is an error that sometimes occurs when there's a connection drop
                         if message == "Overlapped I/O operation is in progress." {
                             debug!("Couldn't set HSV due to {}", err);
-                            return Ok(())
+                            return Ok(());
                         }
                     }
-                    _ => {},
+                    _ => {}
                 }
                 error!("Failed to set HSV {}", err);
                 Err(())

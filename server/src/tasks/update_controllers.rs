@@ -29,8 +29,8 @@ pub fn spawn(controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>) -> JoinHandle<
                 }
             });
 
-            controllers
-                .retain(|c| !failed_addresses.contains(&c.bt_address));
+            // controllers
+            //     .retain(|c| !failed_addresses.contains(&c.bt_address));
         }
     })
 }
