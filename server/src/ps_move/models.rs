@@ -1,9 +1,8 @@
 use palette::Hsv;
-use strum_macros::Display;
 
 use crate::ps_move::models::BatteryLevel::*;
 
-#[derive(Clone, Copy, Display)]
+#[derive(Clone, Copy, Debug)]
 pub enum LedEffect {
     Off,
     Static {
