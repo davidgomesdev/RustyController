@@ -50,6 +50,9 @@ impl PsMoveApi {
 
     /// Returns the controller changes found in the last [`Self::refresh()`] call.
     /// (the refresh is expensive)
+    ///
+    /// Note: has all raw devices info, so one controller can appear twice,
+    /// if connected via both USB and BT
     pub fn list(&mut self, old_controllers: &Vec<Box<PsMoveController>>) -> ListingResult {
         let mut result = ListingResult::new();
         let current_controllers = self.list_psmove_devices();
@@ -58,59 +61,6 @@ impl PsMoveApi {
         Self::get_connected_controllers(old_controllers, &mut result, current_controllers);
 
         result
-    }
-
-    fn list_psmove_devices(&mut self) -> Vec<ControllerInfo> {
-        self.hid
-            .device_list()
-            .filter(|dev_info| Self::is_move_controller(dev_info))
-            .map(|dev_info| {
-                let serial_number = dev_info.serial_number().unwrap_or("");
-                let path = dev_info.path().to_str().unwrap();
-
-                ControllerInfo::from(serial_number, path)
-            })
-            .collect()
-    }
-
-    fn get_disconnected_controllers(
-        old_controllers: &Vec<Box<PsMoveController>>,
-        result: &mut ListingResult,
-        current_controllers: &Vec<ControllerInfo>,
-    ) {
-        old_controllers
-            .iter()
-            .filter(|ctl| ctl.connection_type != ConnectionType::USBAndBluetooth)
-            .filter(|ctl| {
-                !current_controllers
-                    .iter()
-                    .any(|info| ctl.is_same_device(info))
-            })
-            .for_each(|ctl| result.disconnected.push(ctl.info.clone()));
-
-        old_controllers
-            .iter()
-            .filter(|ctl| ctl.connection_type == ConnectionType::USBAndBluetooth)
-            .filter(|ctl| {
-                !current_controllers.iter().any(|info| {
-                    ctl.is_same_device(info)
-                        && current_controllers
-                        .iter()
-                        .any(|other| ctl.is_same_device(other) && info != other)
-                })
-            })
-            .for_each(|ctl| result.disconnected.push(ctl.info.clone()));
-    }
-
-    fn get_connected_controllers(
-        old_controllers: &Vec<Box<PsMoveController>>,
-        result: &mut ListingResult,
-        current_controllers: Vec<ControllerInfo>,
-    ) {
-        current_controllers
-            .iter()
-            .filter(|info| !old_controllers.iter().any(|ctl| ctl.is_same_device(info)))
-            .for_each(|info| result.connected.push(info.clone()));
     }
 
     pub fn connect_controllers(
@@ -130,6 +80,62 @@ impl PsMoveApi {
             })
             .flatten()
             .collect()
+    }
+
+    fn list_psmove_devices(&mut self) -> Vec<ControllerInfo> {
+        self.hid
+            .device_list()
+            .filter(|dev_info| Self::is_move_controller(dev_info))
+            .map(|dev_info| {
+                let serial_number = dev_info.serial_number().unwrap_or("");
+                let path = dev_info.path().to_str().unwrap();
+
+                ControllerInfo::from(serial_number, path)
+            })
+            .collect()
+    }
+
+    /// Adds the `old_controllers` not present in `current_controllers` to `result::disconnected`.
+    fn get_disconnected_controllers(
+        old_controllers: &Vec<Box<PsMoveController>>,
+        result: &mut ListingResult,
+        current_controllers: &Vec<ControllerInfo>,
+    ) {
+        old_controllers
+            .iter()
+            .filter(|ctl| ctl.connection_type != ConnectionType::USBAndBluetooth)
+            .filter(|ctl| {
+                !current_controllers
+                    .iter()
+                    .any(|info| ctl.is_same_device(info))
+            })
+            .for_each(|ctl| result.disconnected.push(ctl.info.clone()));
+
+        old_controllers
+            .iter()
+            .filter(|ctl| ctl.connection_type == ConnectionType::USBAndBluetooth)
+            .filter(|ctl| {
+                // USB and Bluetooth must appear twice in the listing
+                !current_controllers.iter().any(|info| {
+                    ctl.is_same_device(info)
+                        && current_controllers
+                        .iter()
+                        .any(|other| ctl.is_same_device(other) && info != other)
+                })
+            })
+            .for_each(|ctl| result.disconnected.push(ctl.info.clone()));
+    }
+
+    /// Adds the `new_controllers` not present in `old_controllers` to `result::connected`.
+    fn get_connected_controllers(
+        old_controllers: &Vec<Box<PsMoveController>>,
+        result: &mut ListingResult,
+        current_controllers: Vec<ControllerInfo>,
+    ) {
+        current_controllers
+            .iter()
+            .filter(|info| !old_controllers.iter().any(|ctl| ctl.is_same_device(info)))
+            .for_each(|info| result.connected.push(info.clone()));
     }
 
     fn connect_controller(&self, serial_number: &str, path: &str) -> Option<Box<PsMoveController>> {
