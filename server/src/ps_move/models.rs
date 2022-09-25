@@ -28,7 +28,7 @@ pub struct MoveSetting {
     pub rumble: f32,
 }
 
-#[derive(Display, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ConnectionType {
     USB,
     Bluetooth,
@@ -43,11 +43,31 @@ pub struct ControllerInfo {
 }
 
 impl ControllerInfo {
-    pub(super) fn new(
-        serial_number: String,
-        bt_path: String,
-        usb_path: String,
+    pub(super) fn from(
+        serial_number: &str,
+        path: &str,
     ) -> ControllerInfo {
+        let serial_number = String::from(serial_number);
+        let path = String::from(path);
+
+        if serial_number.is_empty() {
+            ControllerInfo {
+                serial_number,
+                bt_path: String::new(),
+                usb_path: path,
+            }
+        } else {
+            ControllerInfo {
+                serial_number,
+                bt_path: path,
+                usb_path: String::new(),
+            }
+        }
+    }
+
+    pub(super) fn new(serial_number: String,
+                      bt_path: String,
+                      usb_path: String) -> ControllerInfo {
         ControllerInfo {
             serial_number,
             bt_path,
@@ -71,7 +91,7 @@ pub(super) enum MoveRequestType {
     GetFirmwareInfo = 0xF9,
 }
 
-#[derive(Display, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum BatteryLevel {
     Unknown,
     Empty,

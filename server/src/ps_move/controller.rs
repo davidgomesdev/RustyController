@@ -24,13 +24,13 @@ pub struct PsMoveController {
 impl PsMoveController {
     pub(super) fn new(
         device: HidDevice,
-        serial_number: String,
+        serial_number: &str,
         bt_path: String,
         usb_path: String,
         bt_address: String,
         connection_type: ConnectionType,
     ) -> PsMoveController {
-        let info = ControllerInfo::new(serial_number, bt_path, usb_path);
+        let info = ControllerInfo::new(String::from(serial_number), bt_path, usb_path);
 
         PsMoveController {
             device,
@@ -54,6 +54,22 @@ impl PsMoveController {
                 self.info.usb_path == info.usb_path || self.info.bt_path == info.bt_path
             }
         }
+    }
+
+    /// Merges a USB device with a Bluetooth one (or vice-versa)
+    ///
+    /// Updating the connection type.
+    pub fn merge_with(&mut self, other: &PsMoveController) {
+        if self.connection_type == other.connection_type {
+            panic!("Both controllers are connected the same way! Nothing to merge.")
+        }
+
+        if self.connection_type == ConnectionType::USB {
+            self.info.bt_path = other.info.bt_path.clone();
+        } else if self.connection_type == ConnectionType::Bluetooth {
+            self.info.usb_path = other.info.usb_path.clone();
+        }
+        self.connection_type = ConnectionType::USBAndBluetooth;
     }
 
     pub fn set_led_pwm_frequency(&self, frequency: u64) -> bool {
@@ -206,12 +222,12 @@ impl PsMoveController {
         if curr_battery != *last_battery {
             if *last_battery == Unknown {
                 info!(
-                    "Controller battery status known. ('{}' at {})",
+                    "Controller battery status known. ('{}' at {:?})",
                     self.bt_address, curr_battery
                 );
             } else {
                 info!(
-                    "Controller battery status changed. ('{}' to {})",
+                    "Controller battery status changed. ('{}' to {:?})",
                     self.bt_address, curr_battery
                 );
             }

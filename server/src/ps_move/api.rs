@@ -1,6 +1,5 @@
 use std::ffi::CString;
 use std::str;
-use std::sync::Mutex;
 
 use hidapi::{DeviceInfo, HidApi, HidDevice};
 use log::{error, trace};
@@ -53,26 +52,7 @@ impl PsMoveApi {
     /// (the refresh is expensive)
     pub fn list(&mut self, old_controllers: &Vec<Box<PsMoveController>>) -> ListingResult {
         let mut result = ListingResult::new();
-        let current_controllers: Vec<ControllerInfo> = self
-            .hid
-            .device_list()
-            .filter(|dev_info| Self::is_move_controller(dev_info))
-            .map(|dev_info| {
-                if !dev_info.serial_number().unwrap_or("").is_empty() {
-                    ControllerInfo::new(
-                        String::from(dev_info.serial_number().unwrap()),
-                        String::from(dev_info.path().to_str().unwrap()),
-                        String::new(),
-                    )
-                } else {
-                    ControllerInfo::new(
-                        String::from(dev_info.serial_number().unwrap()),
-                        String::new(),
-                        String::from(dev_info.path().to_str().unwrap()),
-                    )
-                }
-            })
-            .collect();
+        let current_controllers = self.list_psmove_devices();
 
         Self::get_disconnected_controllers(old_controllers, &mut result, &current_controllers);
         Self::get_connected_controllers(old_controllers, &mut result, current_controllers);
@@ -80,7 +60,24 @@ impl PsMoveApi {
         result
     }
 
-    fn get_disconnected_controllers(old_controllers: &Vec<Box<PsMoveController>>, result: &mut ListingResult, current_controllers: &Vec<ControllerInfo>) {
+    fn list_psmove_devices(&mut self) -> Vec<ControllerInfo> {
+        self.hid
+            .device_list()
+            .filter(|dev_info| Self::is_move_controller(dev_info))
+            .map(|dev_info| {
+                let serial_number = dev_info.serial_number().unwrap_or("");
+                let path = dev_info.path().to_str().unwrap();
+
+                ControllerInfo::from(serial_number, path)
+            })
+            .collect()
+    }
+
+    fn get_disconnected_controllers(
+        old_controllers: &Vec<Box<PsMoveController>>,
+        result: &mut ListingResult,
+        current_controllers: &Vec<ControllerInfo>,
+    ) {
         old_controllers
             .iter()
             .filter(|ctl| {
@@ -91,7 +88,11 @@ impl PsMoveApi {
             .for_each(|ctl| result.disconnected.push(ctl.info.clone()));
     }
 
-    fn get_connected_controllers(old_controllers: &Vec<Box<PsMoveController>>, result: &mut ListingResult, current_controllers: Vec<ControllerInfo>) {
+    fn get_connected_controllers(
+        old_controllers: &Vec<Box<PsMoveController>>,
+        result: &mut ListingResult,
+        current_controllers: Vec<ControllerInfo>,
+    ) {
         current_controllers
             .iter()
             .filter(|info| !old_controllers.iter().any(|ctl| ctl.is_same_device(info)))
@@ -160,7 +161,7 @@ impl PsMoveApi {
 
                 Some(Box::new(PsMoveController::new(
                     device,
-                    String::from(serial_number),
+                    serial_number,
                     bt_path,
                     usb_path,
                     bt_address,
@@ -211,29 +212,6 @@ impl PsMoveApi {
         }
 
         vendor_id == PS_MOVE_VENDOR_ID && product_id == PS_MOVE_PRODUCT_ID
-    }
-
-    fn merge_usb_with_bt_device(
-        &self,
-        mut res: Vec<Box<PsMoveController>>,
-        curr: Box<PsMoveController>,
-    ) -> Vec<Box<PsMoveController>> {
-        let dupe = res
-            .iter_mut()
-            .find(|controller| controller.bt_address == curr.bt_address);
-
-        match dupe {
-            None => res.push(curr),
-            Some(dupe) => {
-                if curr.connection_type == ConnectionType::USB {
-                    dupe.info.usb_path = curr.info.usb_path;
-                } else {
-                    dupe.info.bt_path = curr.info.bt_path;
-                }
-                dupe.connection_type = ConnectionType::USBAndBluetooth;
-            }
-        }
-        res
     }
 
     fn get_bt_address(device: &HidDevice) -> Option<String> {
