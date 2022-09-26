@@ -1,6 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use log::info;
+use tokio::sync::Mutex;
 use tokio::sync::watch::Receiver;
 use tokio::task::JoinHandle;
 
@@ -13,7 +14,7 @@ pub fn spawn(
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
         while rx.changed().await.is_ok() {
-            let mut controllers = controllers.lock().unwrap();
+            let mut controllers = controllers.lock().await;
             let effect = *rx.borrow();
 
             info!("Received '{}' effect", effect);

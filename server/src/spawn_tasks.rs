@@ -1,5 +1,6 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
+use tokio::sync::Mutex;
 use tokio::sync::watch::Receiver;
 
 use crate::ps_move::api::PsMoveApi;

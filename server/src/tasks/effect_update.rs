@@ -1,6 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 
+use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 use tokio::time;
 
@@ -15,7 +16,7 @@ pub fn spawn(controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>) -> JoinHandle<
         loop {
             interval.tick().await;
 
-            let mut controllers = controllers.lock().unwrap();
+            let mut controllers = controllers.lock().await;
 
             controllers.iter_mut().for_each(|controller| {
                 controller.transform_led();
