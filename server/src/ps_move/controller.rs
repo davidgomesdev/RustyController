@@ -1,6 +1,6 @@
 use hidapi::{HidDevice, HidError};
 use log::{debug, error, info};
-use palette::{FromColor, Hsv, Hue, Srgb};
+use palette::{FromColor, Hsv, Srgb};
 
 use crate::LedEffect;
 use crate::ps_move::models::{
@@ -146,47 +146,7 @@ impl PsMoveController {
         let effect = &mut self.effect;
         let current_hsv = self.setting.led;
 
-        self.setting.led = match *effect {
-            LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
-            LedEffect::Static { hsv } => hsv,
-            LedEffect::Breathing {
-                initial_hsv,
-                step,
-                peak,
-                ref mut inhaling,
-            } => {
-                let initial_value = initial_hsv.value;
-
-                let mut new_hsv = current_hsv.clone();
-                let mut new_value = new_hsv.value;
-
-                if *inhaling {
-                    new_value += step * peak
-                } else {
-                    new_value -= step * peak
-                }
-
-                if new_value >= peak {
-                    new_value = peak;
-                    *inhaling = false
-                } else if new_value <= initial_value {
-                    new_value = initial_value;
-                    *inhaling = true
-                }
-
-                new_hsv.value = new_value;
-                new_hsv
-            }
-            LedEffect::Rainbow {
-                saturation: _,
-                value: _,
-                step,
-            } => {
-                // no need to use [saturation] and [value], since it was already set in the beginning
-                // similar to breathing, the step is relative to the max possible value
-                current_hsv.shift_hue(step * 360.0)
-            }
-        }
+        self.setting.led = effect.update_hsv(current_hsv);
     }
 
     fn update_hsv_and_rumble(&self) -> Result<(), ()> {

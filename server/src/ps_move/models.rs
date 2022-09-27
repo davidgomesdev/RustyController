@@ -1,4 +1,4 @@
-use palette::Hsv;
+use palette::{Hsv, Hue};
 use strum_macros::Display;
 
 use crate::ps_move::models::BatteryLevel::*;
@@ -20,6 +20,52 @@ pub enum LedEffect {
         value: f32,
         step: f32,
     },
+}
+
+impl LedEffect {
+    pub fn update_hsv(&mut self, current_hsv: Hsv) -> Hsv {
+        match *self {
+            LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
+            LedEffect::Static { hsv } => hsv,
+            LedEffect::Breathing {
+                initial_hsv,
+                step,
+                peak,
+                ref mut inhaling,
+            } => {
+                let initial_value = initial_hsv.value;
+
+                let mut new_hsv = current_hsv.clone();
+                let mut new_value = new_hsv.value;
+
+                if *inhaling {
+                    new_value += step * peak
+                } else {
+                    new_value -= step * peak
+                }
+
+                if new_value >= peak {
+                    new_value = peak;
+                    *inhaling = false
+                } else if new_value <= initial_value {
+                    new_value = initial_value;
+                    *inhaling = true
+                }
+
+                new_hsv.value = new_value;
+                new_hsv
+            }
+            LedEffect::Rainbow {
+                saturation: _,
+                value: _,
+                step,
+            } => {
+                // no need to use [saturation] and [value], since it was already set in the beginning
+                // similar to breathing, the step is relative to the max possible value
+                current_hsv.shift_hue(step * 360.0)
+            }
+        }
+    }
 }
 
 #[derive(Clone)]
