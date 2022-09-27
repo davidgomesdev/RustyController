@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
 use juniper::{EmptySubscription, FieldError, RootNode, Value};
-use juniper::{FieldResult, GraphQLEnum, GraphQLInputObject};
+use juniper::FieldResult;
 use tokio::sync::watch::Sender;
 
+use crate::graphql::schema_input::*;
+use crate::graphql::schema_response::*;
 use crate::ps_move::api::build_hsv;
 use crate::ps_move::models::LedEffect;
 
@@ -66,14 +68,14 @@ impl MutationRoot {
         };
     }
 
-    #[graphql(description = "Increase/decrease brightness of a color.")]
+    #[graphql(description = "Increase/decrease brightness of a color over time.")]
     fn breathing(
         ctx: &Context,
         input: BreathingEffectInput
     ) -> FieldResult<MutationResponse> {
-        if input.step > input.peak {
+        if input.step > 1.0 {
             return Err(FieldError::new(
-                "Step can't be higher than peak!",
+                "Step can't be higher than 1.0!",
                 Value::Null,
             ));
         }
@@ -124,9 +126,9 @@ impl MutationRoot {
 
     #[graphql(description = "Cycle through colors.")]
     fn rainbow(ctx: &Context, input: RainbowEffectInput) -> FieldResult<MutationResponse> {
-        if input.step > 360.0 {
+        if input.step > 1.0 {
             return Err(FieldError::new(
-                "Step can't be higher than max hue (360)!",
+                "Step can't be higher than 1.0!",
                 Value::Null,
             ));
         }
@@ -154,44 +156,6 @@ impl MutationRoot {
             Err(_) => Ok(MutationResponse::ServerError),
         };
     }
-}
-
-#[derive(GraphQLEnum)]
-enum HealthStatus {
-    Ok,
-    Error,
-}
-
-#[derive(GraphQLEnum)]
-enum MutationResponse {
-    Success,
-    ServerError,
-}
-
-#[derive(GraphQLInputObject)]
-struct StaticEffectInput {
-    hue: f64,
-    saturation: f64,
-    value: f64,
-}
-
-#[derive(GraphQLInputObject)]
-struct BreathingEffectInput {
-    hue: f64,
-    saturation: f64,
-    initial_value: f64,
-    #[graphql(description = "Amount that the value changes per update.")]
-    step: f64,
-    #[graphql(description = "Defines the max value/brightness that the controller breathes to.")]
-    peak: f64,
-}
-
-#[derive(GraphQLInputObject)]
-struct RainbowEffectInput {
-    saturation: f64,
-    value: f64,
-    #[graphql(description = "Amount that the hue/color changes per update.")]
-    step: f64,
 }
 
 pub type Schema = RootNode<'static, QueryRoot, MutationRoot, EmptySubscription<Context>>;
