@@ -1,9 +1,11 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 
 use log::info;
+use tokio::{task, time};
+use tokio::runtime::Handle;
+use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
-use tokio::time;
 
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::{MAX_LED_PWM_FREQUENCY, PsMoveController};
@@ -15,22 +17,25 @@ pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
     mut api: PsMoveApi,
 ) -> JoinHandle<()> {
-    tokio::spawn(async move {
+    task::spawn_blocking(move || {
+        let rt = Handle::current();
         let mut interval = time::interval(INTERVAL_DURATION);
 
         loop {
-            interval.tick().await;
+            rt.block_on(async {
+                interval.tick().await;
+            });
 
             api.refresh();
 
             let list_result = {
-                let controllers = controllers.lock().unwrap();
+                let controllers = rt.block_on(async { controllers.lock().await });
                 api.list(&controllers)
             };
 
             let new_controllers = api.connect_controllers(list_result.connected);
 
-            let mut controllers = controllers.lock().unwrap();
+            let mut controllers = rt.block_on(async { controllers.lock().await });
 
             update_changed_controllers(&mut controllers, &list_result.disconnected);
             remove_disconnected_controllers(&mut controllers, &list_result.disconnected);
