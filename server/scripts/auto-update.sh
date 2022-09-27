@@ -21,7 +21,9 @@ cd "$HOME" || exit 1
 build () {
     echo "$INFO* Updating...$RESET"
 
-    git checkout main || exit 1
+    # This way we only pull the main branch
+    git fetch origin main || exit 1
+    git checkout FETCH_HEAD -B main || exit 1
     git reset --hard || exit 1
     git pull || exit 1
     cd server/ || exit 1
