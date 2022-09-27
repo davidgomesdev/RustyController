@@ -11,8 +11,10 @@ use actix_web::web::Json;
 use actix_web_lab::respond::Html;
 use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
+use tokio::sync::Mutex;
 use tokio::sync::watch::Sender;
 
+use crate::ps_move::controller::PsMoveController;
 use crate::ps_move::models::LedEffect;
 
 use super::schema::{Context, create_schema, Schema};
@@ -25,11 +27,13 @@ async fn graphiql() -> impl Responder {
 #[route("/graphql", method = "GET", method = "POST")]
 async fn graphql(
     tx: Data<Arc<Sender<LedEffect>>>,
+    controllers: Data<Arc<Mutex<Vec<Box<PsMoveController>>>>>,
     schema: Data<Schema>,
     data: Json<GraphQLRequest>,
 ) -> Result<HttpResponse, Error> {
     let ctx = Context {
         tx: tx.get_ref().to_owned(),
+        controllers: controllers.get_ref().to_owned(),
     };
 
     let res = data.execute(&schema, &ctx).await;
@@ -37,11 +41,12 @@ async fn graphql(
     Ok(HttpResponse::Ok().json(res))
 }
 
-pub async fn start(tx: Arc<Sender<LedEffect>>) -> io::Result<()> {
+pub async fn start(tx: Arc<Sender<LedEffect>>, controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>) -> io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(create_schema()))
             .app_data(Data::new(tx.to_owned()))
+            .app_data(Data::new(controllers.to_owned()))
             .wrap(middleware::Logger::default())
             .wrap(Cors::permissive())
             .service(graphql)

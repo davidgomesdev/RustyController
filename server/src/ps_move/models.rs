@@ -1,3 +1,4 @@
+use juniper::GraphQLEnum;
 use palette::{Hsv, Hue};
 use strum_macros::Display;
 
@@ -74,7 +75,7 @@ pub struct MoveSetting {
     pub rumble: f32,
 }
 
-#[derive(Display, PartialEq, Copy, Clone)]
+#[derive(Display, PartialEq, Copy, Clone, GraphQLEnum)]
 pub enum ConnectionType {
     USB,
     Bluetooth,
@@ -89,10 +90,7 @@ pub struct ControllerInfo {
 }
 
 impl ControllerInfo {
-    pub(super) fn from(
-        serial_number: &str,
-        path: &str,
-    ) -> ControllerInfo {
+    pub(super) fn from(serial_number: &str, path: &str) -> ControllerInfo {
         let serial_number = String::from(serial_number);
         let path = String::from(path);
 
@@ -111,9 +109,7 @@ impl ControllerInfo {
         }
     }
 
-    pub(super) fn new(serial_number: String,
-                      bt_path: String,
-                      usb_path: String) -> ControllerInfo {
+    pub(super) fn new(serial_number: String, bt_path: String, usb_path: String) -> ControllerInfo {
         ControllerInfo {
             serial_number,
             bt_path,
@@ -137,7 +133,7 @@ pub(super) enum MoveRequestType {
     GetFirmwareInfo = 0xF9,
 }
 
-#[derive(Display, PartialEq)]
+#[derive(Display, PartialEq, Copy, Clone, GraphQLEnum)]
 pub enum BatteryLevel {
     Unknown,
     Empty,

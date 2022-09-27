@@ -7,18 +7,16 @@ use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
 use crate::ps_move::models::LedEffect;
 use crate::tasks::{
-    effect_update, ip_discovery, list_controllers,
-    set_mutations, update_controllers,
+    ip_discovery, set_mutations, update_controller_effects,
+    update_controllers_list, update_effects,
 };
 
-pub async fn run_move(rx: Receiver<LedEffect>) {
+pub async fn run_move(rx: Receiver<LedEffect>, controllers: &Arc<Mutex<Vec<Box<PsMoveController>>>>) {
     let api = PsMoveApi::new();
 
-    let controllers = Arc::new(Mutex::new(Vec::<Box<PsMoveController>>::new()));
-
     set_mutations::spawn(controllers.clone(), rx);
-    effect_update::spawn(controllers.clone());
-    list_controllers::spawn(controllers.clone(), api);
-    update_controllers::spawn(controllers);
+    update_effects::spawn(controllers.clone());
+    update_controllers_list::spawn(controllers.clone(), api);
+    update_controller_effects::spawn(controllers.clone());
     ip_discovery::spawn();
 }
