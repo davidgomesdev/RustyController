@@ -14,16 +14,20 @@ RUSTY_HOME_DIR="$HOME/RustyController"
 BINARY_PATH="$RUSTY_HOME_DIR/server/target/release/rusty_controller"
 HASH_FILE="$RUSTY_HOME_DIR/current.sha256"
 
+echo "$INFO* Running at $(date)$RESET"
+
 cd "$HOME" || exit 1
 
 build () {
     echo "$INFO* Updating...$RESET"
 
+    git checkout main || exit 1
     git reset --hard || exit 1
-    git pull || exit
+    git pull || exit 1
     cd server/ || exit 1
 
-    time cargo build --release || exit
+    cargo update || exit 1
+    time cargo build --release || exit 1
 
     newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
 
