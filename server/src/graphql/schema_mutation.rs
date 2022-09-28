@@ -4,6 +4,7 @@ use crate::graphql::schema::Context;
 use crate::graphql::schema_input::*;
 use crate::graphql::schema_response::MutationResponse;
 use crate::LedEffect;
+use crate::LedEffectChange::All;
 use crate::ps_move::api::build_hsv;
 
 pub struct MutationRoot;
@@ -12,7 +13,7 @@ pub struct MutationRoot;
 impl MutationRoot {
     #[graphql(description = "Turn the led off.")]
     fn off(ctx: &Context) -> FieldResult<MutationResponse> {
-        return match ctx.tx.send(LedEffect::Off) {
+        return match ctx.tx.send(All { effect: LedEffect::Off }) {
             Ok(_) => Ok(MutationResponse::Success),
             Err(_) => Ok(MutationResponse::ServerError),
         };
@@ -43,7 +44,7 @@ impl MutationRoot {
             hsv: build_hsv(input.hue, input.saturation, input.value),
         };
 
-        return match ctx.tx.send(effect) {
+        return match ctx.tx.send(All { effect }) {
             Ok(_) => Ok(MutationResponse::Success),
             Err(_) => Ok(MutationResponse::ServerError),
         };
@@ -99,7 +100,7 @@ impl MutationRoot {
             inhaling: true,
         };
 
-        return match ctx.tx.send(effect) {
+        return match ctx.tx.send(All { effect }) {
             Ok(_) => Ok(MutationResponse::Success),
             Err(_) => Ok(MutationResponse::ServerError),
         };
@@ -132,7 +133,7 @@ impl MutationRoot {
             step: input.step as f32,
         };
 
-        return match ctx.tx.send(effect) {
+        return match ctx.tx.send(All { effect }) {
             Ok(_) => Ok(MutationResponse::Success),
             Err(_) => Ok(MutationResponse::ServerError),
         };
