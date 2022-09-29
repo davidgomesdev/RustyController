@@ -55,9 +55,9 @@ impl MutationRoot {
         ctx: &Context,
         input: BreathingEffectInput,
     ) -> FieldResult<MutationResponse> {
-        if input.step > 1.0 {
+        if input.step < 0.0 || input.step > 1.0 {
             return Err(FieldError::new(
-                "Step can't be higher than 1.0!",
+                "Step must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
@@ -108,9 +108,9 @@ impl MutationRoot {
 
     #[graphql(description = "Cycle through colors.")]
     fn rainbow(ctx: &Context, input: RainbowEffectInput) -> FieldResult<MutationResponse> {
-        if input.step > 1.0 {
+        if input.step < 0.0 || input.step > 1.0 {
             return Err(FieldError::new(
-                "Step can't be higher than 1.0!",
+                "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
