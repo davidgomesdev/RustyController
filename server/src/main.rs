@@ -14,25 +14,23 @@ mod spawn_tasks;
 mod tasks;
 
 #[derive(Clone)]
-pub enum LedEffectChange {
-    All {
-        effect: LedEffect,
-    },
-    Single {
-        effect: LedEffect,
-        bt_address: String,
-    },
-    Multiple {
-        effect: LedEffect,
-        bt_addresses: Vec<String>,
-    },
+pub enum EffectTarget {
+    All,
+    Only { bt_addresses: Vec<String> },
+}
+
+#[derive(Clone)]
+pub struct LedEffectChange {
+    target: EffectTarget,
+    effect: LedEffect,
 }
 
 #[tokio::main]
 async fn main() {
     env_logger::init();
 
-    let (tx, rx) = watch::channel(LedEffectChange::All {
+    let (tx, rx) = watch::channel(LedEffectChange {
+        target: EffectTarget::All,
         effect: LedEffect::Off,
     });
     let controllers = Arc::new(Mutex::new(Vec::<Box<PsMoveController>>::new()));
