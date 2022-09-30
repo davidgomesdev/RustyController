@@ -39,7 +39,7 @@ class OffEffect extends LedEffect {
   @override
   String get graphqlMutation => """
     mutation SetLedOff {
-      off
+      off(input: {})
     }
   """;
 

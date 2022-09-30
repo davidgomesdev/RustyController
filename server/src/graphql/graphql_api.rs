@@ -14,8 +14,8 @@ use juniper::http::GraphQLRequest;
 use tokio::sync::Mutex;
 use tokio::sync::watch::Sender;
 
+use crate::LedEffectChange;
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::models::LedEffect;
 
 use super::schema::{Context, create_schema, Schema};
 
@@ -26,7 +26,7 @@ async fn graphiql() -> impl Responder {
 
 #[route("/graphql", method = "GET", method = "POST")]
 async fn graphql(
-    tx: Data<Arc<Sender<LedEffect>>>,
+    tx: Data<Arc<Sender<LedEffectChange>>>,
     controllers: Data<Arc<Mutex<Vec<Box<PsMoveController>>>>>,
     schema: Data<Schema>,
     data: Json<GraphQLRequest>,
@@ -41,7 +41,7 @@ async fn graphql(
     Ok(HttpResponse::Ok().json(res))
 }
 
-pub async fn start(tx: Arc<Sender<LedEffect>>, controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>) -> io::Result<()> {
+pub async fn start(tx: Arc<Sender<LedEffectChange>>, controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>) -> io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(create_schema()))

@@ -3,15 +3,15 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::sync::watch::Receiver;
 
+use crate::LedEffectChange;
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::models::LedEffect;
 use crate::tasks::{
     ip_discovery, set_mutations, update_controller_effects,
     update_controllers_list, update_effects,
 };
 
-pub async fn run_move(rx: Receiver<LedEffect>, controllers: &Arc<Mutex<Vec<Box<PsMoveController>>>>) {
+pub async fn run_move(rx: Receiver<LedEffectChange>, controllers: &Arc<Mutex<Vec<Box<PsMoveController>>>>) {
     let api = PsMoveApi::new();
 
     set_mutations::spawn(controllers.clone(), rx);

@@ -1,9 +1,9 @@
 use juniper::{FieldError, FieldResult, Value};
 
+use crate::{EffectTarget, LedEffect, LedEffectChange};
 use crate::graphql::schema::Context;
 use crate::graphql::schema_input::*;
 use crate::graphql::schema_response::MutationResponse;
-use crate::LedEffect;
 use crate::ps_move::api::build_hsv;
 
 pub struct MutationRoot;
@@ -11,11 +11,8 @@ pub struct MutationRoot;
 #[juniper::graphql_object(Context = Context)]
 impl MutationRoot {
     #[graphql(description = "Turn the led off.")]
-    fn off(ctx: &Context) -> FieldResult<MutationResponse> {
-        return match ctx.tx.send(LedEffect::Off) {
-            Ok(_) => Ok(MutationResponse::Success),
-            Err(_) => Ok(MutationResponse::ServerError),
-        };
+    fn off(ctx: &Context, input: OffEffectInput) -> FieldResult<MutationResponse> {
+        process_effect_mutation(ctx, LedEffect::Off, input.controllers)
     }
 
     #[graphql(description = "Set a constant color.")]
@@ -43,20 +40,14 @@ impl MutationRoot {
             hsv: build_hsv(input.hue, input.saturation, input.value),
         };
 
-        return match ctx.tx.send(effect) {
-            Ok(_) => Ok(MutationResponse::Success),
-            Err(_) => Ok(MutationResponse::ServerError),
-        };
+        process_effect_mutation(ctx, effect, input.controllers)
     }
 
     #[graphql(description = "Increase/decrease brightness of a color over time.")]
-    fn breathing(
-        ctx: &Context,
-        input: BreathingEffectInput,
-    ) -> FieldResult<MutationResponse> {
-        if input.step > 1.0 {
+    fn breathing(ctx: &Context, input: BreathingEffectInput) -> FieldResult<MutationResponse> {
+        if input.step < 0.0 || input.step > 1.0 {
             return Err(FieldError::new(
-                "Step can't be higher than 1.0!",
+                "Step must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
@@ -99,17 +90,14 @@ impl MutationRoot {
             inhaling: true,
         };
 
-        return match ctx.tx.send(effect) {
-            Ok(_) => Ok(MutationResponse::Success),
-            Err(_) => Ok(MutationResponse::ServerError),
-        };
+        process_effect_mutation(ctx, effect, input.controllers)
     }
 
     #[graphql(description = "Cycle through colors.")]
     fn rainbow(ctx: &Context, input: RainbowEffectInput) -> FieldResult<MutationResponse> {
-        if input.step > 1.0 {
+        if input.step < 0.0 || input.step > 1.0 {
             return Err(FieldError::new(
-                "Step can't be higher than 1.0!",
+                "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
@@ -132,9 +120,31 @@ impl MutationRoot {
             step: input.step as f32,
         };
 
-        return match ctx.tx.send(effect) {
-            Ok(_) => Ok(MutationResponse::Success),
-            Err(_) => Ok(MutationResponse::ServerError),
-        };
+        process_effect_mutation(ctx, effect, input.controllers)
     }
+}
+
+fn process_effect_mutation(
+    ctx: &Context,
+    effect: LedEffect,
+    target: Option<Vec<String>>,
+) -> FieldResult<MutationResponse> {
+    let target = match target {
+        None => EffectTarget::All,
+        Some(bt_addresses) => {
+            if bt_addresses.is_empty() {
+                return Err(FieldError::new(
+                    "You must specify controllers!",
+                    Value::Null,
+                ));
+            } else {
+                EffectTarget::Only { bt_addresses }
+            }
+        }
+    };
+
+    return match ctx.tx.send(LedEffectChange { effect, target }) {
+        Ok(_) => Ok(MutationResponse::Success),
+        Err(_) => Ok(MutationResponse::ServerError),
+    };
 }
