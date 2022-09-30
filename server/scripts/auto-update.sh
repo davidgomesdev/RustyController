@@ -29,7 +29,7 @@ build () {
     cd server/ || exit 1
 
     cargo update || exit 1
-    time cargo build --release || exit 1
+    time cargo build --release > /dev/null || exit 1
 
     newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
 
