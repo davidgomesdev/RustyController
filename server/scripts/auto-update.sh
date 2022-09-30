@@ -19,7 +19,7 @@ echo "$INFO* Running at $(date)$RESET"
 cd "$HOME" || exit 1
 
 build () {
-    echo "$INFO* Updating...$RESET"
+    echo "$INFO* Building...$RESET"
 
     # This way we only pull the main branch
     git fetch origin main || exit 1
@@ -34,7 +34,7 @@ build () {
     newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
 
     echo "$newest_hash" > "$HASH_FILE"
-    echo "$SUCCESS* Updated successfully!$RESET"
+    echo "$SUCCESS* Built successfully!$RESET"
     cd ..
 }
 
