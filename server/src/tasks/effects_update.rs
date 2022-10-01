@@ -22,6 +22,7 @@ pub(super) fn spawn(
 
             controllers.iter_mut().for_each(|controller| {
                 controller.transform_led();
+                controller.transform_rumble();
             });
         }
     })

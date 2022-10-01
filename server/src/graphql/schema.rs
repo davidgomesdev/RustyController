@@ -4,12 +4,12 @@ use juniper::{EmptySubscription, RootNode};
 use tokio::sync::Mutex;
 use tokio::sync::watch::Sender;
 
-use crate::{LedEffectChange, PsMoveController};
+use crate::{EffectChange, PsMoveController};
 use crate::graphql::schema_mutation::MutationRoot;
 use crate::graphql::schema_query::QueryRoot;
 
 pub struct Context {
-    pub tx: Arc<Sender<LedEffectChange>>,
+    pub tx: Arc<Sender<EffectChange>>,
     pub controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
 }
 

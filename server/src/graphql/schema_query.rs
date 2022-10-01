@@ -24,7 +24,7 @@ impl QueryRoot {
                 address: ctl.bt_address.clone(),
                 battery_level: ctl.battery.clone(),
                 connection_type: ctl.connection_type,
-                current_effect: match ctl.effect {
+                current_effect: match ctl.led_effect {
                     ApiLedEffect::Off => { LedEffect::Off }
                     ApiLedEffect::Static { .. } => { LedEffect::Static }
                     ApiLedEffect::Breathing { .. } => { LedEffect::Breathing }
