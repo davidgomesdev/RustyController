@@ -3,7 +3,7 @@ use juniper::GraphQLInputObject;
 #[derive(GraphQLInputObject)]
 pub(super) struct OffEffectInput {
     #[graphql(
-    description = "If specified, must not be empty, and applies the effect only on these controller addresses."
+        description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
     pub controllers: Option<Vec<String>>,
 }
