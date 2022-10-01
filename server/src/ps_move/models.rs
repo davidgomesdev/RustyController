@@ -23,8 +23,22 @@ pub enum LedEffect {
     },
 }
 
+#[derive(Clone, Copy, Display)]
+pub enum RumbleEffect {
+    Off,
+    Static {
+        strength: f32
+    },
+    Breathing {
+        initial_strength: f32,
+        step: f32,
+        peak: f32,
+        inhaling: bool,
+    },
+}
+
 impl LedEffect {
-    pub fn update_hsv(&mut self, current_hsv: Hsv) -> Hsv {
+    pub fn get_updated_hsv(&mut self, current_hsv: Hsv) -> Hsv {
         match *self {
             LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
             LedEffect::Static { hsv } => hsv,
@@ -64,6 +78,37 @@ impl LedEffect {
                 // no need to use [saturation] and [value], since it was already set in the beginning
                 // similar to breathing, the step is relative to the max possible value
                 current_hsv.shift_hue(step * 360.0)
+            }
+        }
+    }
+}
+
+impl RumbleEffect {
+    pub fn get_updated_rumble(&mut self, mut current_rumble: f32) -> f32 {
+        match *self {
+            RumbleEffect::Off => 0.0,
+            RumbleEffect::Static { strength: value } => value,
+            RumbleEffect::Breathing {
+                initial_strength: initial,
+                step,
+                peak,
+                ref mut inhaling,
+            } => {
+                if *inhaling {
+                    current_rumble += step * peak
+                } else {
+                    current_rumble -= step * peak
+                }
+
+                if current_rumble >= peak {
+                    current_rumble = peak;
+                    *inhaling = false
+                } else if current_rumble <= initial {
+                    current_rumble = initial;
+                    *inhaling = true
+                }
+
+                current_rumble
             }
         }
     }

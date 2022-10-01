@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use tokio::sync::{mpsc, Mutex, watch};
 
-use crate::LedEffectChange;
+use crate::EffectChange;
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
 use crate::tasks::{
@@ -11,7 +11,7 @@ use crate::tasks::{
 };
 
 pub async fn run_move(
-    rx: watch::Receiver<LedEffectChange>,
+    rx: watch::Receiver<EffectChange>,
     controllers: &Arc<Mutex<Vec<Box<PsMoveController>>>>,
 ) -> ShutdownCommand {
     let api = PsMoveApi::new();
@@ -50,7 +50,7 @@ impl ShutdownCommand {
 }
 
 /// Needed for blocking tasks, to prevent a panic when shutting down
-pub(super) struct ShutdownSignal {
+pub struct ShutdownSignal {
     // "unused" on purpose, since when it goes out of scope,
     // the channel is closed and that's how the `Receiver` is notified
     _channel: mpsc::Sender<()>,
@@ -65,7 +65,7 @@ impl ShutdownSignal {
         }
     }
 
-    pub(super) fn is_shutting_down(&self) -> bool {
+    pub fn is_shutting_down(&self) -> bool {
         self.flag.load(Ordering::Relaxed)
     }
 }

@@ -10,11 +10,11 @@ use tokio::task::JoinHandle;
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::{MAX_LED_PWM_FREQUENCY, PsMoveController};
 use crate::ps_move::models::{ConnectionType, ControllerInfo};
-use crate::tasks::spawn_tasks::ShutdownSignal;
+use crate::spawn_tasks::ShutdownSignal;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(500);
 
-pub(super) fn spawn(
+pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
     mut api: PsMoveApi,
     shutdown_signal: ShutdownSignal,

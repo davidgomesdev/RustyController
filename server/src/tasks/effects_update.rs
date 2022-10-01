@@ -9,7 +9,7 @@ use crate::ps_move::controller::PsMoveController;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(5);
 
-pub(super) fn spawn(
+pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
@@ -22,6 +22,7 @@ pub(super) fn spawn(
 
             controllers.iter_mut().for_each(|controller| {
                 controller.transform_led();
+                controller.transform_rumble();
             });
         }
     })

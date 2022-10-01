@@ -8,11 +8,11 @@ use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 
 use crate::ps_move::controller::PsMoveController;
-use crate::tasks::spawn_tasks::ShutdownSignal;
+use crate::spawn_tasks::ShutdownSignal;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(1);
 
-pub(super) fn spawn(
+pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
     shutdown_signal: ShutdownSignal,
 ) -> JoinHandle<()> {

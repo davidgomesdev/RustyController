@@ -5,6 +5,7 @@ use palette::{FromColor, Hsv, Srgb};
 use crate::LedEffect;
 use crate::ps_move::models::{
     BatteryLevel, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting,
+    RumbleEffect,
 };
 use crate::ps_move::models::BatteryLevel::Unknown;
 
@@ -15,7 +16,8 @@ pub struct PsMoveController {
     device: HidDevice,
     pub(super) info: ControllerInfo,
     pub bt_address: String,
-    pub effect: LedEffect,
+    pub led_effect: LedEffect,
+    pub rumble_effect: RumbleEffect,
     pub setting: MoveSetting,
     pub battery: BatteryLevel,
     pub connection_type: ConnectionType,
@@ -36,7 +38,8 @@ impl PsMoveController {
             device,
             info,
             bt_address,
-            effect: LedEffect::Off,
+            led_effect: LedEffect::Off,
+            rumble_effect: RumbleEffect::Off,
             setting: MoveSetting {
                 led: Hsv::from_components((0.0, 0.0, 0.0)),
                 rumble: 0.0,
@@ -79,7 +82,7 @@ impl PsMoveController {
         return is_ok;
     }
 
-    pub fn set_led_effect(&mut self, effect: LedEffect) -> () {
+    pub fn set_led_effect(&mut self, effect: LedEffect) {
         self.setting.led = match effect {
             LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
             LedEffect::Static { hsv } => hsv,
@@ -87,7 +90,7 @@ impl PsMoveController {
                 initial_hsv,
                 step,
                 peak,
-                inhaling: _,
+                ..
             } => {
                 if step < 0.0 || step > 1.0 {
                     error!("Step must be between 0.0 and 1.0")
@@ -111,17 +114,38 @@ impl PsMoveController {
                 Hsv::from_components((0.0, saturation, value))
             }
         };
-        self.effect = effect
+        self.led_effect = effect
     }
 
-    #[allow(dead_code)]
-    pub fn set_rumble(&mut self, rumble: f32) -> bool {
-        if rumble < 0.0 || rumble > 1.0 {
-            false
-        } else {
-            self.setting.rumble = rumble;
-            true
-        }
+    pub fn set_rumble_effect(&mut self, effect: RumbleEffect) {
+        match effect {
+            RumbleEffect::Off => {}
+            RumbleEffect::Static { strength } => {
+                if strength < 0.0 || strength > 1.0 {
+                    error!("Strength must be between 0.0 and 1.0")
+                }
+            }
+            RumbleEffect::Breathing {
+                initial_strength,
+                step,
+                peak,
+                ..
+            } => {
+                if initial_strength < 0.0 || initial_strength > 1.0 {
+                    error!("Initial strength must be between 0.0 and 1.0")
+                }
+
+                if step < 0.0 || step > 1.0 {
+                    error!("Step must be between 0.0 and 1.0")
+                }
+
+                if peak < initial_strength {
+                    error!("Peak must be higher than initial strength")
+                }
+            }
+        };
+
+        self.rumble_effect = effect;
     }
 
     pub fn update(&mut self) -> Result<(), ()> {
@@ -143,10 +167,17 @@ impl PsMoveController {
     }
 
     pub fn transform_led(&mut self) {
-        let effect = &mut self.effect;
+        let led_effect = &mut self.led_effect;
         let current_hsv = self.setting.led;
 
-        self.setting.led = effect.update_hsv(current_hsv);
+        self.setting.led = led_effect.get_updated_hsv(current_hsv);
+    }
+
+    pub fn transform_rumble(&mut self) {
+        let rumble_effect = &mut self.rumble_effect;
+        let current_rumble = self.setting.rumble;
+
+        self.setting.rumble = rumble_effect.get_updated_rumble(current_rumble);
     }
 
     fn update_hsv_and_rumble(&self) -> Result<(), ()> {

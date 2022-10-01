@@ -3,13 +3,13 @@ use juniper::GraphQLInputObject;
 #[derive(GraphQLInputObject)]
 pub(super) struct OffEffectInput {
     #[graphql(
-    description = "If specified, must not be empty, and applies the effect only on these controller addresses."
+        description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
     pub controllers: Option<Vec<String>>,
 }
 
 #[derive(GraphQLInputObject)]
-pub(super) struct StaticEffectInput {
+pub(super) struct StaticLedEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
@@ -23,7 +23,7 @@ pub(super) struct StaticEffectInput {
 }
 
 #[derive(GraphQLInputObject)]
-pub(super) struct BreathingEffectInput {
+pub(super) struct BreathingLedEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
@@ -32,12 +32,10 @@ pub(super) struct BreathingEffectInput {
     pub hue: f64,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
-    #[graphql(
-    description = "Initial `value` that increases to `peak` by `step`. (min 0.0, max `peak`)"
-    )]
+    #[graphql(description = "Initial value/brightness. (min 0.0, max `peak`)")]
     pub initial_value: f64,
     #[graphql(
-    description = "Percentage that `value` changes per update, relative to `peak`. (min 0.0, max 1.0)"
+    description = "Percentage that value/brightness changes per update, relative to `peak`. (min 0.0, max 1.0)"
     )]
     pub step: f64,
     #[graphql(
@@ -47,7 +45,7 @@ pub(super) struct BreathingEffectInput {
 }
 
 #[derive(GraphQLInputObject)]
-pub(super) struct RainbowEffectInput {
+pub(super) struct RainbowLedEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
@@ -58,4 +56,32 @@ pub(super) struct RainbowEffectInput {
     pub value: f64,
     #[graphql(description = "Percentage that `hue` increases per update. (min 0.0, max 1.0)")]
     pub step: f64,
+}
+
+#[derive(GraphQLInputObject)]
+pub(super) struct StaticRumbleEffectInput {
+    #[graphql(
+    description = "If specified, must not be empty, and applies the effect only on these controller addresses."
+    )]
+    pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Rumble strength (min 0.0, max 1.0)")]
+    pub strength: f64,
+}
+
+#[derive(GraphQLInputObject)]
+pub(super) struct BreathingRumbleEffectInput {
+    #[graphql(
+    description = "If specified, must not be empty, and applies the effect only on these controller addresses."
+    )]
+    pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Initial rumble strength. (min 0.0, max `peak`)")]
+    pub initial_strength: f64,
+    #[graphql(
+    description = "Percentage that the rumble strength changes per update, relative to `peak`. (min 0.0, max 1.0)"
+    )]
+    pub step: f64,
+    #[graphql(
+    description = "Defines the max rumble that the controller gets to. (min 0.0, max 1.0)"
+    )]
+    pub peak: f64,
 }

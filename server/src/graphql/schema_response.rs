@@ -19,7 +19,8 @@ pub struct Controller {
     pub address: String,
     pub battery_level: BatteryLevel,
     pub connection_type: ConnectionType,
-    pub(super) current_effect: LedEffect,
+    pub(super) current_led_effect: LedEffect,
+    pub(super) current_rumble_effect: RumbleEffect,
 }
 
 #[derive(GraphQLEnum)]
@@ -28,4 +29,11 @@ pub(super) enum LedEffect {
     Static,
     Breathing,
     Rainbow,
+}
+
+#[derive(GraphQLEnum)]
+pub(super) enum RumbleEffect {
+    Off,
+    Static,
+    Breathing,
 }

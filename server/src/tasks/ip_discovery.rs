@@ -8,7 +8,7 @@ const HANDSHAKE_END_PORT: u16 = 31338;
 const HANDSHAKE_REQUEST: &str = "HelloDearRusty";
 const HANDSHAKE_RESPONSE: &str = "HeyoDearClient";
 
-pub(super) fn spawn() -> JoinHandle<Option<()>> {
+pub fn spawn() -> JoinHandle<Option<()>> {
     tokio::spawn(async {
         let socket = UdpSocket::bind(format!("0.0.0.0:{HANDSHAKE_BEGIN_PORT}"))
             .await
