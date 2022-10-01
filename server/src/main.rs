@@ -1,4 +1,3 @@
-use std::fmt;
 use std::sync::Arc;
 
 use log::{error, info};
@@ -6,41 +5,14 @@ use tokio::sync::{Mutex, watch};
 
 use graphql::graphql_api;
 use ps_move::models::LedEffect;
-use tasks::spawn_tasks;
 
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::models::RumbleEffect;
+use crate::tasks::models::*;
 
 mod graphql;
 mod ps_move;
 mod tasks;
-
-#[derive(Clone)]
-pub enum EffectTarget {
-    All,
-    Only { bt_addresses: Vec<String> },
-}
-
-#[derive(Clone, Copy)]
-pub enum EffectChangeType {
-    Led { effect: LedEffect },
-    Rumble { effect: RumbleEffect },
-}
-
-impl fmt::Display for EffectChangeType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            EffectChangeType::Led { effect } => { write!(f, "Led::{}", effect) }
-            EffectChangeType::Rumble { effect } => { write!(f, "Rumble::{}", effect) }
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct EffectChange {
-    target: EffectTarget,
-    effect: EffectChangeType,
-}
+mod spawn_tasks;
 
 #[tokio::main]
 async fn main() {

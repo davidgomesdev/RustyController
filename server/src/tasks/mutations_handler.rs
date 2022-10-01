@@ -8,7 +8,7 @@ use tokio::task::JoinHandle;
 use crate::{EffectChange, EffectChangeType, EffectTarget};
 use crate::ps_move::controller::PsMoveController;
 
-pub(super) fn spawn(
+pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
     mut rx: Receiver<EffectChange>,
 ) -> JoinHandle<()> {
