@@ -5,12 +5,12 @@ use tokio::sync::{Mutex, watch};
 
 use graphql::graphql_api;
 use ps_move::models::LedEffect;
+use tasks::spawn_tasks;
 
 use crate::ps_move::controller::PsMoveController;
 
 mod graphql;
 mod ps_move;
-mod spawn_tasks;
 mod tasks;
 
 #[derive(Clone)]
@@ -35,7 +35,7 @@ async fn main() {
     });
     let controllers = Arc::new(Mutex::new(Vec::<Box<PsMoveController>>::new()));
 
-    spawn_tasks::run_move(rx, &controllers).await;
+    let mut shutdown_command = spawn_tasks::run_move(rx, &controllers).await;
     match graphql_api::start(Arc::new(tx), controllers).await {
         Ok(_) => {}
         Err(err) => {
@@ -44,4 +44,5 @@ async fn main() {
     };
 
     info!("Shutting down...");
+    shutdown_command.shutdown().await
 }

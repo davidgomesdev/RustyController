@@ -8,7 +8,7 @@ use tokio::task::JoinHandle;
 use crate::{EffectTarget, LedEffectChange};
 use crate::ps_move::controller::PsMoveController;
 
-pub fn spawn(
+pub(super) fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
     mut rx: Receiver<LedEffectChange>,
 ) -> JoinHandle<()> {

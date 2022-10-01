@@ -8,20 +8,23 @@ use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 
 use crate::ps_move::controller::PsMoveController;
+use crate::tasks::spawn_tasks::ShutdownSignal;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(1);
 
-pub fn spawn(controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>) -> JoinHandle<()> {
+pub(super) fn spawn(
+    controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
+    shutdown_signal: ShutdownSignal,
+) -> JoinHandle<()> {
     task::spawn_blocking(move || {
         let rt = Handle::current();
         let mut interval = time::interval(INTERVAL_DURATION);
 
-        loop {
-            rt.block_on(async {
+        while !shutdown_signal.is_shutting_down() {
+            let mut controllers = rt.block_on(async {
                 interval.tick().await;
+                controllers.lock().await
             });
-
-            let mut controllers = rt.block_on(async { controllers.lock().await });
             let mut failed_addresses = Vec::<String>::new();
 
             controllers.iter_mut().for_each(|controller| {
