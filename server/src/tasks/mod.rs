@@ -1,5 +1,7 @@
-pub mod update_effects;
-pub mod ip_discovery;
-pub mod update_controllers_list;
-pub mod set_mutations;
-pub mod update_controller_effects;
+pub mod spawn_tasks;
+
+mod controller_update;
+mod controllers_list_update;
+mod effects_update;
+mod ip_discovery;
+mod mutations_handler;
