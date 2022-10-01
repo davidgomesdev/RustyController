@@ -1,7 +1,7 @@
+use std::fmt;
 use std::sync::Arc;
 
 use log::{error, info};
-use strum_macros::Display;
 use tokio::sync::{Mutex, watch};
 
 use graphql::graphql_api;
@@ -21,10 +21,19 @@ pub enum EffectTarget {
     Only { bt_addresses: Vec<String> },
 }
 
-#[derive(Clone, Copy, Display)]
+#[derive(Clone, Copy)]
 pub enum EffectChangeType {
     Led { effect: LedEffect },
     Rumble { effect: RumbleEffect },
+}
+
+impl fmt::Display for EffectChangeType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            EffectChangeType::Led { effect } => { write!(f, "Led::{}", effect) }
+            EffectChangeType::Rumble { effect } => { write!(f, "Rumble::{}", effect) }
+        }
+    }
 }
 
 #[derive(Clone)]
