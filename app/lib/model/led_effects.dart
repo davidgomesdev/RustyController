@@ -12,6 +12,8 @@ abstract class LedEffect {
 
   String get graphqlMutation;
 
+  String get graphqlMutationName;
+
   Map<String, dynamic> get graphqlVariables;
 
   StorableObject? get storeObject => null;
@@ -21,7 +23,7 @@ enum EffectType { none, off, static, breathing, rainbow }
 
 // A placeholder/null-object pattern for when there's no effect selected,
 // while avoiding null-checks
-class NoEffect extends LedEffect {
+class NoLedEffect extends LedEffect {
   @override
   EffectType get type => EffectType.none;
 
@@ -29,19 +31,25 @@ class NoEffect extends LedEffect {
   String get graphqlMutation => "";
 
   @override
+  String get graphqlMutationName => "";
+
+  @override
   Map<String, dynamic> get graphqlVariables => {};
 }
 
-class OffEffect extends LedEffect {
+class OffLedEffect extends LedEffect {
   @override
   EffectType get type => EffectType.off;
 
   @override
   String get graphqlMutation => """
     mutation SetLedOff {
-      off(input: {})
+      setLedOff(input: {})
     }
   """;
+
+  @override
+  String get graphqlMutationName => "setLedOff";
 
   @override
   Map<String, dynamic> get graphqlVariables => {};
@@ -49,20 +57,23 @@ class OffEffect extends LedEffect {
 
 @JsonSerializable()
 @HSVColorJsonConverter()
-class StaticEffect extends LedEffect implements StorableObject {
+class StaticLedEffect extends LedEffect implements StorableObject {
   @override
   EffectType get type => EffectType.static;
 
   HSVColor color;
 
-  StaticEffect({required this.color});
+  StaticLedEffect({required this.color});
 
   @override
   String get graphqlMutation => """
-    mutation SetLedStatic(\$input: StaticEffectInput!) {
-      static(input: \$input)
+    mutation SetLedStatic(\$input: StaticLedEffectInput!) {
+      setLedStatic(input: \$input)
     }
   """;
+
+  @override
+  String get graphqlMutationName => "setLedStatic";
 
   @override
   Map<String, dynamic> get graphqlVariables =>
@@ -72,16 +83,16 @@ class StaticEffect extends LedEffect implements StorableObject {
   String get storeName => "static";
 
   @override
-  StaticEffect fromJson(Map<String, dynamic> json) =>
-      _$StaticEffectFromJson(json);
+  StaticLedEffect fromJson(Map<String, dynamic> json) =>
+      _$StaticLedEffectFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$StaticEffectToJson(this);
+  Map<String, dynamic> toJson() => _$StaticLedEffectToJson(this);
 }
 
 @JsonSerializable()
 @HSVColorJsonConverter()
-class BreathingEffect extends LedEffect implements StorableObject {
+class BreathingLedEffect extends LedEffect implements StorableObject {
   @override
   EffectType get type => EffectType.breathing;
 
@@ -90,7 +101,7 @@ class BreathingEffect extends LedEffect implements StorableObject {
   double peak;
   bool breatheFromOff;
 
-  BreathingEffect(
+  BreathingLedEffect(
       {required this.color,
       required this.step,
       required this.peak,
@@ -98,10 +109,13 @@ class BreathingEffect extends LedEffect implements StorableObject {
 
   @override
   String get graphqlMutation => """
-    mutation SetLedBreathing(\$input: BreathingEffectInput!) {
-      breathing(input: \$input)
+    mutation SetLedBreathing(\$input: BreathingLedEffectInput!) {
+      setLedBreathing(input: \$input)
     }
   """;
+
+  @override
+  String get graphqlMutationName => "setLedBreathing";
 
   @override
   Map<String, dynamic> get graphqlVariables => {
@@ -116,15 +130,15 @@ class BreathingEffect extends LedEffect implements StorableObject {
   String get storeName => "breathing";
 
   @override
-  BreathingEffect fromJson(Map<String, dynamic> json) =>
-      _$BreathingEffectFromJson(json);
+  BreathingLedEffect fromJson(Map<String, dynamic> json) =>
+      _$BreathingLedEffectFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$BreathingEffectToJson(this);
+  Map<String, dynamic> toJson() => _$BreathingLedEffectToJson(this);
 }
 
 @JsonSerializable()
-class RainbowEffect extends LedEffect implements StorableObject {
+class RainbowLedEffect extends LedEffect implements StorableObject {
   @override
   EffectType get type => EffectType.rainbow;
 
@@ -132,15 +146,18 @@ class RainbowEffect extends LedEffect implements StorableObject {
   double value;
   double step;
 
-  RainbowEffect(
+  RainbowLedEffect(
       {required this.saturation, required this.value, required this.step});
 
   @override
   String get graphqlMutation => """
-    mutation SetLedRainbow(\$input: RainbowEffectInput!) {
-      rainbow(input: \$input)
+    mutation SetLedRainbow(\$input: RainbowLedEffectInput!) {
+      setLedRainbow(input: \$input)
     }
   """;
+
+  @override
+  String get graphqlMutationName => "setLedRainbow";
 
   @override
   Map<String, dynamic> get graphqlVariables =>
@@ -150,9 +167,9 @@ class RainbowEffect extends LedEffect implements StorableObject {
   String get storeName => "rainbow";
 
   @override
-  RainbowEffect fromJson(Map<String, dynamic> json) =>
-      _$RainbowEffectFromJson(json);
+  RainbowLedEffect fromJson(Map<String, dynamic> json) =>
+      _$RainbowLedEffectFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$RainbowEffectToJson(this);
+  Map<String, dynamic> toJson() => _$RainbowLedEffectToJson(this);
 }

@@ -4,8 +4,8 @@ import 'package:rusty_controller/bloc/specific_effect_bloc.dart';
 import 'package:rusty_controller/model/led_effects.dart';
 
 class BreathingBloc
-    extends SpecificEffectBloc<BreathingEffectEvent, BreathingEffect> {
-  BreathingBloc(BreathingEffect effect) : super(effect) {
+    extends SpecificEffectBloc<BreathingEffectEvent, BreathingLedEffect> {
+  BreathingBloc(BreathingLedEffect effect) : super(effect) {
     on<BreathingColorEvent>(
         (event, emit) => emit(state..color = event.currentColor));
     on<BreathingStepEvent>((event, emit) => emit(state..step = event.step));

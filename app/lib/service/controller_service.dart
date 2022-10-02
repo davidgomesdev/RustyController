@@ -12,15 +12,15 @@ class ControllerService {
   late GraphQLClient _graphqlClient;
 
   final Map<EffectType, LedEffect> _effects = {
-    EffectType.off: OffEffect(),
-    EffectType.static: StaticEffect(color: Colors.black.toHSV()),
-    EffectType.breathing: BreathingEffect(
+    EffectType.off: OffLedEffect(),
+    EffectType.static: StaticLedEffect(color: Colors.black.toHSV()),
+    EffectType.breathing: BreathingLedEffect(
         color: Colors.black.toHSV(),
         step: maxBreathingStep,
         peak: maxBreathingStep,
         breatheFromOff: false),
     EffectType.rainbow:
-        RainbowEffect(saturation: 1.0, value: 1.0, step: maxRainbowStep),
+        RainbowLedEffect(saturation: 1.0, value: 1.0, step: maxRainbowStep),
   };
 
   void connect(String ip) {
@@ -53,7 +53,8 @@ class ControllerService {
 
   Future<void> _sendEffect(LedEffect effect) async {
     log.i("Sending mutation for '${effect.name}' effect");
-    log.d("Mutation input: ${effect.graphqlVariables}");
+    log.d(
+        "Mutation input: ${effect.graphqlVariables} for '${effect.graphqlMutationName}'");
 
     await _graphqlClient
         .mutate(MutationOptions(
@@ -72,7 +73,7 @@ class ControllerService {
         return;
       }
 
-      if (msg.data?[effect.type.name] == "SUCCESS") {
+      if (msg.data?[effect.graphqlMutationName] == "SUCCESS") {
         log.i("Mutation succeeded");
       } else {
         log.w("Server didn't respond successfully to mutation.", msg.data);

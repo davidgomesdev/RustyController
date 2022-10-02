@@ -18,7 +18,7 @@ class _RainbowSettingsState extends State<RainbowSettings> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RainbowBloc, RainbowEffect>(
+    return BlocBuilder<RainbowBloc, RainbowLedEffect>(
       bloc: bloc,
       builder: (ctx, effect) => Column(
         mainAxisAlignment: MainAxisAlignment.center,

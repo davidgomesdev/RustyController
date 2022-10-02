@@ -6,18 +6,19 @@ part of 'led_effects.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-StaticEffect _$StaticEffectFromJson(Map<String, dynamic> json) => StaticEffect(
+StaticLedEffect _$StaticLedEffectFromJson(Map<String, dynamic> json) =>
+    StaticLedEffect(
       color: const HSVColorJsonConverter()
           .fromJson(json['color'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$StaticEffectToJson(StaticEffect instance) =>
+Map<String, dynamic> _$StaticLedEffectToJson(StaticLedEffect instance) =>
     <String, dynamic>{
       'color': const HSVColorJsonConverter().toJson(instance.color),
     };
 
-BreathingEffect _$BreathingEffectFromJson(Map<String, dynamic> json) =>
-    BreathingEffect(
+BreathingLedEffect _$BreathingLedEffectFromJson(Map<String, dynamic> json) =>
+    BreathingLedEffect(
       color: const HSVColorJsonConverter()
           .fromJson(json['color'] as Map<String, dynamic>),
       step: (json['step'] as num).toDouble(),
@@ -25,7 +26,7 @@ BreathingEffect _$BreathingEffectFromJson(Map<String, dynamic> json) =>
       breatheFromOff: json['breatheFromOff'] as bool,
     );
 
-Map<String, dynamic> _$BreathingEffectToJson(BreathingEffect instance) =>
+Map<String, dynamic> _$BreathingLedEffectToJson(BreathingLedEffect instance) =>
     <String, dynamic>{
       'color': const HSVColorJsonConverter().toJson(instance.color),
       'step': instance.step,
@@ -33,14 +34,14 @@ Map<String, dynamic> _$BreathingEffectToJson(BreathingEffect instance) =>
       'breatheFromOff': instance.breatheFromOff,
     };
 
-RainbowEffect _$RainbowEffectFromJson(Map<String, dynamic> json) =>
-    RainbowEffect(
+RainbowLedEffect _$RainbowLedEffectFromJson(Map<String, dynamic> json) =>
+    RainbowLedEffect(
       saturation: (json['saturation'] as num).toDouble(),
       value: (json['value'] as num).toDouble(),
       step: (json['step'] as num).toDouble(),
     );
 
-Map<String, dynamic> _$RainbowEffectToJson(RainbowEffect instance) =>
+Map<String, dynamic> _$RainbowLedEffectToJson(RainbowLedEffect instance) =>
     <String, dynamic>{
       'saturation': instance.saturation,
       'value': instance.value,
