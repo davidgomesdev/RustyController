@@ -62,9 +62,9 @@ if [[ -f "$HASH_FILE" ]]; then
     exit 0
   fi
 
-  newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
+  current_hash=$(cat "$HASH_FILE")
   build
-  if [[ "$newest_hash" != $(cat "$HASH_FILE") ]]; then
+  if [[ "$current_hash" != "$newest_hash" ]]; then
       echo "$INFO* Built a new version!$RESET"
       launch
   else
