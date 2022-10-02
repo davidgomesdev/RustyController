@@ -12,8 +12,9 @@ pub struct MutationRoot;
 #[juniper::graphql_object(Context = Context)]
 impl MutationRoot {
     #[graphql(description = "Turn the led off.")]
-    fn set_led_off(ctx: &Context, input: OffEffectInput) -> FieldResult<MutationResponse> {
-        process_led_effect_mutation(ctx, LedEffect::Off, input.controllers)
+    fn set_led_off(ctx: &Context, input: Option<OffEffectInput>) -> FieldResult<MutationResponse> {
+        let controllers = input.map_or(None, |input| Some(input.controllers));
+        process_led_effect_mutation(ctx, LedEffect::Off, controllers)
     }
 
     #[graphql(description = "Set a constant color.")]
@@ -132,12 +133,10 @@ impl MutationRoot {
         process_led_effect_mutation(ctx, effect, input.controllers)
     }
 
-    #[graphql(description = "Set a constant rumble.")]
-    fn set_rumble_off(
-        ctx: &Context,
-        input: OffEffectInput,
-    ) -> FieldResult<MutationResponse> {
-        process_rumble_effect_mutation(ctx, RumbleEffect::Off, input.controllers)
+    #[graphql(description = "Turn rumble off.")]
+    fn set_rumble_off(ctx: &Context, input: Option<OffEffectInput>) -> FieldResult<MutationResponse> {
+        let controllers = input.map_or(None, |input| Some(input.controllers));
+        process_rumble_effect_mutation(ctx, RumbleEffect::Off, controllers)
     }
 
     #[graphql(description = "Set a constant rumble.")]
