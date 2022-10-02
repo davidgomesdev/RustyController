@@ -6,9 +6,11 @@ use tokio::sync::{Mutex, watch};
 use graphql::graphql_api;
 use ps_move::models::LedEffect;
 
+use crate::logger::setup_logger;
 use crate::ps_move::controller::PsMoveController;
 use crate::tasks::models::*;
 
+mod logger;
 mod graphql;
 mod ps_move;
 mod tasks;
@@ -16,7 +18,7 @@ mod spawn_tasks;
 
 #[tokio::main]
 async fn main() {
-    env_logger::init();
+    setup_logger();
 
     let (tx, rx) = watch::channel(EffectChange {
         target: EffectTarget::All,
