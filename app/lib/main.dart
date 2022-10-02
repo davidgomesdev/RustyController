@@ -37,12 +37,12 @@ void setupDependencies() {
 
   // Effect Blocs
   serviceLocator.registerSingleton(
-    EffectBloc(NoEffect()),
+    EffectBloc(NoLedEffect()),
   );
   serviceLocator.registerSingletonAsync(
     () async {
       final savedStatic = await storeService.get(
-          defaultValue: StaticEffect(color: Colors.black.toHSV()));
+          defaultValue: StaticLedEffect(color: Colors.black.toHSV()));
 
       return StaticBloc(savedStatic);
     },
@@ -50,7 +50,7 @@ void setupDependencies() {
   serviceLocator.registerSingletonAsync(
     () async {
       final savedBreathing = await storeService.get(
-          defaultValue: BreathingEffect(
+          defaultValue: BreathingLedEffect(
               color: Colors.black.toHSV(),
               step: maxBreathingStep,
               peak: 1.0,
@@ -62,8 +62,8 @@ void setupDependencies() {
   serviceLocator.registerSingletonAsync(
     () async {
       final savedRainbow = await storeService.get(
-          defaultValue:
-              RainbowEffect(saturation: 1.0, value: 1.0, step: maxRainbowStep));
+          defaultValue: RainbowLedEffect(
+              saturation: 1.0, value: 1.0, step: maxRainbowStep));
 
       return RainbowBloc(savedRainbow);
     },

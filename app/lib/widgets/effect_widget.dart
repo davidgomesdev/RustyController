@@ -14,13 +14,13 @@ class EffectWidget<T extends LedEffect> extends StatelessWidget {
   Widget build(BuildContext context) {
     final effect = currentEffect;
 
-    if (effect is StaticEffect) {
+    if (effect is StaticLedEffect) {
       return const StaticSettings();
-    } else if (effect is BreathingEffect) {
+    } else if (effect is BreathingLedEffect) {
       return const BreathingSettings();
-    } else if (effect is RainbowEffect) {
+    } else if (effect is RainbowLedEffect) {
       return const RainbowSettings();
-    } else if (effect is OffEffect) {
+    } else if (effect is OffLedEffect) {
       return const OffEffectWidget();
     } else {
       return Container();

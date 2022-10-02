@@ -19,7 +19,7 @@ class _BreathingSettingsState extends State<BreathingSettings> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<BreathingBloc, BreathingEffect>(
+    return BlocBuilder<BreathingBloc, BreathingLedEffect>(
       bloc: bloc,
       builder: (ctx, effect) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
