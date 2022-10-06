@@ -14,13 +14,13 @@ const INTERVAL_DURATION: Duration = Duration::from_millis(1);
 
 pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
-    shutdown_signal: ShutdownSignal,
+    mut shutdown_signal: ShutdownSignal,
 ) -> JoinHandle<()> {
     task::spawn_blocking(move || {
         let rt = Handle::current();
         let mut interval = time::interval(INTERVAL_DURATION);
 
-        while !shutdown_signal.is_shutting_down() {
+        while !shutdown_signal.check_is_shutting_down() {
             let mut controllers = rt.block_on(async {
                 interval.tick().await;
                 controllers.lock().await
