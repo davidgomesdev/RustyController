@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use tokio::sync::{mpsc, Mutex, watch};
+use tokio::time::Instant;
 
 use crate::EffectChange;
 use crate::ps_move::api::PsMoveApi;
@@ -54,18 +55,29 @@ pub struct ShutdownSignal {
     // "unused" on purpose, since when it goes out of scope,
     // the channel is closed and that's how the `Receiver` is notified
     _channel: mpsc::Sender<()>,
+    last_load: Instant,
     flag: Arc<AtomicBool>,
+    last_flag: bool,
 }
 
 impl ShutdownSignal {
     fn new(send: &mpsc::Sender<()>, shutdown_flag: &Arc<AtomicBool>) -> ShutdownSignal {
         ShutdownSignal {
             _channel: send.clone(),
+            last_load: Instant::now(),
             flag: shutdown_flag.clone(),
+            last_flag: false,
         }
     }
 
-    pub fn is_shutting_down(&self) -> bool {
-        self.flag.load(Ordering::Relaxed)
+    /// Checks if a shutdown has been signaled
+    /// (it's expensive due to synchronicity, therefore only effectively checks every 3 seconds)
+    pub fn check_is_shutting_down(&mut self) -> bool {
+        if self.last_load.elapsed().as_secs() >= 3 {
+            self.last_load = Instant::now();
+            self.last_flag = self.flag.load(Ordering::Relaxed);
+        }
+
+        self.last_flag
     }
 }
