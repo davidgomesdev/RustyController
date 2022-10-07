@@ -18,11 +18,10 @@ pub fn spawn(
 ) -> JoinHandle<()> {
     task::spawn_blocking(move || {
         let rt = Handle::current();
-        let mut interval = time::interval(INTERVAL_DURATION);
 
         while !shutdown_signal.check_is_shutting_down() {
             let mut controllers = rt.block_on(async {
-                interval.tick().await;
+                time::sleep(INTERVAL_DURATION).await;
                 controllers.lock().await
             });
             let mut failed_addresses = Vec::<String>::new();
