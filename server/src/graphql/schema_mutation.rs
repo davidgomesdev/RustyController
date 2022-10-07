@@ -1,4 +1,7 @@
+use std::time::Duration;
+
 use juniper::{FieldError, FieldResult, Value};
+use tokio::time::Instant;
 
 use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffect};
 use crate::graphql::schema::Context;
@@ -128,6 +131,45 @@ impl MutationRoot {
             saturation: input.saturation as f32,
             value: input.value as f32,
             step: input.step as f32,
+        };
+
+        process_led_effect_mutation(ctx, effect, input.controllers)
+    }
+
+    #[graphql(description = "Alternate between color and off.")]
+    fn set_led_blink(
+        ctx: &Context,
+        input: BlinkLedEffectInput,
+    ) -> FieldResult<MutationResponse> {
+        if input.hue < 0.0 || input.hue > 360.0 {
+            return Err(FieldError::new(
+                "Hue must be between 0.0 and 360.0!",
+                Value::Null,
+            ));
+        }
+        if input.saturation < 0.0 || input.saturation > 1.0 {
+            return Err(FieldError::new(
+                "Saturation must be between 0.0 and 1.0!",
+                Value::Null,
+            ));
+        }
+        if input.value < 0.0 || input.value > 1.0 {
+            return Err(FieldError::new(
+                "Value must be between 0.0 and 1.0!",
+                Value::Null,
+            ));
+        }
+        if input.interval < 0 {
+            return Err(FieldError::new(
+                "Interval must be positive!",
+                Value::Null,
+            ));
+        }
+
+        let effect = LedEffect::Blink {
+            hsv: build_hsv(input.hue, input.saturation, input.value),
+            interval: Duration::from_millis(input.interval as u64),
+            start: Instant::now(),
         };
 
         process_led_effect_mutation(ctx, effect, input.controllers)

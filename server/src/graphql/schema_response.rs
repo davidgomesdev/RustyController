@@ -29,6 +29,7 @@ pub(super) enum LedEffect {
     Static,
     Breathing,
     Rainbow,
+    Blink
 }
 
 #[derive(GraphQLEnum)]

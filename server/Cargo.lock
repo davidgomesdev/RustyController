@@ -1485,20 +1485,21 @@ checksum = "97477e48b4cf8603ad5f7aaf897467cf42ab4218a38ef76fb14c2d6773a6d6a8"
 name = "rusty_controller"
 version = "0.1.0"
 dependencies = [
- "actix-cors",
- "actix-web",
- "actix-web-lab",
- "hidapi",
- "juniper",
- "log",
- "log4rs",
- "palette",
- "serde",
- "serde_derive",
- "serde_json",
- "strum",
- "strum_macros",
- "tokio",
+    "actix-cors",
+    "actix-web",
+    "actix-web-lab",
+    "hidapi",
+    "juniper",
+    "lazy_static",
+    "log",
+    "log4rs",
+    "palette",
+    "serde",
+    "serde_derive",
+    "serde_json",
+    "strum",
+    "strum_macros",
+    "tokio",
 ]
 
 [[package]]

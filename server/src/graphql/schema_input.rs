@@ -59,6 +59,22 @@ pub(super) struct RainbowLedEffectInput {
 }
 
 #[derive(GraphQLInputObject)]
+pub(super) struct BlinkLedEffectInput {
+    #[graphql(
+    description = "If specified, must not be empty, and applies the effect only on these controller addresses."
+    )]
+    pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
+    pub hue: f64,
+    #[graphql(description = "Saturation (min 0.0, max 1.0)")]
+    pub saturation: f64,
+    #[graphql(description = "Value/brightness (min 0.0, max 1.0)")]
+    pub value: f64,
+    #[graphql(description = "Interval between blinks, in ms. (must be positive)")]
+    pub interval: i32,
+}
+
+#[derive(GraphQLInputObject)]
 pub(super) struct StaticRumbleEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."

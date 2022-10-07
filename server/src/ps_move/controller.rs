@@ -85,7 +85,12 @@ impl PsMoveController {
     pub fn set_led_effect(&mut self, effect: LedEffect) {
         self.setting.led = match effect {
             LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
-            LedEffect::Static { hsv } => hsv,
+            LedEffect::Static { hsv }
+            | LedEffect::Blink {
+                hsv,
+                interval: _,
+                start: _,
+            } => hsv,
             LedEffect::Breathing {
                 initial_hsv,
                 step,

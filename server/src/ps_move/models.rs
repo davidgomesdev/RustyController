@@ -1,8 +1,16 @@
+use std::time::Duration;
+
 use juniper::GraphQLEnum;
+use lazy_static::lazy_static;
 use palette::{Hsv, Hue};
 use strum_macros::Display;
+use tokio::time::Instant;
 
 use crate::ps_move::models::BatteryLevel::*;
+
+lazy_static! {
+    static ref LED_OFF: Hsv = Hsv::from_components((0.0, 0.0, 0.0));
+}
 
 #[derive(Clone, Copy, Display)]
 pub enum LedEffect {
@@ -21,13 +29,18 @@ pub enum LedEffect {
         value: f32,
         step: f32,
     },
+    Blink {
+        hsv: Hsv,
+        interval: Duration,
+        start: Instant,
+    },
 }
 
 #[derive(Clone, Copy, Display)]
 pub enum RumbleEffect {
     Off,
     Static {
-        strength: f32
+        strength: f32,
     },
     Breathing {
         initial_strength: f32,
@@ -40,46 +53,72 @@ pub enum RumbleEffect {
 impl LedEffect {
     pub fn get_updated_hsv(&mut self, current_hsv: Hsv) -> Hsv {
         match *self {
-            LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
+            LedEffect::Off => *LED_OFF,
             LedEffect::Static { hsv } => hsv,
             LedEffect::Breathing {
                 initial_hsv,
                 step,
                 peak,
                 ref mut inhaling,
-            } => {
-                let initial_value = initial_hsv.value;
-
-                let mut new_hsv = current_hsv.clone();
-                let mut new_value = new_hsv.value;
-
-                if *inhaling {
-                    new_value += step * peak
-                } else {
-                    new_value -= step * peak
-                }
-
-                if new_value >= peak {
-                    new_value = peak;
-                    *inhaling = false
-                } else if new_value <= initial_value {
-                    new_value = initial_value;
-                    *inhaling = true
-                }
-
-                new_hsv.value = new_value;
-                new_hsv
-            }
+            } => Self::get_updated_breathing_hsv(current_hsv, initial_hsv, step, peak, inhaling),
             LedEffect::Rainbow {
                 saturation: _,
                 value: _,
                 step,
             } => {
-                // no need to use [saturation] and [value], since it was already set in the beginning
-                // similar to breathing, the step is relative to the max possible value
+                // no need to use [saturation] and [value],
+                // since it was already set in the beginning similar to breathing,
+                // the step is relative to the max possible value
                 current_hsv.shift_hue(step * 360.0)
+            },
+            LedEffect::Blink {
+                hsv,
+                interval,
+                ref mut start
+            } => {
+                if start.elapsed() > interval {
+                    *start = Instant::now();
+
+                    if current_hsv.value == 0.0 {
+                        hsv
+                    } else {
+                        *LED_OFF
+                    }
+                } else {
+                    current_hsv
+                }
             }
         }
+    }
+
+    fn get_updated_breathing_hsv(
+        current_hsv: Hsv,
+        initial_hsv: Hsv,
+        step: f32,
+        peak: f32,
+        inhaling: &mut bool,
+    ) -> Hsv {
+        let initial_value = initial_hsv.value;
+
+        let mut new_hsv = current_hsv.clone();
+        let mut new_value = new_hsv.value;
+
+        if *inhaling {
+            new_value += step * peak
+        } else {
+            new_value -= step * peak
+        }
+
+        if new_value >= peak {
+            new_value = peak;
+            *inhaling = false
+        } else if new_value <= initial_value {
+            new_value = initial_value;
+            *inhaling = true
+        }
+
+        new_hsv.value = new_value;
+        new_hsv
     }
 }
 
