@@ -6,7 +6,6 @@ use tokio::{task, time};
 use tokio::runtime::Handle;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
-use tokio::time::Instant;
 
 use crate::ps_move::controller::PsMoveController;
 use crate::spawn_tasks::ShutdownSignal;
@@ -28,10 +27,7 @@ pub fn spawn(
             let mut failed_addresses = Vec::<String>::new();
 
             controllers.iter_mut().for_each(|controller| {
-                let inst = Instant::now();
                 let res = controller.update();
-                let elapsed = inst.elapsed();
-                println!("took {:.2?}", elapsed);
 
                 if res.is_err() {
                     let bt_address = &controller.bt_address;
