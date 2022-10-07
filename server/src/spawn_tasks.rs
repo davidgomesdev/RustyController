@@ -71,9 +71,9 @@ impl ShutdownSignal {
     }
 
     /// Checks if a shutdown has been signaled
-    /// (it's expensive due to synchronicity, therefore only effectively checks every 3 seconds)
+    /// (it's expensive due to synchronicity, therefore only effectively checks every 100ms)
     pub fn check_is_shutting_down(&mut self) -> bool {
-        if self.last_load.elapsed().as_secs() >= 3 {
+        if self.last_load.elapsed().as_millis() >= 100 {
             self.last_load = Instant::now();
             self.last_flag = self.flag.load(Ordering::Relaxed);
         }
