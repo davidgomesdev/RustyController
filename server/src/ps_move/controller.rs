@@ -2,11 +2,8 @@ use hidapi::{HidDevice, HidError};
 use log::{debug, error, info};
 use palette::{FromColor, Hsv, Srgb};
 
-use crate::LedEffect;
-use crate::ps_move::models::{
-    BatteryLevel, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting,
-    RumbleEffect,
-};
+use crate::LedEffectDetails;
+use crate::ps_move::models::{BatteryLevel, ConnectionType, ControllerInfo, DataInput, LedEffect, MoveRequestType, MoveSetting, RumbleEffect};
 use crate::ps_move::models::BatteryLevel::Unknown;
 
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
@@ -38,7 +35,7 @@ impl PsMoveController {
             device,
             info,
             bt_address,
-            led_effect: LedEffect::Off,
+            led_effect: LedEffect::new(LedEffectDetails::Off),
             rumble_effect: RumbleEffect::Off,
             setting: MoveSetting {
                 led: Hsv::from_components((0.0, 0.0, 0.0)),
@@ -83,15 +80,17 @@ impl PsMoveController {
     }
 
     pub fn set_led_effect(&mut self, effect: LedEffect) {
-        self.setting.led = match effect {
-            LedEffect::Off => Hsv::from_components((0.0, 0.0, 0.0)),
-            LedEffect::Static { hsv }
-            | LedEffect::Blink {
+        let details = effect.details;
+
+        self.setting.led = match details {
+            LedEffectDetails::Off => Hsv::from_components((0.0, 0.0, 0.0)),
+            LedEffectDetails::Static { hsv }
+            | LedEffectDetails::Blink {
                 hsv,
                 interval: _,
-                start: _,
+                last_blink: _,
             } => hsv,
-            LedEffect::Breathing {
+            LedEffectDetails::Breathing {
                 initial_hsv,
                 step,
                 peak,
@@ -107,7 +106,7 @@ impl PsMoveController {
 
                 initial_hsv
             }
-            LedEffect::Rainbow {
+            LedEffectDetails::Rainbow {
                 saturation,
                 value,
                 step,
@@ -175,7 +174,16 @@ impl PsMoveController {
         let led_effect = &mut self.led_effect;
         let current_hsv = self.setting.led;
 
-        self.setting.led = led_effect.get_updated_hsv(current_hsv);
+        if led_effect.duration.is_some() {
+            let duration = led_effect.duration.unwrap();
+
+            if led_effect.start.elapsed() >= duration {
+                self.set_led_effect(LedEffect::off());
+                return
+            }
+        };
+
+        self.setting.led = led_effect.details.get_updated_hsv(current_hsv);
     }
 
     pub fn transform_rumble(&mut self) {

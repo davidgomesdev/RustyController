@@ -14,6 +14,8 @@ pub(super) struct StaticLedEffectInput {
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
     pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
+    pub duration: Option<i32>,
     #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
     pub hue: f64,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
@@ -28,6 +30,8 @@ pub(super) struct BreathingLedEffectInput {
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
     pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
+    pub duration: Option<i32>,
     #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
     pub hue: f64,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
@@ -50,6 +54,8 @@ pub(super) struct RainbowLedEffectInput {
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
     pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
+    pub duration: Option<i32>,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
     #[graphql(description = "Value/brightness (min 0.0, max 1.0)")]
@@ -64,13 +70,15 @@ pub(super) struct BlinkLedEffectInput {
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
     pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
+    pub duration: Option<i32>,
     #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
     pub hue: f64,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
     #[graphql(description = "Value/brightness (min 0.0, max 1.0)")]
     pub value: f64,
-    #[graphql(description = "Interval between blinks, in ms. (must be positive)")]
+    #[graphql(description = "Interval between blinks, in ms.")]
     pub interval: i32,
 }
 

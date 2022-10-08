@@ -1,10 +1,8 @@
-use std::time::Duration;
-
 use juniper::GraphQLEnum;
 use lazy_static::lazy_static;
 use palette::{Hsv, Hue};
 use strum_macros::Display;
-use tokio::time::Instant;
+use tokio::time::{Duration, Instant};
 
 use crate::ps_move::models::BatteryLevel::*;
 
@@ -12,8 +10,53 @@ lazy_static! {
     static ref LED_OFF: Hsv = Hsv::from_components((0.0, 0.0, 0.0));
 }
 
+#[derive(Clone, Copy)]
+pub struct LedEffect {
+    pub details: LedEffectDetails,
+    pub start: Instant,
+    pub duration: Option<Duration>,
+}
+
+impl LedEffect {
+    pub fn new_expiring(details: LedEffectDetails, duration: Duration) -> LedEffect {
+        LedEffect {
+            details,
+            start: Instant::now(),
+            duration: Some(duration),
+        }
+    }
+
+    pub fn new(details: LedEffectDetails) -> LedEffect {
+        LedEffect {
+            details,
+            start: Instant::now(),
+            duration: None,
+        }
+    }
+
+    pub fn off() -> LedEffect {
+        LedEffect {
+            details: LedEffectDetails::Off,
+            start: Instant::now(),
+            duration: None,
+        }
+    }
+
+    /// Creates an expiring `LedEffect` if `duration_millis` is present,
+    /// otherwise a non-expiring one
+    pub fn from(details: LedEffectDetails, duration_millis: Option<i32>) -> LedEffect {
+        duration_millis.map_or(LedEffect::new(details), |millis| {
+            if millis < 0 {
+                panic!("Negative milliseconds as duration not allowed!")
+            }
+
+            LedEffect::new_expiring(details, Duration::from_millis(millis as u64))
+        })
+    }
+}
+
 #[derive(Clone, Copy, Display)]
-pub enum LedEffect {
+pub enum LedEffectDetails {
     Off,
     Static {
         hsv: Hsv,
@@ -32,7 +75,7 @@ pub enum LedEffect {
     Blink {
         hsv: Hsv,
         interval: Duration,
-        start: Instant,
+        last_blink: Instant,
     },
 }
 
@@ -50,18 +93,18 @@ pub enum RumbleEffect {
     },
 }
 
-impl LedEffect {
+impl LedEffectDetails {
     pub fn get_updated_hsv(&mut self, current_hsv: Hsv) -> Hsv {
         match *self {
-            LedEffect::Off => *LED_OFF,
-            LedEffect::Static { hsv } => hsv,
-            LedEffect::Breathing {
+            LedEffectDetails::Off => *LED_OFF,
+            LedEffectDetails::Static { hsv } => hsv,
+            LedEffectDetails::Breathing {
                 initial_hsv,
                 step,
                 peak,
                 ref mut inhaling,
             } => Self::get_updated_breathing_hsv(current_hsv, initial_hsv, step, peak, inhaling),
-            LedEffect::Rainbow {
+            LedEffectDetails::Rainbow {
                 saturation: _,
                 value: _,
                 step,
@@ -70,11 +113,11 @@ impl LedEffect {
                 // since it was already set in the beginning similar to breathing,
                 // the step is relative to the max possible value
                 current_hsv.shift_hue(step * 360.0)
-            },
-            LedEffect::Blink {
+            }
+            LedEffectDetails::Blink {
                 hsv,
                 interval,
-                ref mut start
+                last_blink: ref mut start,
             } => {
                 if start.elapsed() > interval {
                     *start = Instant::now();

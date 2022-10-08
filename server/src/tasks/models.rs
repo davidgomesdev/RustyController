@@ -19,7 +19,7 @@ pub enum EffectChangeType {
 impl fmt::Display for EffectChangeType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EffectChangeType::Led { effect } => { write!(f, "Led::{}", effect) }
+            EffectChangeType::Led { effect } => { write!(f, "Led::{}", &effect.details) }
             EffectChangeType::Rumble { effect } => { write!(f, "Rumble::{}", effect) }
         }
     }

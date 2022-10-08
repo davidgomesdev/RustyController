@@ -3,12 +3,12 @@ use std::time::Duration;
 use juniper::{FieldError, FieldResult, Value};
 use tokio::time::Instant;
 
-use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffect};
+use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffectDetails};
 use crate::graphql::schema::Context;
 use crate::graphql::schema_input::*;
 use crate::graphql::schema_response::MutationResponse;
 use crate::ps_move::api::build_hsv;
-use crate::ps_move::models::RumbleEffect;
+use crate::ps_move::models::{LedEffect, RumbleEffect};
 
 pub struct MutationRoot;
 
@@ -17,7 +17,7 @@ impl MutationRoot {
     #[graphql(description = "Turn the led off.")]
     fn set_led_off(ctx: &Context, input: Option<OffEffectInput>) -> FieldResult<MutationResponse> {
         let controllers = input.map_or(None, |input| Some(input.controllers));
-        process_led_effect_mutation(ctx, LedEffect::Off, controllers)
+        process_led_effect_mutation(ctx, LedEffect::off(), controllers)
     }
 
     #[graphql(description = "Set a constant color.")]
@@ -28,12 +28,14 @@ impl MutationRoot {
                 Value::Null,
             ));
         }
+
         if input.saturation < 0.0 || input.saturation > 1.0 {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
+
         if input.value < 0.0 || input.value > 1.0 {
             return Err(FieldError::new(
                 "Value must be between 0.0 and 1.0!",
@@ -41,11 +43,19 @@ impl MutationRoot {
             ));
         }
 
-        let effect = LedEffect::Static {
+        if input.duration.filter(|duration| *duration < 0).is_some() {
+            return Err(FieldError::new("Duration must be positive!", Value::Null));
+        }
+
+        let effect = LedEffectDetails::Static {
             hsv: build_hsv(input.hue, input.saturation, input.value),
         };
 
-        process_led_effect_mutation(ctx, effect, input.controllers)
+        process_led_effect_mutation(
+            ctx,
+            LedEffect::from(effect, input.duration),
+            input.controllers,
+        )
     }
 
     #[graphql(
@@ -61,6 +71,7 @@ impl MutationRoot {
                 Value::Null,
             ));
         }
+
         if input.initial_value > input.peak {
             return Err(FieldError::new(
                 "Initial value can't be higher than peak!",
@@ -74,18 +85,25 @@ impl MutationRoot {
                 Value::Null,
             ));
         }
+
         if input.saturation < 0.0 || input.saturation > 1.0 {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
+
         if input.initial_value < 0.0 || input.initial_value > 1.0 {
             return Err(FieldError::new(
                 "Initial value must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
+
+        if input.duration.filter(|duration| *duration < 0).is_some() {
+            return Err(FieldError::new("Duration must be positive!", Value::Null));
+        }
+
         if input.peak < 0.0 || input.peak > 1.0 {
             return Err(FieldError::new(
                 "Peak must be between 0.0 and 1.0!",
@@ -93,14 +111,18 @@ impl MutationRoot {
             ));
         }
 
-        let effect = LedEffect::Breathing {
+        let effect = LedEffectDetails::Breathing {
             initial_hsv: build_hsv(input.hue, input.saturation, input.initial_value),
             step: input.step as f32,
             peak: input.peak as f32,
             inhaling: true,
         };
 
-        process_led_effect_mutation(ctx, effect, input.controllers)
+        process_led_effect_mutation(
+            ctx,
+            LedEffect::from(effect, input.duration),
+            input.controllers,
+        )
     }
 
     #[graphql(description = "Cycle through colors.")]
@@ -114,12 +136,14 @@ impl MutationRoot {
                 Value::Null,
             ));
         }
+
         if input.saturation < 0.0 || input.saturation > 1.0 {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
+
         if input.value < 0.0 || input.value > 1.0 {
             return Err(FieldError::new(
                 "Value must be between 0.0 and 1.0!",
@@ -127,56 +151,72 @@ impl MutationRoot {
             ));
         }
 
-        let effect = LedEffect::Rainbow {
+        if input.duration.filter(|duration| *duration < 0).is_some() {
+            return Err(FieldError::new("Duration must be positive!", Value::Null));
+        }
+
+        let effect = LedEffectDetails::Rainbow {
             saturation: input.saturation as f32,
             value: input.value as f32,
             step: input.step as f32,
         };
 
-        process_led_effect_mutation(ctx, effect, input.controllers)
+        process_led_effect_mutation(
+            ctx,
+            LedEffect::from(effect, input.duration),
+            input.controllers,
+        )
     }
 
     #[graphql(description = "Alternate between color and off.")]
-    fn set_led_blink(
-        ctx: &Context,
-        input: BlinkLedEffectInput,
-    ) -> FieldResult<MutationResponse> {
+    fn set_led_blink(ctx: &Context, input: BlinkLedEffectInput) -> FieldResult<MutationResponse> {
         if input.hue < 0.0 || input.hue > 360.0 {
             return Err(FieldError::new(
                 "Hue must be between 0.0 and 360.0!",
                 Value::Null,
             ));
         }
+
         if input.saturation < 0.0 || input.saturation > 1.0 {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
+
         if input.value < 0.0 || input.value > 1.0 {
             return Err(FieldError::new(
                 "Value must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
+
         if input.interval < 0 {
-            return Err(FieldError::new(
-                "Interval must be positive!",
-                Value::Null,
-            ));
+            return Err(FieldError::new("Interval must be positive!", Value::Null));
         }
 
-        let effect = LedEffect::Blink {
+        if input.duration.filter(|duration| *duration < 0).is_some() {
+            return Err(FieldError::new("Duration must be positive!", Value::Null));
+        }
+
+        let effect = LedEffectDetails::Blink {
             hsv: build_hsv(input.hue, input.saturation, input.value),
             interval: Duration::from_millis(input.interval as u64),
-            start: Instant::now(),
+            last_blink: Instant::now(),
         };
 
-        process_led_effect_mutation(ctx, effect, input.controllers)
+        process_led_effect_mutation(
+            ctx,
+            LedEffect::from(effect, input.duration),
+            input.controllers,
+        )
     }
 
     #[graphql(description = "Turn rumble off.")]
-    fn set_rumble_off(ctx: &Context, input: Option<OffEffectInput>) -> FieldResult<MutationResponse> {
+    fn set_rumble_off(
+        ctx: &Context,
+        input: Option<OffEffectInput>,
+    ) -> FieldResult<MutationResponse> {
         let controllers = input.map_or(None, |input| Some(input.controllers));
         process_rumble_effect_mutation(ctx, RumbleEffect::Off, controllers)
     }
@@ -211,6 +251,7 @@ impl MutationRoot {
                 Value::Null,
             ));
         }
+
         if input.initial_strength > input.peak {
             return Err(FieldError::new(
                 "Initial strength can't be higher than peak!",
@@ -224,6 +265,7 @@ impl MutationRoot {
                 Value::Null,
             ));
         }
+
         if input.peak < 0.0 || input.peak > 1.0 {
             return Err(FieldError::new(
                 "Peak must be between 0.0 and 1.0!",

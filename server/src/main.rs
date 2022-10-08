@@ -4,17 +4,18 @@ use log::{error, info};
 use tokio::sync::{Mutex, watch};
 
 use graphql::graphql_api;
-use ps_move::models::LedEffect;
+use ps_move::models::LedEffectDetails;
 
 use crate::logger::setup_logger;
 use crate::ps_move::controller::PsMoveController;
+use crate::ps_move::models::LedEffect;
 use crate::tasks::models::*;
 
-mod logger;
 mod graphql;
+mod logger;
 mod ps_move;
-mod tasks;
 mod spawn_tasks;
+mod tasks;
 
 #[tokio::main]
 async fn main() {
@@ -22,7 +23,9 @@ async fn main() {
 
     let (tx, rx) = watch::channel(EffectChange {
         target: EffectTarget::All,
-        effect: EffectChangeType::Led { effect: LedEffect::Off },
+        effect: EffectChangeType::Led {
+            effect: LedEffect::off(),
+        },
     });
     let controllers = Arc::new(Mutex::new(Vec::<Box<PsMoveController>>::new()));
 
