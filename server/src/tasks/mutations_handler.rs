@@ -5,13 +5,14 @@ use tokio::sync::Mutex;
 use tokio::sync::watch::Receiver;
 use tokio::task::JoinHandle;
 
-use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffect};
+use crate::{EffectChange, EffectChangeType, EffectTarget};
 use crate::ps_move::controller::PsMoveController;
+use crate::spawn_tasks::InitialLedState;
 
 pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
     mut rx: Receiver<EffectChange>,
-    initial_effect: Arc<Mutex<LedEffect>>,
+    initial_state: Arc<Mutex<InitialLedState>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
         while rx.changed().await.is_ok() {
@@ -29,8 +30,8 @@ pub fn spawn(
                     });
 
                     if let EffectChangeType::Led { effect } = effect {
-                        let mut default_effect = initial_effect.lock().await;
-                        *default_effect = effect.clone();
+                        let mut initial_state = initial_state.lock().await;
+                        *initial_state = InitialLedState::from(effect.clone());
                         info!("Set '{}' as initial effect.", effect);
                     }
                 }

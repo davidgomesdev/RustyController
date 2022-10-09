@@ -82,43 +82,13 @@ impl PsMoveController {
     pub fn set_led_effect(&mut self, effect: LedEffect) {
         let details = effect.details;
 
-        self.setting.led = match details {
-            LedEffectDetails::Off => Hsv::from_components((0.0, 0.0, 0.0)),
-            LedEffectDetails::Static { hsv }
-            | LedEffectDetails::Blink {
-                hsv,
-                interval: _,
-                last_blink: _,
-            } => hsv,
-            LedEffectDetails::Breathing {
-                initial_hsv,
-                step,
-                peak,
-                ..
-            } => {
-                if step < 0.0 || step > 1.0 {
-                    error!("Step must be between 0.0 and 1.0")
-                }
+        self.setting.led = details.get_initial_hsv();
+        self.led_effect = effect;
+    }
 
-                if peak < initial_hsv.value {
-                    error!("Peak must be higher than initial value")
-                }
-
-                initial_hsv
-            }
-            LedEffectDetails::Rainbow {
-                saturation,
-                value,
-                step,
-            } => {
-                if step > 360.0 {
-                    error!("Step can't be higher than 360 (max hue)")
-                }
-
-                Hsv::from_components((0.0, saturation, value))
-            }
-        };
-        self.led_effect = effect
+    pub fn set_led_effect_with_hsv(&mut self, effect: LedEffect, hsv: Hsv) {
+        self.setting.led = hsv;
+        self.led_effect = effect;
     }
 
     pub fn set_rumble_effect(&mut self, effect: RumbleEffect) {

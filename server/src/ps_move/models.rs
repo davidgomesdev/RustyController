@@ -2,6 +2,7 @@ use std::fmt;
 
 use juniper::GraphQLEnum;
 use lazy_static::lazy_static;
+use log::error;
 use palette::{Hsv, Hue};
 use strum_macros::Display;
 use tokio::time::{Duration, Instant};
@@ -114,6 +115,45 @@ pub enum RumbleEffect {
 }
 
 impl LedEffectDetails {
+    pub fn get_initial_hsv(&self) -> Hsv {
+        match *self {
+            LedEffectDetails::Off => Hsv::from_components((0.0, 0.0, 0.0)),
+            LedEffectDetails::Static { hsv }
+            | LedEffectDetails::Blink {
+                hsv,
+                interval: _,
+                last_blink: _,
+            } => hsv,
+            LedEffectDetails::Breathing {
+                initial_hsv,
+                step,
+                peak,
+                ..
+            } => {
+                if step < 0.0 || step > 1.0 {
+                    error!("Step must be between 0.0 and 1.0")
+                }
+
+                if peak < initial_hsv.value {
+                    error!("Peak must be higher than initial value")
+                }
+
+                initial_hsv
+            }
+            LedEffectDetails::Rainbow {
+                saturation,
+                value,
+                step,
+            } => {
+                if step > 360.0 {
+                    error!("Step can't be higher than 360 (max hue)")
+                }
+
+                Hsv::from_components((0.0, saturation, value))
+            }
+        }
+    }
+
     pub fn get_updated_hsv(&mut self, current_hsv: Hsv) -> Hsv {
         match *self {
             LedEffectDetails::Off => *LED_OFF,

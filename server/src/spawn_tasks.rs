@@ -32,11 +32,11 @@ pub async fn run_move(
 ) -> ShutdownCommand {
     let api = PsMoveApi::new();
     let shutdown_flag = Arc::new(AtomicBool::new(false));
-    let initial_effect = Arc::new(Mutex::new(*ON_STARTUP_EFFECT));
+    let initial_effect = Arc::new(Mutex::new(InitialLedState::from(*ON_STARTUP_EFFECT)));
     let (send, recv) = mpsc::channel::<()>(1);
 
     mutations_handler::spawn(controllers.clone(), rx, initial_effect.clone());
-    effects_update::spawn(controllers.clone());
+    effects_update::spawn(controllers.clone(), initial_effect.clone());
     controllers_list_update::spawn(
         controllers.clone(),
         api,
@@ -96,5 +96,19 @@ impl ShutdownSignal {
         }
 
         self.last_flag
+    }
+}
+
+pub struct InitialLedState {
+    pub hsv: Hsv,
+    pub effect: LedEffect,
+}
+
+impl InitialLedState {
+    pub fn from(effect: LedEffect) -> InitialLedState {
+        InitialLedState {
+            hsv: effect.details.get_initial_hsv(),
+            effect,
+        }
     }
 }

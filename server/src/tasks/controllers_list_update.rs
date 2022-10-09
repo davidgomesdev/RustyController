@@ -13,7 +13,7 @@ use crate::{LedEffect, LedEffectDetails};
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::{MAX_LED_PWM_FREQUENCY, PsMoveController};
 use crate::ps_move::models::{ConnectionType, ControllerInfo};
-use crate::spawn_tasks::ShutdownSignal;
+use crate::spawn_tasks::{InitialLedState, ShutdownSignal};
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(500);
 
@@ -32,25 +32,25 @@ pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
     mut api: PsMoveApi,
     mut shutdown_signal: ShutdownSignal,
-    initial_effect: Arc<Mutex<LedEffect>>,
+    initial_state: Arc<Mutex<InitialLedState>>,
 ) -> JoinHandle<()> {
     task::spawn_blocking(move || {
         let rt = Handle::current();
         let mut interval = time::interval(INTERVAL_DURATION);
 
         rt.block_on(async {
-            info!("Listing controllers with '{}' as the initial effect.", initial_effect.lock().await);
+            info!("Listing controllers with '{}' as the initial effect.", initial_state.lock().await.effect);
         });
 
         while !shutdown_signal.check_is_shutting_down() {
             rt.block_on(async {
-                let mut default_effect = initial_effect.lock().await;
-                if default_effect.has_expired() {
+                let initial_effect = &mut initial_state.lock().await.effect;
+                if initial_effect.has_expired() {
                     debug!(
                         "Initial '{}' effect has expired.",
-                        default_effect
+                        initial_effect
                     );
-                    *default_effect = LedEffect::off();
+                    *initial_effect = LedEffect::off();
                 }
 
                 interval.tick().await;
@@ -71,9 +71,10 @@ pub fn spawn(
             remove_disconnected_controllers(&mut controllers, &list_result.disconnected);
 
             new_controllers.into_iter().for_each(|mut controller| {
-                let initial_effect = rt.block_on(async { initial_effect.lock().await });
+                let initial_state = rt.block_on(async { initial_state.lock().await });
+                let initial_effect = initial_state.effect;
 
-                let initial_effect = if initial_effect.is_off() {
+                let effect = if initial_effect.is_off() {
                     info!("Setting on connected effect on '{}'.", controller.bt_address);
                     get_on_connected_effect()
                 } else {
@@ -84,7 +85,7 @@ pub fn spawn(
                     initial_effect.clone()
                 };
 
-                controller.set_led_effect(initial_effect);
+                controller.set_led_effect_with_hsv(effect, initial_state.hsv);
                 add_connected_controllers(&mut controllers, controller);
             });
         }
