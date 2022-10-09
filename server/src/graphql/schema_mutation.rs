@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use juniper::{FieldError, FieldResult, Value};
+use log::debug;
 use tokio::time::Instant;
 
 use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffectDetails};
@@ -16,12 +17,16 @@ pub struct MutationRoot;
 impl MutationRoot {
     #[graphql(description = "Turn the led off.")]
     fn set_led_off(ctx: &Context, input: Option<OffEffectInput>) -> FieldResult<MutationResponse> {
+        debug!("Received led off effect (with {:?})", input);
+
         let controllers = input.map_or(None, |input| Some(input.controllers));
         process_led_effect_mutation(ctx, LedEffect::off(), controllers)
     }
 
     #[graphql(description = "Set a constant color.")]
     fn set_led_static(ctx: &Context, input: StaticLedEffectInput) -> FieldResult<MutationResponse> {
+        debug!("Received led static effect (with {:?})", input);
+
         if input.hue < 0.0 || input.hue > 360.0 {
             return Err(FieldError::new(
                 "Hue must be between 0.0 and 360.0!",
@@ -65,6 +70,8 @@ impl MutationRoot {
         ctx: &Context,
         input: BreathingLedEffectInput,
     ) -> FieldResult<MutationResponse> {
+        debug!("Received led breathing effect (with {:?})", input);
+
         if input.step < 0.0 || input.step > 1.0 {
             return Err(FieldError::new(
                 "Step must be between 0.0 and 1.0!",
@@ -130,6 +137,8 @@ impl MutationRoot {
         ctx: &Context,
         input: RainbowLedEffectInput,
     ) -> FieldResult<MutationResponse> {
+        debug!("Received led rainbow effect (with {:?})", input);
+
         if input.step < 0.0 || input.step > 1.0 {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
@@ -170,6 +179,8 @@ impl MutationRoot {
 
     #[graphql(description = "Alternate between color and off.")]
     fn set_led_blink(ctx: &Context, input: BlinkLedEffectInput) -> FieldResult<MutationResponse> {
+        debug!("Received led blink effect (with {:?})", input);
+
         if input.hue < 0.0 || input.hue > 360.0 {
             return Err(FieldError::new(
                 "Hue must be between 0.0 and 360.0!",
@@ -217,6 +228,8 @@ impl MutationRoot {
         ctx: &Context,
         input: Option<OffEffectInput>,
     ) -> FieldResult<MutationResponse> {
+        debug!("Received rumble off effect (with {:?})", input);
+
         let controllers = input.map_or(None, |input| Some(input.controllers));
         process_rumble_effect_mutation(ctx, RumbleEffect::Off, controllers)
     }
@@ -226,6 +239,8 @@ impl MutationRoot {
         ctx: &Context,
         input: StaticRumbleEffectInput,
     ) -> FieldResult<MutationResponse> {
+        debug!("Received rumble static effect (with {:?})", input);
+
         if input.strength < 0.0 || input.strength > 1.0 {
             return Err(FieldError::new(
                 "Strength must be between 0.0 and 1.0!",
@@ -245,6 +260,8 @@ impl MutationRoot {
         ctx: &Context,
         input: BreathingRumbleEffectInput,
     ) -> FieldResult<MutationResponse> {
+        debug!("Received rumble breathing effect (with {:?})", input);
+
         if input.step < 0.0 || input.step > 1.0 {
             return Err(FieldError::new(
                 "Step must be between 0.0 and 1.0!",

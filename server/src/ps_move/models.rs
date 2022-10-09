@@ -55,7 +55,7 @@ impl LedEffect {
     }
 }
 
-#[derive(Clone, Copy, Display)]
+#[derive(Clone, Copy, Display, Debug)]
 pub enum LedEffectDetails {
     Off,
     Static {
@@ -79,7 +79,7 @@ pub enum LedEffectDetails {
     },
 }
 
-#[derive(Clone, Copy, Display)]
+#[derive(Clone, Copy, Display, Debug)]
 pub enum RumbleEffect {
     Off,
     Static {

@@ -1,6 +1,6 @@
 use juniper::GraphQLInputObject;
 
-#[derive(GraphQLInputObject)]
+#[derive(GraphQLInputObject, Debug)]
 pub(super) struct OffEffectInput {
     #[graphql(
     description = "Applies the effect only on these controller addresses. (must not be empty)"
@@ -8,7 +8,7 @@ pub(super) struct OffEffectInput {
     pub controllers: Vec<String>,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(GraphQLInputObject, Debug)]
 pub(super) struct StaticLedEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
@@ -24,7 +24,7 @@ pub(super) struct StaticLedEffectInput {
     pub value: f64,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(GraphQLInputObject, Debug)]
 pub(super) struct BreathingLedEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
@@ -48,7 +48,7 @@ pub(super) struct BreathingLedEffectInput {
     pub peak: f64,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(GraphQLInputObject, Debug)]
 pub(super) struct RainbowLedEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
@@ -64,7 +64,7 @@ pub(super) struct RainbowLedEffectInput {
     pub step: f64,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(GraphQLInputObject, Debug)]
 pub(super) struct BlinkLedEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
@@ -82,7 +82,7 @@ pub(super) struct BlinkLedEffectInput {
     pub interval: i32,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(GraphQLInputObject, Debug)]
 pub(super) struct StaticRumbleEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
@@ -92,7 +92,7 @@ pub(super) struct StaticRumbleEffectInput {
     pub strength: f64,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(GraphQLInputObject, Debug)]
 pub(super) struct BreathingRumbleEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
