@@ -1,7 +1,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use log::info;
+use log::{debug, info};
+use palette::Hsv;
 use tokio::{task, time};
 use tokio::runtime::Handle;
 use tokio::sync::Mutex;
@@ -16,30 +17,42 @@ use crate::spawn_tasks::ShutdownSignal;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(500);
 
-mod on_connected_blink {
-    use std::time::Duration;
-
-    use lazy_static::lazy_static;
-    use palette::Hsv;
-
-    lazy_static! {
-        pub static ref LED_COLOR: Hsv = Hsv::from_components((42.0, 1.0, 0.35));
-        pub static ref DURATION: Duration = Duration::from_secs(1);
-        pub static ref INTERVAL: Duration = Duration::from_millis(500);
-    }
+fn get_on_connected_effect() -> LedEffect {
+    LedEffect::new_expiring(
+        LedEffectDetails::Blink {
+            hsv: Hsv::from_components((42.0, 1.0, 0.35)),
+            last_blink: Instant::now(),
+            interval: Duration::from_millis(500),
+        },
+        Duration::from_secs(1),
+    )
 }
 
 pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
     mut api: PsMoveApi,
     mut shutdown_signal: ShutdownSignal,
+    initial_effect: Arc<Mutex<LedEffect>>,
 ) -> JoinHandle<()> {
     task::spawn_blocking(move || {
         let rt = Handle::current();
         let mut interval = time::interval(INTERVAL_DURATION);
 
+        rt.block_on(async {
+            info!("Listing controllers with '{}' as the initial effect.", initial_effect.lock().await);
+        });
+
         while !shutdown_signal.check_is_shutting_down() {
             rt.block_on(async {
+                let mut default_effect = initial_effect.lock().await;
+                if default_effect.has_expired() {
+                    debug!(
+                        "Initial '{}' effect has expired.",
+                        default_effect
+                    );
+                    *default_effect = LedEffect::off();
+                }
+
                 interval.tick().await;
             });
 
@@ -57,16 +70,23 @@ pub fn spawn(
             update_changed_controllers(&mut controllers, &list_result.disconnected);
             remove_disconnected_controllers(&mut controllers, &list_result.disconnected);
 
-            new_controllers
-                .into_iter()
-                .for_each(|mut controller| {
-                    controller.set_led_effect(LedEffect::new_expiring(LedEffectDetails::Blink {
-                        hsv: *on_connected_blink::LED_COLOR,
-                        last_blink: Instant::now(),
-                        interval: *on_connected_blink::INTERVAL,
-                    }, *on_connected_blink::DURATION));
-                    add_connected_controllers(&mut controllers, controller);
-                });
+            new_controllers.into_iter().for_each(|mut controller| {
+                let initial_effect = rt.block_on(async { initial_effect.lock().await });
+
+                let initial_effect = if initial_effect.is_off() {
+                    info!("Setting on connected effect on '{}'.", controller.bt_address);
+                    get_on_connected_effect()
+                } else {
+                    info!(
+                        "Setting current initial effect on '{}'. ({})",
+                        controller.bt_address, initial_effect
+                    );
+                    initial_effect.clone()
+                };
+
+                controller.set_led_effect(initial_effect);
+                add_connected_controllers(&mut controllers, controller);
+            });
         }
     })
 }

@@ -5,12 +5,13 @@ use tokio::sync::Mutex;
 use tokio::sync::watch::Receiver;
 use tokio::task::JoinHandle;
 
-use crate::{EffectChange, EffectChangeType, EffectTarget};
+use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffect};
 use crate::ps_move::controller::PsMoveController;
 
 pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
     mut rx: Receiver<EffectChange>,
+    initial_effect: Arc<Mutex<LedEffect>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
         while rx.changed().await.is_ok() {
@@ -21,14 +22,20 @@ pub fn spawn(
 
             match target {
                 EffectTarget::All => {
-                    debug!("Received a '{}' effect for all controllers", effect);
+                    info!("Received a '{}' effect for all controllers", effect);
                     controllers.iter_mut().for_each(|controller| {
                         mutate_controller_effect(controller, effect);
-                        info!("Controller '{}' set to {}", controller.bt_address, effect);
+                        debug!("Controller '{}' set to {}", controller.bt_address, effect);
                     });
+
+                    if let EffectChangeType::Led { effect } = effect {
+                        let mut default_effect = initial_effect.lock().await;
+                        *default_effect = effect.clone();
+                        info!("Set '{}' as initial effect.", effect);
+                    }
                 }
                 EffectTarget::Only { bt_addresses } => {
-                    debug!(
+                    info!(
                         "Received a '{}' effect for {} controllers",
                         effect,
                         bt_addresses.len()

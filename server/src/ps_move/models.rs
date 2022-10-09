@@ -1,3 +1,5 @@
+use std::fmt;
+
 use juniper::GraphQLEnum;
 use lazy_static::lazy_static;
 use palette::{Hsv, Hue};
@@ -53,9 +55,27 @@ impl LedEffect {
             LedEffect::new_expiring(details, Duration::from_millis(millis as u64))
         })
     }
+
+    pub fn is_off(&self) -> bool {
+        self.details == LedEffectDetails::Off
+    }
+
+    pub fn has_expired(&self) -> bool {
+        if let Some(duration) = self.duration {
+            self.start.elapsed() > duration
+        } else {
+            false
+        }
+    }
 }
 
-#[derive(Clone, Copy, Display, Debug)]
+impl fmt::Display for LedEffect {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Led::{}", &self.details)
+    }
+}
+
+#[derive(Clone, Copy, Display, Debug, PartialEq)]
 pub enum LedEffectDetails {
     Off,
     Static {
