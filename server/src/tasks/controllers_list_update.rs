@@ -6,13 +6,28 @@ use tokio::{task, time};
 use tokio::runtime::Handle;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
+use tokio::time::Instant;
 
+use crate::{LedEffect, LedEffectDetails};
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::{MAX_LED_PWM_FREQUENCY, PsMoveController};
 use crate::ps_move::models::{ConnectionType, ControllerInfo};
 use crate::spawn_tasks::ShutdownSignal;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(500);
+
+mod on_connected_blink {
+    use std::time::Duration;
+
+    use lazy_static::lazy_static;
+    use palette::Hsv;
+
+    lazy_static! {
+        pub static ref LED_COLOR: Hsv = Hsv::from_components((42.0, 1.0, 0.35));
+        pub static ref DURATION: Duration = Duration::from_secs(1);
+        pub static ref INTERVAL: Duration = Duration::from_millis(250);
+    }
+}
 
 pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
@@ -44,7 +59,14 @@ pub fn spawn(
 
             new_controllers
                 .into_iter()
-                .for_each(|controller| add_connected_controllers(&mut controllers, controller));
+                .for_each(|mut controller| {
+                    controller.set_led_effect(LedEffect::new_expiring(LedEffectDetails::Blink {
+                        hsv: *on_connected_blink::LED_COLOR,
+                        last_blink: Instant::now(),
+                        interval: *on_connected_blink::INTERVAL,
+                    }, *on_connected_blink::DURATION));
+                    add_connected_controllers(&mut controllers, controller);
+                });
         }
     })
 }

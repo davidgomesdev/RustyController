@@ -28,16 +28,30 @@ pub fn spawn(
                     });
                 }
                 EffectTarget::Only { bt_addresses } => {
-                    debug!("Received a '{}' effect for {} controllers", effect, bt_addresses.len());
+                    debug!(
+                        "Received a '{}' effect for {} controllers",
+                        effect,
+                        bt_addresses.len()
+                    );
                     bt_addresses.iter().for_each(|bt_address| {
-                        controllers.iter_mut().find(|controller| {
-                            controller.bt_address == *bt_address
-                        }).map_or_else(|| {
-                            warn!("The effect change had a non-existing controller! ('{}')", bt_address);
-                        }, |controller| {
-                            mutate_controller_effect(controller, effect);
-                            info!("Controller '{}' set to {}", controller.bt_address, effect);
-                        });
+                        controllers
+                            .iter_mut()
+                            .find(|controller| controller.bt_address == *bt_address)
+                            .map_or_else(
+                                || {
+                                    warn!(
+                                        "The effect change had a non-existing controller! ('{}')",
+                                        bt_address
+                                    );
+                                },
+                                |controller| {
+                                    mutate_controller_effect(controller, effect);
+                                    info!(
+                                        "Controller '{}' set to {}",
+                                        controller.bt_address, effect
+                                    );
+                                },
+                            );
                     });
                 }
             }
@@ -47,7 +61,7 @@ pub fn spawn(
 
 fn mutate_controller_effect(controller: &mut PsMoveController, effect: EffectChangeType) {
     match effect {
-        EffectChangeType::Led { effect } => { controller.set_led_effect(effect) }
-        EffectChangeType::Rumble { effect } => { controller.set_rumble_effect(effect) }
+        EffectChangeType::Led { effect } => controller.set_led_effect(effect),
+        EffectChangeType::Rumble { effect } => controller.set_rumble_effect(effect),
     }
 }
