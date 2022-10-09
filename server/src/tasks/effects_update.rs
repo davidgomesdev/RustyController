@@ -20,12 +20,14 @@ pub fn spawn(
         loop {
             interval.tick().await;
 
-            let mut controllers = controllers.lock().await;
+            {
+                let mut controllers = controllers.lock().await;
 
-            controllers.iter_mut().for_each(|controller| {
-                controller.transform_led();
-                controller.transform_rumble();
-            });
+                controllers.iter_mut().for_each(|controller| {
+                    controller.transform_led();
+                    controller.transform_rumble();
+                });
+            }
 
             let mut initial_state = initial_state.lock().await;
             let current_hsv = initial_state.hsv.clone();

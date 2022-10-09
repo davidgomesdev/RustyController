@@ -44,13 +44,15 @@ pub fn spawn(
 
         while !shutdown_signal.check_is_shutting_down() {
             rt.block_on(async {
-                let initial_effect = &mut initial_state.lock().await.effect;
-                if initial_effect.has_expired() {
-                    debug!(
+                {
+                    let initial_effect = &mut initial_state.lock().await.effect;
+                    if initial_effect.has_expired() {
+                        debug!(
                         "Initial '{}' effect has expired.",
                         initial_effect
                     );
-                    *initial_effect = LedEffect::off();
+                        *initial_effect = LedEffect::off();
+                    }
                 }
 
                 interval.tick().await;
