@@ -25,7 +25,7 @@ mod on_connected_blink {
     lazy_static! {
         pub static ref LED_COLOR: Hsv = Hsv::from_components((42.0, 1.0, 0.35));
         pub static ref DURATION: Duration = Duration::from_secs(1);
-        pub static ref INTERVAL: Duration = Duration::from_millis(250);
+        pub static ref INTERVAL: Duration = Duration::from_millis(500);
     }
 }
 

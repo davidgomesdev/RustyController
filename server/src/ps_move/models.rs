@@ -119,7 +119,7 @@ impl LedEffectDetails {
                 interval,
                 last_blink: ref mut start,
             } => {
-                if start.elapsed() > interval {
+                if start.elapsed() > interval / 2 {
                     *start = Instant::now();
 
                     if current_hsv.value == 0.0 {
