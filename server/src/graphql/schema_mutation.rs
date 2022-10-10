@@ -64,7 +64,7 @@ impl MutationRoot {
     }
 
     #[graphql(
-    description = "Increase brightness of a color over time, reaching a peak, then reverting."
+        description = "Increase brightness of a color over time, reaching a peak, then reverting."
     )]
     fn set_led_breathing(
         ctx: &Context,
@@ -72,9 +72,9 @@ impl MutationRoot {
     ) -> FieldResult<MutationResponse> {
         debug!("Received led breathing effect (with {:?})", input);
 
-        if input.step < 0.0 || input.step > 1.0 {
+        if input.step < 0 {
             return Err(FieldError::new(
-                "Step must be between 0.0 and 1.0!",
+                "Step must be positive!",
                 Value::Null,
             ));
         }
@@ -118,12 +118,11 @@ impl MutationRoot {
             ));
         }
 
-        let effect = LedEffectDetails::Breathing {
-            initial_hsv: build_hsv(input.hue, input.saturation, input.initial_value),
-            step: input.step as f32,
-            peak: input.peak as f32,
-            inhaling: true,
-        };
+        let effect = LedEffectDetails::new_timed_breathing(
+            build_hsv(input.hue, input.saturation, input.initial_value),
+            Duration::from_millis(input.step as u64),
+            input.peak as f32,
+        );
 
         process_led_effect_mutation(
             ctx,

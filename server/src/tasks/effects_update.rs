@@ -8,7 +8,7 @@ use tokio::time;
 use crate::ps_move::controller::PsMoveController;
 use crate::spawn_tasks::InitialLedState;
 
-const INTERVAL_DURATION: Duration = Duration::from_millis(1);
+pub const INTERVAL_DURATION: Duration = Duration::from_millis(1);
 
 pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,

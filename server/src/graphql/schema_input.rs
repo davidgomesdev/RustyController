@@ -39,9 +39,9 @@ pub(super) struct BreathingLedEffectInput {
     #[graphql(description = "Initial value/brightness. (min 0.0, max `peak`)")]
     pub initial_value: f64,
     #[graphql(
-    description = "Percentage that value/brightness changes per update, relative to `peak`. (min 0.0, max 1.0)"
+    description = "Time that value/brightness takes to reach `peak`, in milliseconds."
     )]
-    pub step: f64,
+    pub step: i32,
     #[graphql(
     description = "Defines the max value that the controller breathes to. (min 0.0, max 1.0)"
     )]

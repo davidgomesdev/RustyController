@@ -8,6 +8,7 @@ use strum_macros::Display;
 use tokio::time::{Duration, Instant};
 
 use crate::ps_move::models::BatteryLevel::*;
+use crate::tasks::effects_update;
 
 lazy_static! {
     static ref LED_OFF: Hsv = Hsv::from_components((0.0, 0.0, 0.0));
@@ -115,6 +116,18 @@ pub enum RumbleEffect {
 }
 
 impl LedEffectDetails {
+    pub fn new_timed_breathing(initial_hsv: Hsv, time_to_peak: Duration, peak: f32) -> LedEffectDetails {
+        let time_to_peak = time_to_peak.as_millis() as f32;
+        let step = effects_update::INTERVAL_DURATION.as_millis() as f32 / time_to_peak;
+
+        LedEffectDetails::Breathing {
+            initial_hsv,
+            step,
+            peak,
+            inhaling: initial_hsv.value < peak,
+        }
+    }
+
     pub fn get_initial_hsv(&self) -> Hsv {
         match *self {
             LedEffectDetails::Off => Hsv::from_components((0.0, 0.0, 0.0)),
@@ -207,9 +220,9 @@ impl LedEffectDetails {
         let mut new_value = new_hsv.value;
 
         if *inhaling {
-            new_value += step * peak
+            new_value += step * (peak - initial_value)
         } else {
-            new_value -= step * peak
+            new_value -= step * (peak - initial_value)
         }
 
         if new_value >= peak {

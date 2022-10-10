@@ -16,13 +16,11 @@ use crate::tasks::{
 
 lazy_static! {
     static ref ON_STARTUP_EFFECT: LedEffect = LedEffect::new_expiring(
-        LedEffectDetails::Breathing {
-            initial_hsv: Hsv::from_components((270.0, 1.0, 0.01)),
-            // An over 9 thousand magic number!
-            step: 3.0 / 9000.0,
-            inhaling: true,
-            peak: 0.3,
-        },
+        LedEffectDetails::new_timed_breathing(
+            Hsv::from_components((270.0, 1.0, 0.01)),
+            Duration::from_secs(3),
+            0.3
+        ),
         Duration::from_secs(3)
     );
 }
