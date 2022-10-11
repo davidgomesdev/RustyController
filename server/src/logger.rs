@@ -51,5 +51,7 @@ pub fn setup_logger() {
             .unwrap();
 
         log4rs::init_config(config).unwrap();
+
+        log_panics::init()
     });
 }
