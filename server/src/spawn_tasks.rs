@@ -7,12 +7,13 @@ use palette::Hsv;
 use tokio::sync::{mpsc, Mutex, watch};
 use tokio::time::Instant;
 
-use crate::{EffectChange, LedEffect, LedEffectDetails};
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
+use crate::ps_move::effects::{LedEffect, LedEffectDetails};
 use crate::tasks::{
     controller_update, controllers_list_update, effects_update, ip_discovery, mutations_handler,
 };
+use crate::tasks::models::EffectChange;
 
 lazy_static! {
     static ref ON_STARTUP_EFFECT: LedEffect = LedEffect::new_expiring(

@@ -2,7 +2,7 @@ use core::fmt;
 use std::string::String;
 use std::vec::Vec;
 
-use crate::ps_move::models::{LedEffect, RumbleEffect};
+use crate::ps_move::effects::{LedEffect, RumbleEffect};
 
 #[derive(Clone)]
 pub enum EffectTarget {

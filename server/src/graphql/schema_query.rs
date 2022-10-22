@@ -4,7 +4,7 @@ use crate::graphql::schema::Context;
 use crate::graphql::schema_response::{Controller, HealthStatus};
 
 mod api {
-    pub use crate::ps_move::models::*;
+    pub use crate::ps_move::effects::*;
 }
 
 mod graphql {

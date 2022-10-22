@@ -9,9 +9,9 @@ use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 use tokio::time::Instant;
 
-use crate::{LedEffect, LedEffectDetails};
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::{MAX_LED_PWM_FREQUENCY, PsMoveController};
+use crate::ps_move::effects::{LedEffect, LedEffectDetails};
 use crate::ps_move::models::{ConnectionType, ControllerInfo};
 use crate::spawn_tasks::{InitialLedState, ShutdownSignal};
 

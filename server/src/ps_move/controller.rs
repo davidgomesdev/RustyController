@@ -2,8 +2,10 @@ use hidapi::{HidDevice, HidError};
 use log::{debug, error, info};
 use palette::{FromColor, Hsv, Srgb};
 
-use crate::LedEffectDetails;
-use crate::ps_move::models::{BatteryLevel, ConnectionType, ControllerInfo, DataInput, LedEffect, MoveRequestType, MoveSetting, RumbleEffect};
+use crate::ps_move::effects::{LedEffect, LedEffectDetails, RumbleEffect};
+use crate::ps_move::models::{
+    BatteryLevel, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting,
+};
 use crate::ps_move::models::BatteryLevel::Unknown;
 
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
@@ -149,7 +151,7 @@ impl PsMoveController {
 
             if led_effect.start.elapsed() >= duration {
                 self.set_led_effect(LedEffect::off());
-                return
+                return;
             }
         };
 

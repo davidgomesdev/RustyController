@@ -9,7 +9,7 @@ use crate::graphql::schema::Context;
 use crate::graphql::schema_input::*;
 use crate::graphql::schema_response::MutationResponse;
 use crate::ps_move::api::build_hsv;
-use crate::ps_move::models::{LedEffect, RumbleEffect};
+use crate::ps_move::effects::{LedEffect, RumbleEffect};
 
 pub struct MutationRoot;
 

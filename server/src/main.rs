@@ -4,11 +4,11 @@ use log::{error, info};
 use tokio::sync::{Mutex, watch};
 
 use graphql::graphql_api;
-use ps_move::models::LedEffectDetails;
+use ps_move::effects::LedEffectDetails;
 
 use crate::logger::setup_logger;
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::models::LedEffect;
+use crate::ps_move::effects::LedEffect;
 use crate::tasks::models::*;
 
 mod graphql;
