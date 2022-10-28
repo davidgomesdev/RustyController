@@ -12,6 +12,8 @@ lazy_static! {
     static ref LED_OFF: Hsv = Hsv::from_components((0.0, 0.0, 0.0));
 }
 
+const MAX_HUE_VALUE: f32 = 360.0;
+
 #[derive(Clone, Copy)]
 pub struct LedEffect {
     pub details: LedEffectDetails,
@@ -114,6 +116,8 @@ pub enum RumbleEffect {
 }
 
 impl LedEffectDetails {
+    /// Creates an instance with `LedEffect::Breathing` having `step`
+    /// according to `time_to_peak` and tick rate
     pub fn new_timed_breathing(
         initial_hsv: Hsv,
         time_to_peak: Duration,
@@ -127,6 +131,23 @@ impl LedEffectDetails {
             step,
             peak,
             inhaling: initial_hsv.value < peak,
+        }
+    }
+
+    /// Creates an instance with `LedEffect::Rainbow` having `step`
+    /// according to `time_to_peak` and tick rate
+    pub fn new_timed_rainbow(
+        saturation: f32,
+        value: f32,
+        time_to_peak: Duration,
+    ) -> LedEffectDetails {
+        let time_to_peak = time_to_peak.as_millis() as f32;
+        let step = effects_update::INTERVAL_DURATION.as_millis() as f32 * MAX_HUE_VALUE / time_to_peak;
+
+        LedEffectDetails::Rainbow {
+            saturation,
+            value,
+            step,
         }
     }
 
