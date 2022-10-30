@@ -97,7 +97,7 @@ class BreathingLedEffect extends LedEffect implements StorableObject {
   EffectType get type => EffectType.breathing;
 
   HSVColor color;
-  double step;
+  int step;
   double peak;
   bool breatheFromOff;
 

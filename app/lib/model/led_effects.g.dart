@@ -21,7 +21,7 @@ BreathingLedEffect _$BreathingLedEffectFromJson(Map<String, dynamic> json) =>
     BreathingLedEffect(
       color: const HSVColorJsonConverter()
           .fromJson(json['color'] as Map<String, dynamic>),
-      step: (json['step'] as num).toDouble(),
+      step: json['step'] as int,
       peak: (json['peak'] as num).toDouble(),
       breatheFromOff: json['breatheFromOff'] as bool,
     );

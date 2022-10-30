@@ -18,7 +18,7 @@ use crate::tasks::models::EffectChange;
 lazy_static! {
     static ref ON_STARTUP_EFFECT: LedEffect = LedEffect::new_expiring(
         LedEffectDetails::new_timed_breathing(
-            Hsv::from_components((270.0, 1.0, 0.01)),
+            Hsv::from_components((270.0, 1.0, 0.001)),
             Duration::from_secs(3),
             0.3
         ),

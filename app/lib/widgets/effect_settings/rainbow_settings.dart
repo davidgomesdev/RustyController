@@ -20,43 +20,45 @@ class _RainbowSettingsState extends State<RainbowSettings> {
   Widget build(BuildContext context) {
     return BlocBuilder<RainbowBloc, RainbowLedEffect>(
       bloc: bloc,
-      builder: (ctx, effect) => Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          LabeledSlider(
-            label: 'Step',
-            value: effect.step,
-            min: minRainbowStep,
-            max: maxRainbowStep,
-            onChanged: (step) {
-              setState(() => bloc.add(RainbowStepEvent(step)));
-            },
-          ),
-          Row(
-            children: [
-              Flexible(
-                child: LabeledSlider(
-                  label: 'Saturation',
-                  value: effect.saturation,
-                  onChanged: (saturation) {
-                    setState(
-                        () => bloc.add(RainbowSaturationEvent(saturation)));
-                  },
+      builder: (ctx, effect) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            LabeledLogSlider(
+              label: 'Step',
+              value: effect.step,
+              min: minRainbowStep,
+              max: maxRainbowStep,
+              onChanged: (step) {
+                setState(() => bloc.add(RainbowStepEvent(step)));
+              },
+            ),
+            Row(
+              children: [
+                Flexible(
+                  child: LabeledSlider(
+                    label: 'Saturation',
+                    value: effect.saturation,
+                    onChanged: (saturation) {
+                      setState(
+                          () => bloc.add(RainbowSaturationEvent(saturation)));
+                    },
+                  ),
                 ),
-              ),
-              Flexible(
-                child: LabeledSlider(
-                  label: 'Brightness',
-                  value: effect.value,
-                  onChanged: (value) {
-                    setState(() => bloc.add(RainbowValueEvent(value)));
-                  },
+                Flexible(
+                  child: LabeledSlider(
+                    label: 'Brightness',
+                    value: effect.value,
+                    onChanged: (value) {
+                      setState(() => bloc.add(RainbowValueEvent(value)));
+                    },
+                  ),
                 ),
-              ),
-            ],
-          )
-        ],
-      ),
+              ],
+            )
+          ],
+        );
+      },
     );
   }
 }
