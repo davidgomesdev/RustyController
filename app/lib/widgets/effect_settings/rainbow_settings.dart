@@ -33,20 +33,20 @@ class _RainbowSettingsState extends State<RainbowSettings> {
                 setState(() => bloc.add(RainbowStepEvent(step)));
               },
             ),
-          Row(
-            children: [
-              Flexible(
-                child: LabeledSlider(
-                  label: 'Saturation',
-                  value: effect.saturation,
-                  onChanged: (saturation) {
-                    setState(
-                        () => bloc.add(RainbowSaturationEvent(saturation)));
-                  },
+            Row(
+              children: [
+                Flexible(
+                  child: LabeledSlider(
+                    label: 'Saturation',
+                    value: effect.saturation,
+                    onChanged: (saturation) {
+                      setState(
+                          () => bloc.add(RainbowSaturationEvent(saturation)));
+                    },
+                  ),
                 ),
-              ),
-              Flexible(
-                child: LabeledSlider(
+                Flexible(
+                  child: LabeledSlider(
                     label: 'Brightness',
                     value: effect.value,
                     onChanged: (value) {

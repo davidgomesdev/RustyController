@@ -34,26 +34,26 @@ class _BreathingSettingsState extends State<BreathingSettings> {
                 if (effect.breatheFromOff) {
                   setState(() {
                     bloc.add(BreathingColorEvent(color));
-                });
-              } else {
-                // can't `setState`, otherwise the color conversion will
-                // prevent the hue and saturation from sliding
-                // when the value one is at 0.0
-                bloc.add(BreathingColorEvent(color));
-              }
-            },
-          ),
-          Column(
-            children: [
-              SwitchListTile.adaptive(
-                  value: effect.breatheFromOff,
-                  onChanged: (fromOff) {
-                    setState(() {
-                      bloc.add(BreathingFromOffEvent(fromOff));
-                    });
-                  },
-                  title: const Text("Breathe from off")),
-              LabeledLogSlider(
+                  });
+                } else {
+                  // can't `setState`, otherwise the color conversion will
+                  // prevent the hue and saturation from sliding
+                  // when the value one is at 0.0
+                  bloc.add(BreathingColorEvent(color));
+                }
+              },
+            ),
+            Column(
+              children: [
+                SwitchListTile.adaptive(
+                    value: effect.breatheFromOff,
+                    onChanged: (fromOff) {
+                      setState(() {
+                        bloc.add(BreathingFromOffEvent(fromOff));
+                      });
+                    },
+                    title: const Text("Breathe from off")),
+                LabeledLogSlider(
                   label: 'Step',
                   value: effect.step.toDouble(),
                   min: minBreathingStep.toDouble(),
@@ -64,12 +64,12 @@ class _BreathingSettingsState extends State<BreathingSettings> {
                     });
                   },
                 ),
-              LabeledSlider(
-                label: 'Peak',
-                value: effect.peak,
-                onChanged: (peak) {
-                  if (peak < effect.color.value) {
-                    peak = effect.color.value;
+                LabeledSlider(
+                  label: 'Peak',
+                  value: effect.peak,
+                  onChanged: (peak) {
+                    if (peak < effect.color.value) {
+                      peak = effect.color.value;
                     }
 
                     setState(() {

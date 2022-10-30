@@ -51,8 +51,8 @@ class LabeledSlider extends StatelessWidget {
       required this.onChanged,
       required this.label,
       required this.value,
-    this.max = 1.0,
-    this.min = 0.0})
+      this.max = 1.0,
+      this.min = 0.0})
       : super(key: key);
 
   @override
