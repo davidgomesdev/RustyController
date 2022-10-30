@@ -124,7 +124,7 @@ impl LedEffectDetails {
         peak: f32,
     ) -> LedEffectDetails {
         let time_to_peak = time_to_peak.as_millis() as f32;
-        let step = effects_update::INTERVAL_DURATION.as_millis() as f32 / time_to_peak;
+        let step = effects_update::INTERVAL_DURATION.as_millis() as f32 * (peak - initial_hsv.value) / time_to_peak;
 
         LedEffectDetails::Breathing {
             initial_hsv,
@@ -208,7 +208,7 @@ impl LedEffectDetails {
                 // no need to use [saturation] and [value],
                 // since it was already set in the beginning similar to breathing,
                 // the step is relative to the max possible value
-                current_hsv.shift_hue(step * 360.0)
+                current_hsv.shift_hue(step)
             }
             LedEffectDetails::Blink {
                 hsv,
@@ -243,9 +243,9 @@ impl LedEffectDetails {
         let mut new_value = new_hsv.value;
 
         if *inhaling {
-            new_value += step * (peak - initial_value)
+            new_value += step
         } else {
-            new_value -= step * (peak - initial_value)
+            new_value -= step
         }
 
         if new_value >= peak {

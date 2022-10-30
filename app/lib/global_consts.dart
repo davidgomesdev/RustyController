@@ -1,5 +1,5 @@
-const double minBreathingStep = 0.00001;
-const double maxBreathingStep = 0.01;
+const int minBreathingStep = 150;
+const int maxBreathingStep = minBreathingStep * 200;
 
-const double minRainbowStep = 0.00005;
-const double maxRainbowStep = 0.002;
+const double minRainbowStep = 1.0;
+const double maxRainbowStep = 60.0 * 10;

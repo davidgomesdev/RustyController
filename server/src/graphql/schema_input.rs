@@ -60,8 +60,8 @@ pub(super) struct RainbowLedEffectInput {
     pub saturation: f64,
     #[graphql(description = "Value/brightness (min 0.0, max 1.0)")]
     pub value: f64,
-    #[graphql(description = "Time that the controller takes to reach go through the full color spectrum, in milliseconds")]
-    pub step: i32,
+    #[graphql(description = "Time that the controller takes to reach go through the full color spectrum, in seconds")]
+    pub step: f64,
 }
 
 #[derive(GraphQLInputObject, Debug)]

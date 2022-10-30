@@ -33,7 +33,7 @@ class BreathingColorEvent extends BreathingEffectEvent {
 }
 
 class BreathingStepEvent extends BreathingEffectEvent {
-  double step;
+  int step;
 
   BreathingStepEvent(this.step);
 }

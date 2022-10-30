@@ -20,18 +20,19 @@ class _RainbowSettingsState extends State<RainbowSettings> {
   Widget build(BuildContext context) {
     return BlocBuilder<RainbowBloc, RainbowLedEffect>(
       bloc: bloc,
-      builder: (ctx, effect) => Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          LabeledSlider(
-            label: 'Step',
-            value: effect.step,
-            min: minRainbowStep,
-            max: maxRainbowStep,
-            onChanged: (step) {
-              setState(() => bloc.add(RainbowStepEvent(step)));
-            },
-          ),
+      builder: (ctx, effect) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            LabeledLogSlider(
+              label: 'Step',
+              value: effect.step,
+              min: minRainbowStep,
+              max: maxRainbowStep,
+              onChanged: (step) {
+                setState(() => bloc.add(RainbowStepEvent(step)));
+              },
+            ),
           Row(
             children: [
               Flexible(
@@ -46,17 +47,18 @@ class _RainbowSettingsState extends State<RainbowSettings> {
               ),
               Flexible(
                 child: LabeledSlider(
-                  label: 'Brightness',
-                  value: effect.value,
-                  onChanged: (value) {
-                    setState(() => bloc.add(RainbowValueEvent(value)));
-                  },
+                    label: 'Brightness',
+                    value: effect.value,
+                    onChanged: (value) {
+                      setState(() => bloc.add(RainbowValueEvent(value)));
+                    },
+                  ),
                 ),
-              ),
-            ],
-          )
-        ],
-      ),
+              ],
+            )
+          ],
+        );
+      },
     );
   }
 }

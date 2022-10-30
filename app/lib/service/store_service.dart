@@ -8,7 +8,7 @@ class StoreService {
   /// Gets the store object in [defaultValue.name] if present and successful.
   ///
   /// Otherwise calls [save] with [defaultValue] and returns it.
-  Future<dynamic> get({required StorableObject defaultValue}) async {
+  Future<T> get<T>({required StorableObject defaultValue}) async {
     try {
       final value =
           await _getRaw(defaultValue.storeName, defaultValue.fromJson);
@@ -16,15 +16,15 @@ class StoreService {
       if (value == null) {
         log.i(
             "No store for file '${defaultValue.storeName}', saving default provided.");
-        return await save(defaultValue);
+        return (await save(defaultValue)) as T;
       }
 
       log.v("Got file of store '${defaultValue.storeName}'");
-      return Future.value(value);
+      return Future.value(value as T);
     } catch (e) {
       log.w('Failed to get value for ${defaultValue.storeName}.', e);
       log.d('Writing default value provided.');
-      return await save(defaultValue);
+      return (await save(defaultValue)) as T;
     }
   }
 

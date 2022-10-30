@@ -49,21 +49,43 @@ void setupDependencies() {
   );
   serviceLocator.registerSingletonAsync(
     () async {
-      final savedBreathing = await storeService.get(
+      final savedBreathing = await storeService.get<BreathingLedEffect>(
           defaultValue: BreathingLedEffect(
               color: Colors.black.toHSV(),
               step: maxBreathingStep,
               peak: 1.0,
               breatheFromOff: true));
 
+      if (savedBreathing.step < minBreathingStep ||
+          savedBreathing.step > maxBreathingStep) {
+        savedBreathing.step = maxBreathingStep;
+      }
+
+      if (savedBreathing.peak < 0.0 || savedBreathing.peak > 1.0) {
+        savedBreathing.peak = 1.0;
+      }
+
       return BreathingBloc(savedBreathing);
     },
   );
   serviceLocator.registerSingletonAsync(
     () async {
-      final savedRainbow = await storeService.get(
+      final savedRainbow = await storeService.get<RainbowLedEffect>(
           defaultValue: RainbowLedEffect(
               saturation: 1.0, value: 1.0, step: maxRainbowStep));
+
+      if (savedRainbow.step < minRainbowStep ||
+          savedRainbow.step > maxRainbowStep) {
+        savedRainbow.step = maxRainbowStep;
+      }
+
+      if (savedRainbow.saturation < 0.0 || savedRainbow.saturation > 1.0) {
+        savedRainbow.saturation = 1.0;
+      }
+
+      if (savedRainbow.value < 0.0 || savedRainbow.value > 1.0) {
+        savedRainbow.value = 1.0;
+      }
 
       return RainbowBloc(savedRainbow);
     },

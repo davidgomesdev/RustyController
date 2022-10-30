@@ -15,12 +15,12 @@ class ControllerService {
     EffectType.off: OffLedEffect(),
     EffectType.static: StaticLedEffect(color: Colors.black.toHSV()),
     EffectType.breathing: BreathingLedEffect(
-        color: Colors.black.toHSV(),
+        color: Colors.red.toHSV().withValue(0.0),
         step: maxBreathingStep,
-        peak: maxBreathingStep,
-        breatheFromOff: false),
+        peak: 1.0,
+        breatheFromOff: true),
     EffectType.rainbow:
-        RainbowLedEffect(saturation: 1.0, value: 1.0, step: maxRainbowStep),
+        RainbowLedEffect(saturation: 1.0, value: 0.5, step: maxRainbowStep),
   };
 
   void connect(String ip) {

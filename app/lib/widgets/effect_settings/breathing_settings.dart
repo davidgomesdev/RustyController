@@ -21,18 +21,19 @@ class _BreathingSettingsState extends State<BreathingSettings> {
   Widget build(BuildContext context) {
     return BlocBuilder<BreathingBloc, BreathingLedEffect>(
       bloc: bloc,
-      builder: (ctx, effect) => Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          LedColorPicker(
-            currentColor: effect.color,
-            ignoreValue: effect.breatheFromOff,
-            onColorPick: (color) {
-              if (color.value > effect.peak) effect.peak = color.value;
+      builder: (ctx, effect) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            LedColorPicker(
+              currentColor: effect.color,
+              ignoreValue: effect.breatheFromOff,
+              onColorPick: (color) {
+                if (color.value > effect.peak) effect.peak = color.value;
 
-              if (effect.breatheFromOff) {
-                setState(() {
-                  bloc.add(BreathingColorEvent(color));
+                if (effect.breatheFromOff) {
+                  setState(() {
+                    bloc.add(BreathingColorEvent(color));
                 });
               } else {
                 // can't `setState`, otherwise the color conversion will
@@ -52,34 +53,35 @@ class _BreathingSettingsState extends State<BreathingSettings> {
                     });
                   },
                   title: const Text("Breathe from off")),
-              LabeledSlider(
-                label: 'Step',
-                value: effect.step,
-                min: minBreathingStep,
-                max: maxBreathingStep,
-                onChanged: (step) {
-                  setState(() {
-                    bloc.add(BreathingStepEvent(step));
-                  });
-                },
-              ),
+              LabeledLogSlider(
+                  label: 'Step',
+                  value: effect.step.toDouble(),
+                  min: minBreathingStep.toDouble(),
+                  max: maxBreathingStep.toDouble(),
+                  onChanged: (step) {
+                    setState(() {
+                      bloc.add(BreathingStepEvent(step.round()));
+                    });
+                  },
+                ),
               LabeledSlider(
                 label: 'Peak',
                 value: effect.peak,
                 onChanged: (peak) {
                   if (peak < effect.color.value) {
                     peak = effect.color.value;
-                  }
+                    }
 
-                  setState(() {
-                    bloc.add(BreathingPeakEvent(peak));
-                  });
-                },
-              ),
-            ],
-          )
-        ],
-      ),
+                    setState(() {
+                      bloc.add(BreathingPeakEvent(peak));
+                    });
+                  },
+                ),
+              ],
+            )
+          ],
+        );
+      },
     );
   }
 }
