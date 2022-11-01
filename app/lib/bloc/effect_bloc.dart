@@ -8,13 +8,13 @@ class EffectBloc extends Bloc<EffectChangeEvent, LedEffect> {
   EffectBloc(LedEffect effect) : super(effect) {
     final service = serviceLocator.get<ControllerService>();
 
-    on<EffectSettingChangeEvent>((event, emit) {
-      service.set(effect: event.effect);
+    on<EffectSettingChangeEvent>((event, emit) async {
+      await service.set(effect: event.effect);
     });
-    on<EffectTypeChangeEvent>((event, emit) {
-      final effect = service.get(type: event.type);
+    on<EffectTypeChangeEvent>((event, emit) async {
+      final effect = await service.get(type: event.type);
 
-      service.set(effect: effect);
+      await service.set(effect: effect);
 
       emit(effect);
     });

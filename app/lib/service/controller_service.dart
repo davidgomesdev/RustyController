@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:rusty_controller/bloc/discovery_bloc.dart';
-import 'package:rusty_controller/extensions/color_extensions.dart';
-import 'package:rusty_controller/global_consts.dart';
 import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/graphql_queries.dart';
 import 'package:rusty_controller/model/led_effects.dart';
@@ -10,18 +7,6 @@ import 'package:rusty_controller/service/store_service.dart';
 
 class ControllerService {
   late GraphQLClient _graphqlClient;
-
-  final Map<EffectType, LedEffect> _effects = {
-    EffectType.off: OffLedEffect(),
-    EffectType.static: StaticLedEffect(color: Colors.black.toHSV()),
-    EffectType.breathing: BreathingLedEffect(
-        color: Colors.red.toHSV().withValue(0.0),
-        timeToPeak: maxBreathingTime,
-        peak: 1.0,
-        breatheFromOff: true),
-    EffectType.rainbow:
-        RainbowLedEffect(saturation: 1.0, value: 0.5, timeToComplete: maxRainbowTime),
-  };
 
   void connect(String ip) {
     _graphqlClient = GraphQLClient(
@@ -34,21 +19,23 @@ class ControllerService {
     })._reconnectOnTimeout();
   }
 
-  void set({required LedEffect effect}) {
+  Future<void> set({required LedEffect effect}) async {
     log.i("Setting effect to '${effect.name}'");
-
-    _effects[effect.type] = effect;
 
     _sendEffect(effect);
     _saveEffect(effect);
   }
 
-  LedEffect get({required EffectType type}) {
-    final effect = _effects[type];
+  Future<LedEffect> get({required EffectType type}) async {
+    final defaultEffect = defaultEffects[type]!;
 
-    if (effect == null) throw ArgumentError.notNull("effect");
+    if (defaultEffect is! StorableObject) {
+      return defaultEffect;
+    }
 
-    return effect;
+    return await serviceLocator
+        .get<StoreService>()
+        .get(defaultValue: defaultEffect as StorableObject);
   }
 
   Future<void> _sendEffect(LedEffect effect) async {

@@ -14,8 +14,20 @@ import 'package:rusty_controller/service/controller_service.dart';
 import 'package:rusty_controller/service/discovery_service.dart';
 import 'package:rusty_controller/service/store_service.dart';
 
-var log = Logger(level: Level.verbose, printer: PrettyPrinter());
-var serviceLocator = GetIt.instance;
+final log = Logger(level: Level.verbose, printer: PrettyPrinter());
+final serviceLocator = GetIt.instance;
+
+final defaultEffects = {
+  EffectType.off: OffLedEffect(),
+  EffectType.static: StaticLedEffect(color: Colors.black.toHSV()),
+  EffectType.breathing: BreathingLedEffect(
+      color: Colors.red.toHSV().withValue(0.0),
+      timeToPeak: maxBreathingTime,
+      peak: 1.0,
+      breatheFromOff: true),
+  EffectType.rainbow: RainbowLedEffect(
+      saturation: 1.0, value: 0.5, timeToComplete: maxRainbowTime),
+};
 
 void main() {
   setupDependencies();
@@ -42,7 +54,7 @@ void setupDependencies() {
   serviceLocator.registerSingletonAsync(
     () async {
       final savedStatic = await storeService.get(
-          defaultValue: StaticLedEffect(color: Colors.black.toHSV()));
+          defaultValue: defaultEffects[EffectType.static] as StaticLedEffect);
 
       return StaticBloc(savedStatic);
     },
@@ -50,11 +62,8 @@ void setupDependencies() {
   serviceLocator.registerSingletonAsync(
     () async {
       final savedBreathing = await storeService.get<BreathingLedEffect>(
-          defaultValue: BreathingLedEffect(
-              color: Colors.black.toHSV(),
-              timeToPeak: maxBreathingTime,
-              peak: 1.0,
-              breatheFromOff: true));
+          defaultValue:
+              defaultEffects[EffectType.breathing] as BreathingLedEffect);
 
       if (savedBreathing.timeToPeak < minBreathingTime ||
           savedBreathing.timeToPeak > maxBreathingTime) {
@@ -71,8 +80,7 @@ void setupDependencies() {
   serviceLocator.registerSingletonAsync(
     () async {
       final savedRainbow = await storeService.get<RainbowLedEffect>(
-          defaultValue: RainbowLedEffect(
-              saturation: 1.0, value: 1.0, timeToComplete: maxRainbowTime));
+          defaultValue: defaultEffects[EffectType.rainbow] as RainbowLedEffect);
 
       if (savedRainbow.timeToComplete < minRainbowTime ||
           savedRainbow.timeToComplete > maxRainbowTime) {

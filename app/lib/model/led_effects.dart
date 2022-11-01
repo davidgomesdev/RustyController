@@ -15,8 +15,6 @@ abstract class LedEffect {
   String get graphqlMutationName;
 
   Map<String, dynamic> get graphqlVariables;
-
-  StorableObject? get storeObject => null;
 }
 
 enum EffectType { none, off, static, breathing, rainbow }
