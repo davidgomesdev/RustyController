@@ -7,7 +7,7 @@ class RainbowBloc
     on<RainbowSaturationEvent>(
         (event, emit) => emit(state..saturation = event.saturation));
     on<RainbowValueEvent>((event, emit) => emit(state..value = event.value));
-    on<RainbowStepEvent>((event, emit) => emit(state..step = event.step));
+    on<RainbowTimeEvent>((event, emit) => emit(state..timeToComplete = event.timeToComplete));
   }
 }
 
@@ -25,8 +25,8 @@ class RainbowValueEvent extends RainbowEffectEvent {
   RainbowValueEvent(this.value);
 }
 
-class RainbowStepEvent extends RainbowEffectEvent {
-  double step;
+class RainbowTimeEvent extends RainbowEffectEvent {
+  double timeToComplete;
 
-  RainbowStepEvent(this.step);
+  RainbowTimeEvent(this.timeToComplete);
 }

@@ -25,12 +25,12 @@ class _RainbowSettingsState extends State<RainbowSettings> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             LabeledLogSlider(
-              label: 'Step',
-              value: effect.step,
-              min: minRainbowStep,
-              max: maxRainbowStep,
-              onChanged: (step) {
-                setState(() => bloc.add(RainbowStepEvent(step)));
+              label: 'Time to complete',
+              value: effect.timeToComplete,
+              min: minRainbowTime,
+              max: maxRainbowTime,
+              onChanged: (time) {
+                setState(() => bloc.add(RainbowTimeEvent(time)));
               },
             ),
             Row(

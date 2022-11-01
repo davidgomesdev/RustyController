@@ -97,13 +97,13 @@ class BreathingLedEffect extends LedEffect implements StorableObject {
   EffectType get type => EffectType.breathing;
 
   HSVColor color;
-  int step;
+  int timeToPeak;
   double peak;
   bool breatheFromOff;
 
   BreathingLedEffect(
       {required this.color,
-      required this.step,
+      required this.timeToPeak,
       required this.peak,
       required this.breatheFromOff});
 
@@ -122,7 +122,7 @@ class BreathingLedEffect extends LedEffect implements StorableObject {
         "hue": color.hue,
         "saturation": color.saturation,
         "initialValue": color.value,
-        "step": step,
+        "timeToPeak": timeToPeak,
         "peak": peak
       };
 
@@ -144,10 +144,12 @@ class RainbowLedEffect extends LedEffect implements StorableObject {
 
   double saturation;
   double value;
-  double step;
+  double timeToComplete;
 
   RainbowLedEffect(
-      {required this.saturation, required this.value, required this.step});
+      {required this.saturation,
+      required this.value,
+      required this.timeToComplete});
 
   @override
   String get graphqlMutation => """
@@ -160,8 +162,11 @@ class RainbowLedEffect extends LedEffect implements StorableObject {
   String get graphqlMutationName => "setLedRainbow";
 
   @override
-  Map<String, dynamic> get graphqlVariables =>
-      {"saturation": saturation, "value": value, "step": step};
+  Map<String, dynamic> get graphqlVariables => {
+        "saturation": saturation,
+        "value": value,
+        "timeToComplete": timeToComplete
+      };
 
   @override
   String get storeName => "rainbow";

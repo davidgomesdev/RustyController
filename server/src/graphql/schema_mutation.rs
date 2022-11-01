@@ -72,7 +72,7 @@ impl MutationRoot {
     ) -> FieldResult<MutationResponse> {
         debug!("Received led breathing effect (with {:?})", input);
 
-        if input.step < 0 {
+        if input.time_to_peak < 0 {
             return Err(FieldError::new("Step must be positive!", Value::Null));
         }
 
@@ -117,7 +117,7 @@ impl MutationRoot {
 
         let effect = LedEffectDetails::new_timed_breathing(
             build_hsv(input.hue, input.saturation, input.initial_value),
-            Duration::from_millis(input.step as u64),
+            Duration::from_millis(input.time_to_peak as u64),
             input.peak as f32,
         );
 
@@ -135,7 +135,7 @@ impl MutationRoot {
     ) -> FieldResult<MutationResponse> {
         debug!("Received led rainbow effect (with {:?})", input);
 
-        if input.step < 0.0 {
+        if input.time_to_complete < 0.0 {
             return Err(FieldError::new("Step must be positive!", Value::Null));
         }
 
@@ -160,7 +160,7 @@ impl MutationRoot {
         let effect = LedEffectDetails::new_timed_rainbow(
             input.saturation as f32,
             input.value as f32,
-            Duration::from_secs_f64(input.step),
+            Duration::from_secs_f64(input.time_to_complete),
         );
 
         process_led_effect_mutation(

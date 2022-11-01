@@ -52,13 +52,13 @@ void setupDependencies() {
       final savedBreathing = await storeService.get<BreathingLedEffect>(
           defaultValue: BreathingLedEffect(
               color: Colors.black.toHSV(),
-              step: maxBreathingStep,
+              timeToPeak: maxBreathingTime,
               peak: 1.0,
               breatheFromOff: true));
 
-      if (savedBreathing.step < minBreathingStep ||
-          savedBreathing.step > maxBreathingStep) {
-        savedBreathing.step = maxBreathingStep;
+      if (savedBreathing.timeToPeak < minBreathingTime ||
+          savedBreathing.timeToPeak > maxBreathingTime) {
+        savedBreathing.timeToPeak = maxBreathingTime;
       }
 
       if (savedBreathing.peak < 0.0 || savedBreathing.peak > 1.0) {
@@ -72,11 +72,11 @@ void setupDependencies() {
     () async {
       final savedRainbow = await storeService.get<RainbowLedEffect>(
           defaultValue: RainbowLedEffect(
-              saturation: 1.0, value: 1.0, step: maxRainbowStep));
+              saturation: 1.0, value: 1.0, timeToComplete: maxRainbowTime));
 
-      if (savedRainbow.step < minRainbowStep ||
-          savedRainbow.step > maxRainbowStep) {
-        savedRainbow.step = maxRainbowStep;
+      if (savedRainbow.timeToComplete < minRainbowTime ||
+          savedRainbow.timeToComplete > maxRainbowTime) {
+        savedRainbow.timeToComplete = maxRainbowTime;
       }
 
       if (savedRainbow.saturation < 0.0 || savedRainbow.saturation > 1.0) {
