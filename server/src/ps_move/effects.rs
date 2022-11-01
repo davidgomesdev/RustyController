@@ -85,14 +85,14 @@ pub enum LedEffectDetails {
     },
     Breathing {
         initial_hsv: Hsv,
-        step: f32,
+        time_to_peak: f32,
         peak: f32,
         inhaling: bool,
     },
     Rainbow {
         saturation: f32,
         value: f32,
-        step: f32,
+        time_to_complete: f32,
     },
     Blink {
         hsv: Hsv,
@@ -128,7 +128,7 @@ impl LedEffectDetails {
 
         LedEffectDetails::Breathing {
             initial_hsv,
-            step,
+            time_to_peak: step,
             peak,
             inhaling: initial_hsv.value < peak,
         }
@@ -147,7 +147,7 @@ impl LedEffectDetails {
         LedEffectDetails::Rainbow {
             saturation,
             value,
-            step,
+            time_to_complete: step,
         }
     }
 
@@ -162,7 +162,7 @@ impl LedEffectDetails {
             } => hsv,
             LedEffectDetails::Breathing {
                 initial_hsv,
-                step,
+                time_to_peak: step,
                 peak,
                 ..
             } => {
@@ -179,7 +179,7 @@ impl LedEffectDetails {
             LedEffectDetails::Rainbow {
                 saturation,
                 value,
-                step,
+                time_to_complete: step,
             } => {
                 if step > 360.0 {
                     error!("Step can't be higher than 360 (max hue)")
@@ -196,19 +196,23 @@ impl LedEffectDetails {
             LedEffectDetails::Static { hsv } => hsv,
             LedEffectDetails::Breathing {
                 initial_hsv,
-                step,
+                time_to_peak: step,
                 peak,
                 ref mut inhaling,
             } => Self::get_updated_breathing_hsv(current_hsv, initial_hsv, step, peak, inhaling),
             LedEffectDetails::Rainbow {
-                saturation: _,
-                value: _,
-                step,
+                saturation,
+                value,
+                time_to_complete,
             } => {
                 // no need to use [saturation] and [value],
                 // since it was already set in the beginning similar to breathing,
                 // the step is relative to the max possible value
-                current_hsv.shift_hue(step)
+                let mut new_hsv = current_hsv.shift_hue(time_to_complete);
+
+                new_hsv.value = value;
+                new_hsv.saturation = saturation;
+                new_hsv
             }
             LedEffectDetails::Blink {
                 hsv,
@@ -239,8 +243,8 @@ impl LedEffectDetails {
     ) -> Hsv {
         let initial_value = initial_hsv.value;
 
-        let mut new_hsv = current_hsv.clone();
-        let mut new_value = new_hsv.value;
+        let mut new_hsv = initial_hsv.clone();
+        let mut new_value = current_hsv.value;
 
         if *inhaling {
             new_value += step

@@ -223,9 +223,9 @@ impl MutationRoot {
             ));
         }
 
-        if input.value < 0.0 || input.value > 1.0 {
+        if input.value < 0.0 || input.value == 0.0 || input.value > 1.0 {
             return Err(FieldError::new(
-                "Value must be between 0.0 and 1.0!",
+                "Value must be above 0.0 and equal or below 1.0!",
                 Value::Null,
             ));
         }
