@@ -27,9 +27,9 @@ impl MutationRoot {
     fn set_led_static(ctx: &Context, input: StaticLedEffectInput) -> FieldResult<MutationResponse> {
         debug!("Received led static effect (with {:?})", input);
 
-        if input.hue < 0.0 || input.hue > 360.0 {
+        if input.hue < 0 || input.hue > 360 {
             return Err(FieldError::new(
-                "Hue must be between 0.0 and 360.0!",
+                "Hue must be between 0 and 360!",
                 Value::Null,
             ));
         }
@@ -53,7 +53,7 @@ impl MutationRoot {
         }
 
         let effect = LedEffectDetails::Static {
-            hsv: build_hsv(input.hue, input.saturation, input.value),
+            hsv: build_hsv(input.hue as f64, input.saturation, input.value),
         };
 
         process_led_effect_mutation(
@@ -83,7 +83,7 @@ impl MutationRoot {
             ));
         }
 
-        if input.hue < 0.0 || input.hue > 360.0 {
+        if input.hue < 0 || input.hue > 360 {
             return Err(FieldError::new(
                 "Hue must be between 0.0 and 360.0!",
                 Value::Null,
@@ -116,7 +116,7 @@ impl MutationRoot {
         }
 
         let effect = LedEffectDetails::new_timed_breathing(
-            build_hsv(input.hue, input.saturation, input.initial_value),
+            build_hsv(input.hue as f64, input.saturation, input.initial_value),
             Duration::from_millis(input.time_to_peak as u64),
             input.peak as f32,
         );
@@ -174,7 +174,7 @@ impl MutationRoot {
     fn set_led_blink(ctx: &Context, input: BlinkLedEffectInput) -> FieldResult<MutationResponse> {
         debug!("Received led blink effect (with {:?})", input);
 
-        if input.hue < 0.0 || input.hue > 360.0 {
+        if input.hue < 0 || input.hue > 360 {
             return Err(FieldError::new(
                 "Hue must be between 0.0 and 360.0!",
                 Value::Null,
@@ -204,7 +204,7 @@ impl MutationRoot {
         }
 
         let effect = LedEffectDetails::Blink {
-            hsv: build_hsv(input.hue, input.saturation, input.value),
+            hsv: build_hsv(input.hue as f64, input.saturation, input.value),
             interval: Duration::from_millis(input.interval as u64),
             last_blink: Instant::now(),
         };

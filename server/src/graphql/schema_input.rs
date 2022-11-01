@@ -17,7 +17,7 @@ pub(super) struct StaticLedEffectInput {
     #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
     pub duration: Option<i32>,
     #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
-    pub hue: f64,
+    pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
     #[graphql(description = "Value/brightness (min 0.0, max 1.0)")]
@@ -33,7 +33,7 @@ pub(super) struct BreathingLedEffectInput {
     #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
     pub duration: Option<i32>,
     #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
-    pub hue: f64,
+    pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
     #[graphql(description = "Initial value/brightness. (min 0.0, max `peak`)")]
@@ -73,7 +73,7 @@ pub(super) struct BlinkLedEffectInput {
     #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
     pub duration: Option<i32>,
     #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
-    pub hue: f64,
+    pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
     #[graphql(description = "Value/brightness (min 0.0, max 1.0)")]

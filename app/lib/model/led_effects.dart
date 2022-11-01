@@ -77,7 +77,7 @@ class StaticLedEffect extends LedEffect implements StorableObject {
 
   @override
   Map<String, dynamic> get graphqlVariables =>
-      {"hue": color.hue, "saturation": color.saturation, "value": color.value};
+      {"hue": color.hue.toInt(), "saturation": color.saturation, "value": color.value};
 
   @override
   String get storeName => "static";
@@ -119,7 +119,7 @@ class BreathingLedEffect extends LedEffect implements StorableObject {
 
   @override
   Map<String, dynamic> get graphqlVariables => {
-        "hue": color.hue,
+        "hue": color.hue.toInt(),
         "saturation": color.saturation,
         "initialValue": color.value,
         "timeToPeak": timeToPeak,
