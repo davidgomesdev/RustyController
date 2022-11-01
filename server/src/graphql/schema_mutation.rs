@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use juniper::{FieldError, FieldResult, Value};
-use log::debug;
+use log::{debug, info};
 use tokio::time::Instant;
 
 use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffectDetails};
@@ -25,7 +25,12 @@ impl MutationRoot {
 
     #[graphql(description = "Set a constant color.")]
     fn set_led_static(ctx: &Context, input: StaticLedEffectInput) -> FieldResult<MutationResponse> {
-        debug!("Received led static effect (with {:?})", input);
+        if input.name.is_some() {
+            info!("Received led static effect ('{}')", input.name.clone().unwrap());
+        } else {
+            info!("Received led static effect");
+        }
+        debug!("Effect input: {:?}", input);
 
         if input.hue < 0 || input.hue > 360 {
             return Err(FieldError::new(
@@ -70,7 +75,12 @@ impl MutationRoot {
         ctx: &Context,
         input: BreathingLedEffectInput,
     ) -> FieldResult<MutationResponse> {
-        debug!("Received led breathing effect (with {:?})", input);
+        if input.name.is_some() {
+            info!("Received led breathing effect ('{}')", input.name.clone().unwrap());
+        } else {
+            info!("Received led breathing effect");
+        }
+        debug!("Effect input: {:?}", input);
 
         if input.time_to_peak < 0 {
             return Err(FieldError::new("Step must be positive!", Value::Null));
@@ -133,7 +143,12 @@ impl MutationRoot {
         ctx: &Context,
         input: RainbowLedEffectInput,
     ) -> FieldResult<MutationResponse> {
-        debug!("Received led rainbow effect (with {:?})", input);
+        if input.name.is_some() {
+            info!("Received led rainbow effect ('{}')", input.name.clone().unwrap());
+        } else {
+            info!("Received led rainbow effect");
+        }
+        debug!("Effect input: {:?}", input);
 
         if input.time_to_complete < 0.0 {
             return Err(FieldError::new("Step must be positive!", Value::Null));
@@ -172,7 +187,12 @@ impl MutationRoot {
 
     #[graphql(description = "Alternate between color and off.")]
     fn set_led_blink(ctx: &Context, input: BlinkLedEffectInput) -> FieldResult<MutationResponse> {
-        debug!("Received led blink effect (with {:?})", input);
+        if input.name.is_some() {
+            info!("Received led blink effect ('{}')", input.name.clone().unwrap());
+        } else {
+            info!("Received led blink effect");
+        }
+        debug!("Effect input: {:?}", input);
 
         if input.hue < 0 || input.hue > 360 {
             return Err(FieldError::new(

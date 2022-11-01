@@ -23,7 +23,7 @@ pub fn spawn(
 
             match target {
                 EffectTarget::All => {
-                    info!("Received a '{}' effect for all controllers", effect);
+                    info!("Setting effect '{}' for all controllers", effect);
                     controllers.iter_mut().for_each(|controller| {
                         mutate_controller_effect(controller, effect);
                         debug!("Controller '{}' set to {}", controller.bt_address, effect);
@@ -32,12 +32,12 @@ pub fn spawn(
                     if let EffectChangeType::Led { effect } = effect {
                         let mut initial_state = initial_state.lock().await;
                         *initial_state = InitialLedState::from(effect.clone());
-                        info!("Set '{}' as initial effect.", effect);
+                        debug!("Set '{}' as initial effect.", effect);
                     }
                 }
                 EffectTarget::Only { bt_addresses } => {
-                    info!(
-                        "Received a '{}' effect for {} controllers",
+                    debug!(
+                        "Setting effect '{}' for {} controllers only",
                         effect,
                         bt_addresses.len()
                     );

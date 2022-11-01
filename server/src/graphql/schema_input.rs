@@ -16,6 +16,8 @@ pub(super) struct StaticLedEffectInput {
     pub controllers: Option<Vec<String>>,
     #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
     pub duration: Option<i32>,
+    #[graphql(description = "Name of the effect.")]
+    pub name: Option<String>,
     #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
     pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
@@ -32,6 +34,8 @@ pub(super) struct BreathingLedEffectInput {
     pub controllers: Option<Vec<String>>,
     #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
     pub duration: Option<i32>,
+    #[graphql(description = "Name of the effect.")]
+    pub name: Option<String>,
     #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
     pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
@@ -56,6 +60,8 @@ pub(super) struct RainbowLedEffectInput {
     pub controllers: Option<Vec<String>>,
     #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
     pub duration: Option<i32>,
+    #[graphql(description = "Name of the effect.")]
+    pub name: Option<String>,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
     #[graphql(description = "Value/brightness (min 0.0, max 1.0)")]
@@ -72,6 +78,8 @@ pub(super) struct BlinkLedEffectInput {
     pub controllers: Option<Vec<String>>,
     #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
     pub duration: Option<i32>,
+    #[graphql(description = "Name of the effect.")]
+    pub name: Option<String>,
     #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
     pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
