@@ -41,7 +41,7 @@ pub(super) struct BreathingLedEffectInput {
     #[graphql(
     description = "Time that value/brightness takes to reach `peak`, in milliseconds."
     )]
-    pub step: i32,
+    pub time_to_peak: i32,
     #[graphql(
     description = "Defines the max value that the controller breathes to. (min 0.0, max 1.0)"
     )]
@@ -61,7 +61,7 @@ pub(super) struct RainbowLedEffectInput {
     #[graphql(description = "Value/brightness (min 0.0, max 1.0)")]
     pub value: f64,
     #[graphql(description = "Time that the controller takes to reach go through the full color spectrum, in seconds")]
-    pub step: f64,
+    pub time_to_complete: f64,
 }
 
 #[derive(GraphQLInputObject, Debug)]

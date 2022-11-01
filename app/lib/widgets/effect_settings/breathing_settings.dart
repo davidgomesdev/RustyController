@@ -54,13 +54,13 @@ class _BreathingSettingsState extends State<BreathingSettings> {
                     },
                     title: const Text("Breathe from off")),
                 LabeledLogSlider(
-                  label: 'Step',
-                  value: effect.step.toDouble(),
-                  min: minBreathingStep.toDouble(),
-                  max: maxBreathingStep.toDouble(),
-                  onChanged: (step) {
+                  label: 'Time to peak',
+                  value: effect.timeToPeak.toDouble(),
+                  min: minBreathingTime.toDouble(),
+                  max: maxBreathingTime.toDouble(),
+                  onChanged: (time) {
                     setState(() {
-                      bloc.add(BreathingStepEvent(step.round()));
+                      bloc.add(BreathingTimeEvent(time.round()));
                     });
                   },
                 ),
