@@ -17,7 +17,10 @@ pub struct MutationRoot;
 impl MutationRoot {
     #[graphql(description = "Turn the led off.")]
     fn set_led_off(ctx: &Context, input: Option<OffEffectInput>) -> FieldResult<MutationResponse> {
-        debug!("Received led off effect (with {:?})", input);
+        info!(
+            "Received led off effect"
+        );
+        debug!("Effect input: {:?}", input);
 
         let controllers = input.map_or(None, |input| Some(input.controllers));
         process_led_effect_mutation(ctx, LedEffect::off(), controllers)
@@ -25,12 +28,15 @@ impl MutationRoot {
 
     #[graphql(description = "Set a constant color.")]
     fn set_led_static(ctx: &Context, input: StaticLedEffectInput) -> FieldResult<MutationResponse> {
-        if input.name.is_some() {
-            info!("Received led static effect ('{}')", input.name.clone().unwrap());
-        } else {
-            info!("Received led static effect");
-        }
+        info!(
+            "Received led static effect ('{}')",
+            input.name.clone().unwrap_or(String::from(""))
+        );
         debug!("Effect input: {:?}", input);
+
+        if input.name.map_or(false, |name| name.is_empty()) {
+            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        }
 
         if input.hue < 0 || input.hue > 360 {
             return Err(FieldError::new(
@@ -75,12 +81,15 @@ impl MutationRoot {
         ctx: &Context,
         input: BreathingLedEffectInput,
     ) -> FieldResult<MutationResponse> {
-        if input.name.is_some() {
-            info!("Received led breathing effect ('{}')", input.name.clone().unwrap());
-        } else {
-            info!("Received led breathing effect");
-        }
+        info!(
+            "Received led breathing effect ('{}')",
+            input.name.clone().unwrap_or(String::from(""))
+        );
         debug!("Effect input: {:?}", input);
+
+        if input.name.map_or(false, |name| name.is_empty()) {
+            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        }
 
         if input.time_to_peak < 0 {
             return Err(FieldError::new("Step must be positive!", Value::Null));
@@ -143,12 +152,15 @@ impl MutationRoot {
         ctx: &Context,
         input: RainbowLedEffectInput,
     ) -> FieldResult<MutationResponse> {
-        if input.name.is_some() {
-            info!("Received led rainbow effect ('{}')", input.name.clone().unwrap());
-        } else {
-            info!("Received led rainbow effect");
-        }
+        info!(
+            "Received led rainbow effect ('{}')",
+            input.name.clone().unwrap_or(String::from(""))
+        );
         debug!("Effect input: {:?}", input);
+
+        if input.name.map_or(false, |name| name.is_empty()) {
+            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        }
 
         if input.time_to_complete < 0.0 {
             return Err(FieldError::new("Step must be positive!", Value::Null));
@@ -187,12 +199,15 @@ impl MutationRoot {
 
     #[graphql(description = "Alternate between color and off.")]
     fn set_led_blink(ctx: &Context, input: BlinkLedEffectInput) -> FieldResult<MutationResponse> {
-        if input.name.is_some() {
-            info!("Received led blink effect ('{}')", input.name.clone().unwrap());
-        } else {
-            info!("Received led blink effect");
-        }
+        info!(
+            "Received led blink effect ('{}')",
+            input.name.clone().unwrap_or(String::from(""))
+        );
         debug!("Effect input: {:?}", input);
+
+        if input.name.map_or(false, |name| name.is_empty()) {
+            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        }
 
         if input.hue < 0 || input.hue > 360 {
             return Err(FieldError::new(
