@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:rusty_controller/bloc/discovery_bloc.dart';
@@ -105,7 +106,7 @@ class BaseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return const GetMaterialApp(
       home: Scaffold(
         body: ScaffoldMessenger(
           child: SafeArea(child: HomeScreen()),

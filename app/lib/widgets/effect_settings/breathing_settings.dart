@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
 import 'package:rusty_controller/global_consts.dart';
 import 'package:rusty_controller/main.dart';
@@ -22,66 +23,69 @@ class _BreathingSettingsState extends State<BreathingSettings> {
     return BlocBuilder<BreathingBloc, BreathingLedEffect>(
       bloc: bloc,
       builder: (ctx, effect) {
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            LedColorPicker(
-              currentColor: effect.color,
-              ignoreValue: effect.breatheFromOff,
-              onColorPick: (color) {
-                if (color.value > effect.peak) effect.peak = color.value;
-
-                if (effect.breatheFromOff) {
-                  setState(() {
-                    bloc.add(BreathingColorEvent(color));
-                  });
+        return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          LedColorPicker(
+            currentColor: effect.color,
+            ignoreValue: effect.breatheFromOff,
+            onColorPick: (color) {
+              setState(() {
+                if (!effect.breatheFromOff && isBrightnessOff(effect, color)) {
+                  Get.closeAllSnackbars();
+                  Get.rawSnackbar(
+                    message: 'You need to increase the brightness!',
+                  );
                 } else {
-                  // can't `setState`, otherwise the color conversion will
-                  // prevent the hue and saturation from sliding
-                  // when the value one is at 0.0
                   bloc.add(BreathingColorEvent(color));
-                }
-              },
-            ),
-            Column(
-              children: [
-                SwitchListTile.adaptive(
-                    value: effect.breatheFromOff,
-                    onChanged: (fromOff) {
-                      setState(() {
-                        bloc.add(BreathingFromOffEvent(fromOff));
-                      });
-                    },
-                    title: const Text("Breathe from off")),
-                LabeledLogSlider(
-                  label: 'Time to peak',
-                  value: effect.timeToPeak.toDouble(),
-                  min: minBreathingTime.toDouble(),
-                  max: maxBreathingTime.toDouble(),
-                  onChanged: (time) {
-                    setState(() {
-                      bloc.add(BreathingTimeEvent(time.round()));
-                    });
-                  },
-                ),
-                LabeledSlider(
-                  label: 'Peak',
-                  value: effect.peak,
-                  onChanged: (peak) {
-                    if (peak < effect.color.value) {
-                      peak = effect.color.value;
-                    }
 
+                  if (color.value > effect.peak) {
+                    effect.peak = color.value;
+                  }
+                }
+              });
+            },
+          ),
+          Column(
+            children: [
+              SwitchListTile.adaptive(
+                  value: effect.breatheFromOff,
+                  onChanged: (fromOff) {
                     setState(() {
-                      bloc.add(BreathingPeakEvent(peak));
+                      bloc.add(BreathingFromOffEvent(fromOff));
                     });
                   },
-                ),
-              ],
-            )
-          ],
-        );
+                  title: const Text("Breathe from off")),
+              LabeledLogSlider(
+                label: 'Time to peak',
+                value: effect.timeToPeak.toDouble(),
+                min: minBreathingTime.toDouble(),
+                max: maxBreathingTime.toDouble(),
+                onChanged: (time) {
+                  setState(() {
+                    bloc.add(BreathingTimeEvent(time.round()));
+                  });
+                },
+              ),
+              LabeledSlider(
+                label: 'Peak',
+                value: effect.peak,
+                onChanged: (peak) {
+                  if (peak < effect.color.value) {
+                    peak = effect.color.value;
+                  }
+
+                  setState(() {
+                    bloc.add(BreathingPeakEvent(peak));
+                  });
+                },
+              ),
+            ],
+          )
+        ]);
       },
     );
+  }
+
+  bool isBrightnessOff(BreathingLedEffect effect, HSVColor color) {
+    return effect.color.value == 0 && color.value == 0;
   }
 }

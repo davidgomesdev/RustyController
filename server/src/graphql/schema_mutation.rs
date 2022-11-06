@@ -29,8 +29,8 @@ impl MutationRoot {
     #[graphql(description = "Set a constant color.")]
     fn set_led_static(ctx: &Context, input: StaticLedEffectInput) -> FieldResult<MutationResponse> {
         info!(
-            "Received led static effect{}",
-            input.name.clone().map_or(String::from(""), |name| format!(" ('{}')", name))
+            "Received led static effect ({})",
+            input.name.clone().map_or(String::from("unnamed"), |name| format!("'{}'", name))
         );
         debug!("Effect input: {:?}", input);
 
@@ -82,8 +82,8 @@ impl MutationRoot {
         input: BreathingLedEffectInput,
     ) -> FieldResult<MutationResponse> {
         info!(
-            "Received led breathing effect{}",
-            input.name.clone().map_or(String::from(""), |name| format!(" ('{}')", name))
+            "Received led breathing effect ({})",
+            input.name.clone().map_or(String::from("unnamed"), |name| format!("'{}'", name))
         );
         debug!("Effect input: {:?}", input);
 
@@ -153,8 +153,8 @@ impl MutationRoot {
         input: RainbowLedEffectInput,
     ) -> FieldResult<MutationResponse> {
         info!(
-            "Received led rainbow effect{}",
-            input.name.clone().map_or(String::from(""), |name| format!(" ('{}')", name))
+            "Received led rainbow effect ({})",
+            input.name.clone().map_or(String::from("unnamed"), |name| format!("'{}'", name))
         );
         debug!("Effect input: {:?}", input);
 
@@ -200,8 +200,8 @@ impl MutationRoot {
     #[graphql(description = "Alternate between color and off.")]
     fn set_led_blink(ctx: &Context, input: BlinkLedEffectInput) -> FieldResult<MutationResponse> {
         info!(
-            "Received led blink effect{}",
-            input.name.clone().map_or(String::from(""), |name| format!(" ('{}')", name))
+            "Received led blink effect ({})",
+            input.name.clone().map_or(String::from("unnamed"), |name| format!("'{}'", name))
         );
         debug!("Effect input: {:?}", input);
 
