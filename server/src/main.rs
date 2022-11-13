@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use log::{error, info};
+use log::info;
 use tokio::sync::{Mutex, watch};
 
 use graphql::graphql_api;
@@ -30,12 +30,7 @@ async fn main() {
     let controllers = Arc::new(Mutex::new(Vec::<Box<PsMoveController>>::new()));
 
     let mut shutdown_command = spawn_tasks::run_move(rx, &controllers).await;
-    match graphql_api::start(Arc::new(tx), controllers).await {
-        Ok(_) => {}
-        Err(err) => {
-            error!("Couldn't start GraphQL! {}", err)
-        }
-    };
+    graphql_api::start(Arc::new(tx), controllers).await;
 
     info!("Shutting down...");
     shutdown_command.shutdown().await

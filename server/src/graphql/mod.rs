@@ -4,4 +4,5 @@ mod schema;
 mod schema_input;
 mod schema_query;
 mod schema_mutation;
+mod schema_subscription;
 mod schema_response;
