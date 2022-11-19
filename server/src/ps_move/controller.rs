@@ -6,7 +6,9 @@ use crate::ps_move::effects::{LedEffect, LedEffectDetails, RumbleEffect};
 use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting};
 use crate::ps_move::models::BatteryLevel::Unknown;
 
+#[allow(dead_code)]
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
+#[allow(dead_code)]
 pub const MAX_LED_PWM_FREQUENCY: u64 = 0x24e6;
 
 pub struct PsMoveController {
