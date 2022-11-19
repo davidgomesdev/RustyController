@@ -81,6 +81,49 @@ pub enum BatteryLevel {
     Charged,
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub struct ButtonState {
+    pub start: bool,
+    pub select: bool,
+    pub square: bool,
+    pub cross: bool,
+    pub circle: bool,
+    pub triangle: bool,
+    pub ps_button: bool,
+    pub ps_move: bool,
+    pub trigger: bool,
+}
+
+impl ButtonState {
+    pub fn new() -> ButtonState {
+        ButtonState {
+            start: false,
+            select: false,
+            square: false,
+            cross: false,
+            circle: false,
+            triangle: false,
+            ps_button: false,
+            ps_move: false,
+            trigger: false,
+        }
+    }
+
+    pub fn from_byte_slice(bytes: [u8; 4]) -> ButtonState {
+        ButtonState {
+            start: ((bytes[0] >> 4) & 1) == 1,
+            select: (bytes[0] & 1) == 1,
+            square: ((bytes[1] >> 7) & 1) == 1,
+            cross: ((bytes[1] >> 6) & 1) == 1,
+            circle: ((bytes[1] >> 5) & 1) == 1,
+            triangle: ((bytes[1] >> 4) & 1) == 1,
+            ps_button: (bytes[2] & 1) == 1,
+            ps_move: ((bytes[3] >> 6) & 1) == 1,
+            trigger: ((bytes[3] >> 7) & 1) == 1,
+        }
+    }
+}
+
 impl BatteryLevel {
     pub fn from_byte(byte: u8) -> BatteryLevel {
         match byte {
@@ -102,9 +145,17 @@ impl BatteryLevel {
 pub(super) struct DataInput {
     // message type, must be PSMove_Req_GetInput
     pub msg_type: u8,
+    // 4 Start
+    // 0 Select
     pub buttons1: u8,
+    // 7 Square
+    // 6 Cross
+    // 5 Circle
+    // 4 Triangle
     pub buttons2: u8,
+    // 0 Ps
     pub buttons3: u8,
+    // Move, Trigger
     pub buttons4: u8,
     // trigger value: u8, 0..255
     pub trigger: u8,
@@ -214,5 +265,9 @@ impl DataInput {
             magneto_z_low: req[42],
             time_low: req[43],
         }
+    }
+
+    pub fn get_button_slice(&self) -> [u8; 4] {
+        [self.buttons1, self.buttons2, self.buttons3, self.buttons4]
     }
 }

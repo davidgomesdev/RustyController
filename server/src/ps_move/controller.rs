@@ -3,9 +3,7 @@ use log::{debug, error, info};
 use palette::{FromColor, Hsv, Srgb};
 
 use crate::ps_move::effects::{LedEffect, LedEffectDetails, RumbleEffect};
-use crate::ps_move::models::{
-    BatteryLevel, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting,
-};
+use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting};
 use crate::ps_move::models::BatteryLevel::Unknown;
 
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
@@ -18,7 +16,10 @@ pub struct PsMoveController {
     pub led_effect: LedEffect,
     pub rumble_effect: RumbleEffect,
     pub setting: MoveSetting,
+    pub last_battery: BatteryLevel,
     pub battery: BatteryLevel,
+    pub last_button_state: ButtonState,
+    pub button_state: ButtonState,
     pub connection_type: ConnectionType,
 }
 
@@ -44,7 +45,10 @@ impl PsMoveController {
                 rumble: 0.0,
             },
             connection_type,
+            last_battery: Unknown,
             battery: Unknown,
+            last_button_state: ButtonState::new(),
+            button_state: ButtonState::new()
         }
     }
 
@@ -136,6 +140,7 @@ impl PsMoveController {
                 let data = DataInput::new(data);
 
                 self.update_battery(data.battery);
+                self.update_button_state(data.get_button_slice());
             }
         }
 
@@ -191,12 +196,14 @@ impl PsMoveController {
         }
     }
 
-    fn update_battery(&mut self, battery: u8) {
-        let curr_battery = BatteryLevel::from_byte(battery);
-        let last_battery = &self.battery;
+    fn update_battery(&mut self, byte: u8) {
+        let curr_battery = BatteryLevel::from_byte(byte);
+        let battery = &self.battery;
 
-        if curr_battery != *last_battery {
-            if *last_battery == Unknown {
+        if curr_battery != *battery {
+            self.last_battery = *battery;
+
+            if *battery == Unknown {
                 info!(
                     "Controller battery status known. ('{}' at {})",
                     self.bt_address, curr_battery
@@ -209,6 +216,11 @@ impl PsMoveController {
             }
             self.battery = curr_battery;
         }
+    }
+
+    fn update_button_state(&mut self, bytes: [u8; 4]) {
+        self.last_button_state = self.button_state;
+        self.button_state = ButtonState::from_byte_slice(bytes);
     }
 }
 
