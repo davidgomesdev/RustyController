@@ -364,7 +364,7 @@ fn process_effect_mutation(
         }
     };
 
-    return match ctx.tx.send(EffectChange { effect, target }) {
+    return match ctx.effect_tx.send(EffectChange { effect, target }) {
         Ok(_) => Ok(MutationResponse::Success),
         Err(_) => Ok(MutationResponse::ServerError),
     };

@@ -1,14 +1,17 @@
+use std::collections::HashMap;
+
 use hidapi::{HidDevice, HidError};
 use log::{debug, error, info};
 use palette::{FromColor, Hsv, Srgb};
 
 use crate::ps_move::effects::{LedEffect, LedEffectDetails, RumbleEffect};
-use crate::ps_move::models::{
-    BatteryLevel, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting,
-};
+use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, fill_button_state, MoveRequestType, MoveSetting};
 use crate::ps_move::models::BatteryLevel::Unknown;
+use crate::tasks::models::Button;
 
+#[allow(dead_code)]
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
+#[allow(dead_code)]
 pub const MAX_LED_PWM_FREQUENCY: u64 = 0x24e6;
 
 pub struct PsMoveController {
@@ -18,7 +21,10 @@ pub struct PsMoveController {
     pub led_effect: LedEffect,
     pub rumble_effect: RumbleEffect,
     pub setting: MoveSetting,
+    pub last_battery: BatteryLevel,
     pub battery: BatteryLevel,
+    last_button_state: HashMap<Button, ButtonState>,
+    pub button_state: HashMap<Button, ButtonState>,
     pub connection_type: ConnectionType,
 }
 
@@ -44,7 +50,10 @@ impl PsMoveController {
                 rumble: 0.0,
             },
             connection_type,
+            last_battery: Unknown,
             battery: Unknown,
+            last_button_state: HashMap::new(),
+            button_state: HashMap::new()
         }
     }
 
@@ -74,6 +83,7 @@ impl PsMoveController {
         self.connection_type = ConnectionType::USBAndBluetooth;
     }
 
+    #[allow(dead_code)]
     pub fn set_led_pwm_frequency(&self, frequency: u64) -> bool {
         let request = build_set_led_pwm_request(frequency);
         let is_ok = self.device.write(&request).is_ok();
@@ -136,6 +146,7 @@ impl PsMoveController {
                 let data = DataInput::new(data);
 
                 self.update_battery(data.battery);
+                self.update_button_state(data.get_button_slice());
             }
         }
 
@@ -191,12 +202,14 @@ impl PsMoveController {
         }
     }
 
-    fn update_battery(&mut self, battery: u8) {
-        let curr_battery = BatteryLevel::from_byte(battery);
-        let last_battery = &self.battery;
+    fn update_battery(&mut self, byte: u8) {
+        let curr_battery = BatteryLevel::from_byte(byte);
+        let battery = &self.battery;
 
-        if curr_battery != *last_battery {
-            if *last_battery == Unknown {
+        if curr_battery != *battery {
+            self.last_battery = *battery;
+
+            if *battery == Unknown {
                 info!(
                     "Controller battery status known. ('{}' at {})",
                     self.bt_address, curr_battery
@@ -210,8 +223,14 @@ impl PsMoveController {
             self.battery = curr_battery;
         }
     }
+
+    fn update_button_state(&mut self, bytes: [u8; 4]) {
+        self.last_button_state.clone_from(&self.button_state);
+        fill_button_state(&mut self.last_button_state, &mut self.button_state, bytes);
+    }
 }
 
+#[allow(dead_code)]
 fn build_set_led_pwm_request(frequency: u64) -> [u8; 7] {
     if frequency < MIN_LED_PWM_FREQUENCY || frequency > MAX_LED_PWM_FREQUENCY {
         panic!("Frequency must be between 733 and 24e6!")

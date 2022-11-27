@@ -8,7 +8,8 @@ class BreathingBloc
   BreathingBloc(BreathingLedEffect effect) : super(effect) {
     on<BreathingColorEvent>(
         (event, emit) => emit(state..color = event.currentColor));
-    on<BreathingTimeEvent>((event, emit) => emit(state..timeToPeak = event.timeToPeak));
+    on<BreathingTimeEvent>(
+        (event, emit) => emit(state..timeToPeak = event.timeToPeak));
     on<BreathingPeakEvent>((event, emit) => emit(state..peak = event.peak));
     on<BreathingFromOffEvent>((event, emit) {
       if (event.breatheFromOff) {

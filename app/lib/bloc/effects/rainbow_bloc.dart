@@ -7,7 +7,8 @@ class RainbowBloc
     on<RainbowSaturationEvent>(
         (event, emit) => emit(state..saturation = event.saturation));
     on<RainbowValueEvent>((event, emit) => emit(state..value = event.value));
-    on<RainbowTimeEvent>((event, emit) => emit(state..timeToComplete = event.timeToComplete));
+    on<RainbowTimeEvent>(
+        (event, emit) => emit(state..timeToComplete = event.timeToComplete));
   }
 }
 

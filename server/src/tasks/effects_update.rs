@@ -1,7 +1,7 @@
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::time::Duration;
 
-use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 use tokio::time;
 
@@ -21,7 +21,7 @@ pub fn spawn(
             interval.tick().await;
 
             {
-                let mut controllers = controllers.lock().await;
+                let mut controllers = controllers.lock().unwrap();
 
                 controllers.iter_mut().for_each(|controller| {
                     controller.transform_led();
@@ -29,7 +29,7 @@ pub fn spawn(
                 });
             }
 
-            let mut initial_state = initial_state.lock().await;
+            let mut initial_state = initial_state.lock().unwrap();
             let current_hsv = initial_state.hsv.clone();
             let effect = &mut initial_state.effect;
 

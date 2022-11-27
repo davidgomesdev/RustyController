@@ -1,12 +1,14 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use lazy_static::lazy_static;
 use palette::Hsv;
-use tokio::sync::{mpsc, Mutex, watch};
+use tokio::sync::mpsc;
+use tokio::sync::watch::{Receiver, Sender};
 use tokio::time::Instant;
 
+use crate::ControllerChange;
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
 use crate::ps_move::effects::{LedEffect, LedEffectDetails};
@@ -27,7 +29,8 @@ lazy_static! {
 }
 
 pub async fn run_move(
-    rx: watch::Receiver<EffectChange>,
+    effect_rx: Receiver<EffectChange>,
+    ctrl_tx: Sender<ControllerChange>,
     controllers: &Arc<Mutex<Vec<Box<PsMoveController>>>>,
 ) -> ShutdownCommand {
     let api = PsMoveApi::new();
@@ -35,7 +38,7 @@ pub async fn run_move(
     let initial_effect = Arc::new(Mutex::new(InitialLedState::from(*ON_STARTUP_EFFECT)));
     let (send, recv) = mpsc::channel::<()>(1);
 
-    mutations_handler::spawn(controllers.clone(), rx, initial_effect.clone());
+    mutations_handler::spawn(controllers.clone(), effect_rx, initial_effect.clone());
     effects_update::spawn(controllers.clone(), initial_effect.clone());
     controllers_list_update::spawn(
         controllers.clone(),
@@ -45,6 +48,7 @@ pub async fn run_move(
     );
     controller_update::spawn(
         controllers.clone(),
+        ctrl_tx,
         ShutdownSignal::new(&send, &shutdown_flag),
     );
     ip_discovery::spawn();

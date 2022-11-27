@@ -74,8 +74,11 @@ class StaticLedEffect extends LedEffect implements StorableObject {
   String get graphqlMutationName => "setLedStatic";
 
   @override
-  Map<String, dynamic> get graphqlVariables =>
-      {"hue": color.hue.toInt(), "saturation": color.saturation, "value": color.value};
+  Map<String, dynamic> get graphqlVariables => {
+        "hue": color.hue.toInt(),
+        "saturation": color.saturation,
+        "value": color.value
+      };
 
   @override
   String get storeName => "static";

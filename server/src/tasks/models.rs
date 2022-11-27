@@ -2,7 +2,11 @@ use core::fmt;
 use std::string::String;
 use std::vec::Vec;
 
+use juniper::{GraphQLEnum, GraphQLObject};
+use strum_macros::Display;
+
 use crate::ps_move::effects::{LedEffect, RumbleEffect};
+use crate::ps_move::models::ButtonState;
 
 #[derive(Clone)]
 pub enum EffectTarget {
@@ -29,4 +33,36 @@ impl fmt::Display for EffectChangeType {
 pub struct EffectChange {
     pub target: EffectTarget,
     pub effect: EffectChangeType,
+}
+
+#[derive(GraphQLEnum, Eq, PartialEq, Hash, Copy, Clone, Debug, Display)]
+pub enum Button {
+    Cross,
+    Square,
+    Circle,
+    Triangle,
+    Move,
+    Start,
+    Select,
+    Trigger,
+}
+
+#[derive(GraphQLObject, PartialEq, Copy, Clone, Debug)]
+pub struct ButtonChange {
+    button: Button,
+    state: ButtonState,
+}
+
+#[derive(Copy, Clone, Display, Debug)]
+pub enum ControllerChange {
+    ButtonChange(ButtonChange)
+}
+
+impl ControllerChange {
+    pub fn from_button(btn: &Button, state: &ButtonState) -> ControllerChange {
+        ControllerChange::ButtonChange(ButtonChange {
+            button: btn.clone(),
+            state: state.clone(),
+        })
+    }
 }
