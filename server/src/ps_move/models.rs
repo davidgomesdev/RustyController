@@ -154,6 +154,7 @@ fn fill_state(states: &mut HashMap<Button, ButtonState>, button: &Button, is_dow
         .insert(*button, ButtonState::new(is_down));
 }
 
+/// `Pressed` means that it was `Up` but now is `Down`, and vice-versa for `Released`
 #[derive(GraphQLEnum, PartialEq, Copy, Clone, Display, Debug)]
 pub enum ButtonState {
     Pressed,

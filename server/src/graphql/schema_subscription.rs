@@ -14,6 +14,9 @@ type ButtonChangeStream = Pin<Box<dyn Stream<Item=ButtonChange> + Send>>;
 
 #[graphql_subscription(Context = Context)]
 impl SubscriptionRoot {
+    #[graphql(
+    description = "Receives the button updates. * Only available when the controller is connected by Bluetooth, or Bluetooth+USB"
+    )]
     async fn button_change(context: &Context) -> ButtonChangeStream {
         let mut rx = { context.ctrl_rx.clone().lock().unwrap().clone() };
 
