@@ -4,17 +4,17 @@ use async_stream::stream;
 use juniper::futures::Stream;
 use juniper::graphql_subscription;
 
-use crate::tasks::models::{Button, ControllerChange::ButtonPressed};
+use crate::tasks::models::{ButtonChange, ControllerChange};
 
 use super::schema::Context;
 
 pub struct SubscriptionRoot;
 
-type StringStream = Pin<Box<dyn Stream<Item=Button> + Send>>;
+type ButtonChangeStream = Pin<Box<dyn Stream<Item=ButtonChange> + Send>>;
 
 #[graphql_subscription(Context = Context)]
 impl SubscriptionRoot {
-    async fn hello_world(context: &Context) -> StringStream {
+    async fn button_change(context: &Context) -> ButtonChangeStream {
         let mut rx = { context.ctrl_rx.clone().lock().unwrap().clone() };
 
         let stream = stream! {
@@ -22,7 +22,7 @@ impl SubscriptionRoot {
                 let data = rx.borrow().to_owned();
 
                 match data {
-                    ButtonPressed(btn) => yield btn
+                    ControllerChange::ButtonChange(btn) => yield btn
                 }
             }
         };

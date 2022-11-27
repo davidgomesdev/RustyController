@@ -10,9 +10,8 @@ use tokio::task::JoinHandle;
 
 use crate::ControllerChange;
 use crate::ps_move::controller::PsMoveController;
+use crate::ps_move::models::ButtonState;
 use crate::spawn_tasks::ShutdownSignal;
-
-use super::models::Button;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(1);
 
@@ -31,23 +30,34 @@ pub fn spawn(
             });
             let mut failed_addresses = Vec::<String>::new();
 
-            controllers.iter_mut().for_each(|controller| {
-                let res = controller.update();
+            controllers
+                .iter_mut()
+                .for_each(|controller| match controller.update() {
+                    Ok(_) => {
+                        controller.button_state.iter().for_each(|btn| match btn.1 {
+                            ButtonState::Pressed | ButtonState::Released => {
+                                info!(
+                                    "Controller {} button {} changed to {}",
+                                    controller.bt_address, btn.0, btn.1
+                                );
 
-                if res.is_err() {
-                    let bt_address = &controller.bt_address;
+                                ctrl_tx
+                                    .send(ControllerChange::from_button(btn.0, btn.1)).unwrap();
+                            }
+                            _ => {}
+                        });
+                    }
+                    Err(_) => {
+                        let bt_address = &controller.bt_address;
 
-                    info!(
-                        "Controller disconnected during update. ('{}' by {})",
-                        *bt_address, controller.connection_type
-                    );
+                        info!(
+                            "Controller disconnected during update. ('{}' by {})",
+                            *bt_address, controller.connection_type
+                        );
 
-                    failed_addresses.push(bt_address.clone());
-                } else {
-                    // TODO: get the actual diff (from the controller itself)
-                    ctrl_tx.send(ControllerChange::ButtonPressed(Button::Circle));
-                }
-            });
+                        failed_addresses.push(bt_address.clone());
+                    }
+                });
 
             controllers.retain(|c| !failed_addresses.contains(&c.bt_address));
         }

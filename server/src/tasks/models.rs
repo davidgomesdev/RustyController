@@ -3,8 +3,10 @@ use std::string::String;
 use std::vec::Vec;
 
 use juniper::{GraphQLEnum, GraphQLObject};
+use strum_macros::Display;
 
 use crate::ps_move::effects::{LedEffect, RumbleEffect};
+use crate::ps_move::models::ButtonState;
 
 #[derive(Clone)]
 pub enum EffectTarget {
@@ -33,16 +35,34 @@ pub struct EffectChange {
     pub effect: EffectChangeType,
 }
 
-#[derive(GraphQLEnum, Copy, Clone)]
+#[derive(GraphQLEnum, Eq, PartialEq, Hash, Copy, Clone, Debug, Display)]
 pub enum Button {
     Cross,
     Square,
     Circle,
     Triangle,
     Move,
+    Start,
+    Select,
+    Trigger,
 }
 
-#[derive(Copy, Clone)]
+#[derive(GraphQLObject, PartialEq, Copy, Clone, Debug)]
+pub struct ButtonChange {
+    button: Button,
+    state: ButtonState,
+}
+
+#[derive(Copy, Clone, Display, Debug)]
 pub enum ControllerChange {
-    ButtonPressed(Button)
+    ButtonChange(ButtonChange)
+}
+
+impl ControllerChange {
+    pub fn from_button(btn: &Button, state: &ButtonState) -> ControllerChange {
+        ControllerChange::ButtonChange(ButtonChange {
+            button: btn.clone(),
+            state: state.clone(),
+        })
+    }
 }
