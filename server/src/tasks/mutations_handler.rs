@@ -1,7 +1,7 @@
 use std::sync::Arc;
+use std::sync::Mutex;
 
 use log::{debug, info, warn};
-use tokio::sync::Mutex;
 use tokio::sync::watch::Receiver;
 use tokio::task::JoinHandle;
 
@@ -16,7 +16,7 @@ pub fn spawn(
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
         while rx.changed().await.is_ok() {
-            let mut controllers = controllers.lock().await;
+            let mut controllers = controllers.lock().unwrap();
             let effect_change = rx.borrow().clone();
             let target = effect_change.target;
             let effect = effect_change.effect;
@@ -30,7 +30,7 @@ pub fn spawn(
                     });
 
                     if let EffectChangeType::Led { effect } = effect {
-                        let mut initial_state = initial_state.lock().await;
+                        let mut initial_state = initial_state.lock().unwrap();
                         *initial_state = InitialLedState::from(effect.clone());
                         debug!("Set '{}' as initial effect.", effect);
                     }

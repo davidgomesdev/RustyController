@@ -1,11 +1,11 @@
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::time::Duration;
 
 use log::{debug, info};
 use palette::Hsv;
 use tokio::{task, time};
 use tokio::runtime::Handle;
-use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 use tokio::time::Instant;
 
@@ -39,13 +39,13 @@ pub fn spawn(
         let mut interval = time::interval(INTERVAL_DURATION);
 
         rt.block_on(async {
-            info!("Listing controllers with '{}' as the initial effect.", initial_state.lock().await.effect);
+            info!("Listing controllers with '{}' as the initial effect.", initial_state.lock().unwrap().effect);
         });
 
         while !shutdown_signal.check_is_shutting_down() {
             rt.block_on(async {
                 {
-                    let initial_effect = &mut initial_state.lock().await.effect;
+                    let initial_effect = &mut initial_state.lock().unwrap().effect;
                     if initial_effect.has_expired() {
                         debug!(
                         "Initial '{}' effect has expired.",
@@ -61,19 +61,19 @@ pub fn spawn(
             api.refresh();
 
             let list_result = {
-                let controllers = rt.block_on(async { controllers.lock().await });
+                let controllers = rt.block_on(async { controllers.lock().unwrap() });
                 api.list(&controllers)
             };
 
             let new_controllers = api.connect_controllers(list_result.connected);
 
-            let mut controllers = rt.block_on(async { controllers.lock().await });
+            let mut controllers = rt.block_on(async { controllers.lock().unwrap() });
 
             update_changed_controllers(&mut controllers, &list_result.disconnected);
             remove_disconnected_controllers(&mut controllers, &list_result.disconnected);
 
             new_controllers.into_iter().for_each(|mut controller| {
-                let initial_state = rt.block_on(async { initial_state.lock().await });
+                let initial_state = rt.block_on(async { initial_state.lock().unwrap() });
                 let initial_effect = initial_state.effect;
 
                 let effect = if initial_effect.is_off() {

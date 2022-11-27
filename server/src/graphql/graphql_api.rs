@@ -1,26 +1,29 @@
 use std::sync::Arc;
+use std::sync::Mutex;
 
 use futures::FutureExt as _;
 use juniper_graphql_ws::ConnectionConfig;
 use juniper_warp::playground_filter;
 use juniper_warp::subscriptions::serve_graphql_ws;
-use log::info;
-use tokio::sync::Mutex;
-use tokio::sync::watch::Sender;
+use log::{error, info};
+use tokio::sync::watch::{Receiver, Sender};
 use warp::{Filter, http::Response};
 
-use crate::EffectChange;
+use crate::{ControllerChange, EffectChange};
 use crate::ps_move::controller::PsMoveController;
 
 use super::schema::{Context, create_schema};
 
 pub async fn start(
-    tx: Arc<Sender<EffectChange>>,
+    effect_tx: Arc<Sender<EffectChange>>,
+    ctrl_rx: Mutex<Receiver<ControllerChange>>,
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
 ) -> () {
     let log = warp::log("warp_subscriptions");
-    let ctx = Context {
-        tx: tx.clone(),
+    let ctrl_rx_arc = Arc::new(ctrl_rx);
+    let qm_ctx = Context {
+        effect_tx: effect_tx.clone(),
+        ctrl_rx: ctrl_rx_arc.clone(),
         controllers: controllers.clone(),
     };
 
@@ -31,7 +34,7 @@ pub async fn start(
     });
 
     let qm_schema = create_schema();
-    let qm_state = warp::any().map(move || ctx.clone());
+    let qm_state = warp::any().map(move || qm_ctx.clone());
     let qm_graphql_filter = juniper_warp::make_graphql_filter(qm_schema, qm_state.boxed());
 
     let root_node = Arc::new(create_schema());
@@ -43,19 +46,16 @@ pub async fn start(
         .map(move |ws: warp::ws::Ws| {
             let root_node = root_node.clone();
             let ctx = Context {
-                tx: tx.clone(),
+                effect_tx: effect_tx.clone(),
+                ctrl_rx: ctrl_rx_arc.clone(),
                 controllers: controllers.clone(),
             };
 
             ws.on_upgrade(move |websocket| async move {
-                serve_graphql_ws(
-                    websocket,
-                    root_node,
-                    ConnectionConfig::new(ctx.clone()),
-                )
+                serve_graphql_ws(websocket, root_node, ConnectionConfig::new(ctx.clone()))
                     .map(|r| {
                         if let Err(e) = r {
-                            println!("Websocket error: {e}");
+                            error!("Websocket error: {e}");
                         }
                     })
                     .await
