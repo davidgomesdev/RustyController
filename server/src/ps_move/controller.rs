@@ -1,10 +1,13 @@
+use std::collections::HashMap;
+
 use hidapi::{HidDevice, HidError};
 use log::{debug, error, info};
 use palette::{FromColor, Hsv, Srgb};
 
 use crate::ps_move::effects::{LedEffect, LedEffectDetails, RumbleEffect};
-use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, MoveRequestType, MoveSetting};
+use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, fill_button_state, MoveRequestType, MoveSetting};
 use crate::ps_move::models::BatteryLevel::Unknown;
+use crate::tasks::models::Button;
 
 #[allow(dead_code)]
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
@@ -20,8 +23,8 @@ pub struct PsMoveController {
     pub setting: MoveSetting,
     pub last_battery: BatteryLevel,
     pub battery: BatteryLevel,
-    pub last_button_state: ButtonState,
-    pub button_state: ButtonState,
+    last_button_state: HashMap<Button, ButtonState>,
+    pub button_state: HashMap<Button, ButtonState>,
     pub connection_type: ConnectionType,
 }
 
@@ -49,8 +52,8 @@ impl PsMoveController {
             connection_type,
             last_battery: Unknown,
             battery: Unknown,
-            last_button_state: ButtonState::new(),
-            button_state: ButtonState::new()
+            last_button_state: HashMap::new(),
+            button_state: HashMap::new()
         }
     }
 
@@ -80,6 +83,7 @@ impl PsMoveController {
         self.connection_type = ConnectionType::USBAndBluetooth;
     }
 
+    #[allow(dead_code)]
     pub fn set_led_pwm_frequency(&self, frequency: u64) -> bool {
         let request = build_set_led_pwm_request(frequency);
         let is_ok = self.device.write(&request).is_ok();
@@ -221,11 +225,12 @@ impl PsMoveController {
     }
 
     fn update_button_state(&mut self, bytes: [u8; 4]) {
-        self.last_button_state = self.button_state;
-        self.button_state = ButtonState::from_byte_slice(bytes);
+        self.last_button_state.clone_from(&self.button_state);
+        fill_button_state(&mut self.last_button_state, &mut self.button_state, bytes);
     }
 }
 
+#[allow(dead_code)]
 fn build_set_led_pwm_request(frequency: u64) -> [u8; 7] {
     if frequency < MIN_LED_PWM_FREQUENCY || frequency > MAX_LED_PWM_FREQUENCY {
         panic!("Frequency must be between 733 and 24e6!")

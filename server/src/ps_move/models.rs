@@ -1,8 +1,11 @@
+use std::collections::HashMap;
+
 use juniper::GraphQLEnum;
 use palette::Hsv;
 use strum_macros::Display;
 
 use crate::ps_move::models::BatteryLevel::*;
+use crate::tasks::models::Button;
 
 #[derive(Clone)]
 pub struct MoveSetting {
@@ -81,45 +84,90 @@ pub enum BatteryLevel {
     Charged,
 }
 
-#[derive(PartialEq, Copy, Clone)]
-pub struct ButtonState {
-    pub start: bool,
-    pub select: bool,
-    pub square: bool,
-    pub cross: bool,
-    pub circle: bool,
-    pub triangle: bool,
-    pub ps_button: bool,
-    pub ps_move: bool,
-    pub trigger: bool,
+pub fn fill_button_state(
+    last_state: &mut HashMap<Button, ButtonState>,
+    current_state: &mut HashMap<Button, ButtonState>,
+    bytes: [u8; 4],
+) {
+    // 1. clone current_state to last_state
+    // 2. iter all buttons, fill the current state
+    // 3. create a method to get an Option<ButtonState>, for the Pressed and Released states
+    // 4. loop in the current state and call that fn against the last state
+    last_state.clone_from(current_state);
+    last_state.iter_mut().for_each(|pair| {
+        *pair.1 = match pair.1 {
+            ButtonState::Pressed => ButtonState::Down,
+            ButtonState::Released => ButtonState::Up,
+            _ => pair.1.clone(),
+        }
+    });
+
+    fill_state_from_byte_slice(current_state, bytes);
+
+    current_state.iter_mut().for_each(|current| {
+        last_state
+            .entry(*current.0)
+            .and_modify(|last| {
+                if let Some(changed_state) = get_changed_state(last, &current.1) {
+                    *current.1 = changed_state;
+                }
+            })
+            .or_insert(*current.1);
+    })
+}
+
+fn get_changed_state(last_state: &ButtonState, current_state: &ButtonState) -> Option<ButtonState> {
+    match current_state {
+        ButtonState::Up => {
+            if *last_state == ButtonState::Down {
+                Some(ButtonState::Released)
+            } else {
+                None
+            }
+        }
+        ButtonState::Down => {
+            if *last_state == ButtonState::Up {
+                Some(ButtonState::Pressed)
+            } else {
+                None
+            }
+        }
+        _ => None,
+    }
+}
+
+fn fill_state_from_byte_slice(state: &mut HashMap<Button, ButtonState>, bytes: [u8; 4]) {
+    fill_state(state, &Button::Start, ((bytes[0] >> 4) & 1) == 1);
+    fill_state(state, &Button::Select, ((bytes[0]) & 1) == 1);
+
+    fill_state(state, &Button::Square, ((bytes[1] >> 7) & 1) == 1);
+    fill_state(state, &Button::Cross, ((bytes[1] >> 6) & 1) == 1);
+    fill_state(state, &Button::Circle, ((bytes[1] >> 5) & 1) == 1);
+    fill_state(state, &Button::Triangle, ((bytes[1] >> 4) & 1) == 1);
+
+    fill_state(state, &Button::Move, ((bytes[3] >> 6) & 1) == 1);
+    fill_state(state, &Button::Trigger, ((bytes[3] >> 7) & 1) == 1);
+}
+
+fn fill_state(states: &mut HashMap<Button, ButtonState>, button: &Button, is_down: bool) {
+    states
+        .insert(*button, ButtonState::new(is_down));
+}
+
+#[derive(GraphQLEnum, PartialEq, Copy, Clone, Display, Debug)]
+pub enum ButtonState {
+    Pressed,
+    Released,
+    Up,
+    Down,
 }
 
 impl ButtonState {
-    pub fn new() -> ButtonState {
-        ButtonState {
-            start: false,
-            select: false,
-            square: false,
-            cross: false,
-            circle: false,
-            triangle: false,
-            ps_button: false,
-            ps_move: false,
-            trigger: false,
-        }
-    }
-
-    pub fn from_byte_slice(bytes: [u8; 4]) -> ButtonState {
-        ButtonState {
-            start: ((bytes[0] >> 4) & 1) == 1,
-            select: (bytes[0] & 1) == 1,
-            square: ((bytes[1] >> 7) & 1) == 1,
-            cross: ((bytes[1] >> 6) & 1) == 1,
-            circle: ((bytes[1] >> 5) & 1) == 1,
-            triangle: ((bytes[1] >> 4) & 1) == 1,
-            ps_button: (bytes[2] & 1) == 1,
-            ps_move: ((bytes[3] >> 6) & 1) == 1,
-            trigger: ((bytes[3] >> 7) & 1) == 1,
+    pub fn new(is_down: bool) -> ButtonState {
+        if is_down {
+            Self::Down
+        } else {
+            Self::Up
         }
     }
 }
