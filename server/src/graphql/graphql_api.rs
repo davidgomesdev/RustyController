@@ -39,7 +39,7 @@ pub async fn start(
 
     let root_node = Arc::new(create_schema());
 
-    info!("Listening on 127.0.0.1:8080");
+    info!("Listening on 0.0.0.0:8080");
 
     let routes = (warp::path("subscriptions")
         .and(warp::ws())
@@ -71,5 +71,5 @@ pub async fn start(
         .or(homepage)
         .with(log);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 8080)).await
+    warp::serve(routes).run(([0, 0, 0, 0], 8080)).await
 }
