@@ -18,7 +18,7 @@ log4rs = "1.1.1"
 log-panics = { version = "2", features = ["with-backtrace"] }
 
 # HID magic
-hidapi = "1.3.3"
+hidapi = "2"
 
 # Colors
 palette = "0.6"
