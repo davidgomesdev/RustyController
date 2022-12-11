@@ -593,10 +593,10 @@ version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29839436a2de4587be0b5ef083492a5dcee40ac98404e63410dc98c916251ca7"
 dependencies = [
-    "cc",
-    "libc",
-    "pkg-config",
-    "winapi",
+ "cc",
+ "libc",
+ "pkg-config",
+ "winapi",
 ]
 
 [[package]]
