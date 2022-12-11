@@ -13,7 +13,7 @@ use crate::ps_move::controller::PsMoveController;
 use crate::ps_move::models::ButtonState;
 use crate::spawn_tasks::ShutdownSignal;
 
-const INTERVAL_DURATION: Duration = Duration::from_millis(1);
+const INTERVAL_DURATION: Duration = Duration::from_millis(10);
 
 pub fn spawn(
     controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
