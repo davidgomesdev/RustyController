@@ -136,8 +136,9 @@ fn get_changed_state(last_state: &ButtonState, current_state: &ButtonState) -> O
     }
 }
 
+// From https://github.com/nitsch/moveonpc/wiki/Input-report
 fn fill_state_from_byte_slice(state: &mut HashMap<Button, ButtonState>, bytes: [u8; 4]) {
-    fill_state(state, &Button::Start, ((bytes[0] >> 4) & 1) == 1);
+    fill_state(state, &Button::Start, ((bytes[0] >> 3) & 1) == 1);
     fill_state(state, &Button::Select, ((bytes[0]) & 1) == 1);
 
     fill_state(state, &Button::Square, ((bytes[1] >> 7) & 1) == 1);
