@@ -2,7 +2,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use juniper::RootNode;
-use tokio::sync::watch::{Receiver, Sender};
+use tokio::sync::broadcast::Sender;
+use tokio::sync::watch::Receiver;
 
 use crate::{ControllerChange, EffectChange, PsMoveController};
 use crate::graphql::schema_mutation::MutationRoot;

@@ -4,8 +4,9 @@ use std::time::Duration;
 
 use lazy_static::lazy_static;
 use palette::Hsv;
+use tokio::sync::broadcast::Receiver;
 use tokio::sync::mpsc;
-use tokio::sync::watch::{Receiver, Sender};
+use tokio::sync::watch::Sender;
 use tokio::time::Instant;
 
 use crate::ControllerChange;

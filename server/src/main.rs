@@ -2,14 +2,13 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use log::info;
-use tokio::sync::watch;
+use tokio::sync::{broadcast, watch};
 
 use graphql::graphql_api;
 use ps_move::effects::LedEffectDetails;
 
 use crate::logger::setup_logger;
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::effects::LedEffect;
 use crate::ps_move::models::ButtonState;
 use crate::tasks::models::*;
 
@@ -23,12 +22,7 @@ mod tasks;
 async fn main() {
     setup_logger();
 
-    let (effect_tx, effect_rx) = watch::channel(EffectChange {
-        target: EffectTarget::All,
-        effect: EffectChangeType::Led {
-            effect: LedEffect::off(),
-        },
-    });
+    let (effect_tx, effect_rx) = broadcast::channel(32);
     let (ctrl_tx, ctrl_rx) = watch::channel(ControllerChange::from_button(
         &Button::Move,
         &ButtonState::Down,

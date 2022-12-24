@@ -6,7 +6,8 @@ use juniper_graphql_ws::ConnectionConfig;
 use juniper_warp::playground_filter;
 use juniper_warp::subscriptions::serve_graphql_ws;
 use log::{error, info};
-use tokio::sync::watch::{Receiver, Sender};
+use tokio::sync::broadcast::Sender;
+use tokio::sync::watch::Receiver;
 use warp::{Filter, http::Response};
 
 use crate::{ControllerChange, EffectChange};
