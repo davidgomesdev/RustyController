@@ -17,6 +17,10 @@ libraries, but those don't use psmove's version of bluetooth)
 
 The pairing is done manually with [psmoveapi](https://github.com/thp/psmoveapi).
 
+## Windows limitation
+
+The GraphQL subscription and controller updates are very slow on Windows.
+
 ## Auto-update
 
 Currently, there's a GitHub action that runs on every `main` branch push, building for Ubuntu, and replacing the latest
