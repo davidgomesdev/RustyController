@@ -31,7 +31,7 @@ pub async fn start(
     let homepage = warp::path::end().map(|| {
         Response::builder()
             .header("content-type", "text/html")
-            .body("<html><h1>juniper_subscriptions demo</h1><div>visit <a href=\"/playground\">graphql playground</a></html>")
+            .body("<html><h1>RustyController</h1><div>Visit <a href=\"/playground\">Playground</a></html>")
     });
 
     let qm_schema = create_schema();
