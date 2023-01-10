@@ -83,10 +83,8 @@ jobs:
       with:
         artifacts: "rusty_controller,RustyController.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
-        allowUpdates: true
         removeArtifacts: true
         artifactErrorsFailBuild: true
         prerelease: true
         name: Latest Pre-release
         tag: latest
-        makeLatest: latest
