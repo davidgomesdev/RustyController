@@ -28,7 +28,7 @@ jobs:
       run: cargo build --verbose --release
         
     - name: 📦 - Copy artifact
-      uses: actions/upload-artifact@v3.1.0
+      uses: actions/upload-artifact@v3
       with:
         name: rusty_controller
         path: server/target/release/rusty_controller
@@ -57,7 +57,7 @@ jobs:
     - run: mv build/app/outputs/flutter-apk/app-release.apk ../RustyController.apk
 
     - name: 📦 - Copy artifact
-      uses: actions/upload-artifact@v3.1.0
+      uses: actions/upload-artifact@v3
       with:
         name: RustyController.apk
         path: RustyController.apk
@@ -69,17 +69,17 @@ jobs:
 
     steps:
     - name: 📦 - Copy server artifact
-      uses: actions/download-artifact@v3.0.0
+      uses: actions/download-artifact@v3
       with:
         name: rusty_controller
 
     - name: 📦 - Copy app artifact
-      uses: actions/download-artifact@v3.0.0
+      uses: actions/download-artifact@v3
       with:
         name: RustyController.apk
 
     - name: 🌠 - Release
-      uses: ncipollo/release-action@v1.12.0
+      uses: ncipollo/release-action@v1.12
       with:
         artifacts: "rusty_controller,RustyController.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -87,5 +87,6 @@ jobs:
         removeArtifacts: true
         artifactErrorsFailBuild: true
         prerelease: true
-        name: latest
+        name: Latest Pre-release
         tag: latest
+        makeLatest: latest
