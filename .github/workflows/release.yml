@@ -79,7 +79,7 @@ jobs:
         name: RustyController.apk
 
     - name: 🌠 - Release
-      uses: ncipollo/release-action@v1.12
+      uses: ncipollo/release-action@v1.12.0
       with:
         artifacts: "rusty_controller,RustyController.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
