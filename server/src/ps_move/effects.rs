@@ -101,8 +101,59 @@ pub enum LedEffectDetails {
     },
 }
 
-#[derive(Clone, Copy, Display, Debug)]
-pub enum RumbleEffect {
+#[derive(Clone, Copy)]
+pub struct RumbleEffect {
+    pub details: RumbleEffectDetails,
+    pub start: Instant,
+    pub duration: Option<Duration>,
+}
+
+impl RumbleEffect {
+    pub fn new_expiring(details: RumbleEffectDetails, duration: Duration) -> RumbleEffect {
+        RumbleEffect {
+            details,
+            start: Instant::now(),
+            duration: Some(duration),
+        }
+    }
+
+    pub fn new(details: RumbleEffectDetails) -> RumbleEffect {
+        RumbleEffect {
+            details,
+            start: Instant::now(),
+            duration: None,
+        }
+    }
+
+    pub fn off() -> RumbleEffect {
+        RumbleEffect {
+            details: RumbleEffectDetails::Off,
+            start: Instant::now(),
+            duration: None,
+        }
+    }
+
+    /// Creates an expiring `RumbleEffect` if `duration_millis` is present,
+    /// otherwise a non-expiring one
+    pub fn from(details: RumbleEffectDetails, duration_millis: Option<i32>) -> RumbleEffect {
+        duration_millis.map_or(RumbleEffect::new(details), |millis| {
+            if millis < 0 {
+                panic!("Negative milliseconds as duration not allowed!")
+            }
+
+            RumbleEffect::new_expiring(details, Duration::from_millis(millis as u64))
+        })
+    }
+}
+
+impl fmt::Display for RumbleEffect {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Rumble::{}", &self.details)
+    }
+}
+
+#[derive(Clone, Copy, Display, Debug, PartialEq)]
+pub enum RumbleEffectDetails {
     Off,
     Static {
         strength: f32,
@@ -112,6 +163,11 @@ pub enum RumbleEffect {
         step: f32,
         peak: f32,
         inhaling: bool,
+    },
+    Blink {
+        strength: f32,
+        interval: Duration,
+        last_blink: Instant,
     },
 }
 
@@ -124,7 +180,9 @@ impl LedEffectDetails {
         peak: f32,
     ) -> LedEffectDetails {
         let time_to_peak = time_to_peak.as_millis() as f32;
-        let step = effects_update::INTERVAL_DURATION.as_millis() as f32 * (peak - initial_hsv.value) / time_to_peak;
+        let step = effects_update::INTERVAL_DURATION.as_millis() as f32
+            * (peak - initial_hsv.value)
+            / time_to_peak;
 
         LedEffectDetails::Breathing {
             initial_hsv,
@@ -142,7 +200,8 @@ impl LedEffectDetails {
         time_to_peak: Duration,
     ) -> LedEffectDetails {
         let time_to_peak = time_to_peak.as_millis() as f32;
-        let step = effects_update::INTERVAL_DURATION.as_millis() as f32 * MAX_HUE_VALUE / time_to_peak;
+        let step =
+            effects_update::INTERVAL_DURATION.as_millis() as f32 * MAX_HUE_VALUE / time_to_peak;
 
         LedEffectDetails::Rainbow {
             saturation,
@@ -265,12 +324,12 @@ impl LedEffectDetails {
     }
 }
 
-impl RumbleEffect {
+impl RumbleEffectDetails {
     pub fn get_updated_rumble(&mut self, mut current_rumble: f32) -> f32 {
         match *self {
-            RumbleEffect::Off => 0.0,
-            RumbleEffect::Static { strength: value } => value,
-            RumbleEffect::Breathing {
+            RumbleEffectDetails::Off => 0.0,
+            RumbleEffectDetails::Static { strength: value } => value,
+            RumbleEffectDetails::Breathing {
                 initial_strength: initial,
                 step,
                 peak,
@@ -291,6 +350,23 @@ impl RumbleEffect {
                 }
 
                 current_rumble
+            }
+            RumbleEffectDetails::Blink {
+                strength,
+                interval,
+                last_blink: ref mut start,
+            } => {
+                if start.elapsed() > interval / 2 {
+                    *start = Instant::now();
+
+                    if current_rumble == 0.0 {
+                        strength
+                    } else {
+                        0.0
+                    }
+                } else {
+                    current_rumble
+                }
             }
         }
     }

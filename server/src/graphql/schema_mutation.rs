@@ -9,7 +9,7 @@ use crate::graphql::schema::Context;
 use crate::graphql::schema_input::*;
 use crate::graphql::schema_response::MutationResponse;
 use crate::ps_move::api::build_hsv;
-use crate::ps_move::effects::{LedEffect, RumbleEffect};
+use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectDetails};
 
 pub struct MutationRoot;
 
@@ -17,9 +17,7 @@ pub struct MutationRoot;
 impl MutationRoot {
     #[graphql(description = "Turn the led off.")]
     fn set_led_off(ctx: &Context, input: Option<OffEffectInput>) -> FieldResult<MutationResponse> {
-        info!(
-            "Received led off effect"
-        );
+        info!("Received led off effect");
         debug!("Effect input: {:?}", input);
 
         let controllers = input.map_or(None, |input| Some(input.controllers));
@@ -30,7 +28,10 @@ impl MutationRoot {
     fn set_led_static(ctx: &Context, input: StaticLedEffectInput) -> FieldResult<MutationResponse> {
         info!(
             "Received led static effect ({})",
-            input.name.clone().map_or(String::from("unnamed"), |name| format!("'{}'", name))
+            input
+                .name
+                .clone()
+                .map_or(String::from("unnamed"), |name| format!("'{}'", name))
         );
         debug!("Effect input: {:?}", input);
 
@@ -83,7 +84,10 @@ impl MutationRoot {
     ) -> FieldResult<MutationResponse> {
         info!(
             "Received led breathing effect ({})",
-            input.name.clone().map_or(String::from("unnamed"), |name| format!("'{}'", name))
+            input
+                .name
+                .clone()
+                .map_or(String::from("unnamed"), |name| format!("'{}'", name))
         );
         debug!("Effect input: {:?}", input);
 
@@ -154,7 +158,10 @@ impl MutationRoot {
     ) -> FieldResult<MutationResponse> {
         info!(
             "Received led rainbow effect ({})",
-            input.name.clone().map_or(String::from("unnamed"), |name| format!("'{}'", name))
+            input
+                .name
+                .clone()
+                .map_or(String::from("unnamed"), |name| format!("'{}'", name))
         );
         debug!("Effect input: {:?}", input);
 
@@ -201,7 +208,10 @@ impl MutationRoot {
     fn set_led_blink(ctx: &Context, input: BlinkLedEffectInput) -> FieldResult<MutationResponse> {
         info!(
             "Received led blink effect ({})",
-            input.name.clone().map_or(String::from("unnamed"), |name| format!("'{}'", name))
+            input
+                .name
+                .clone()
+                .map_or(String::from("unnamed"), |name| format!("'{}'", name))
         );
         debug!("Effect input: {:?}", input);
 
@@ -259,7 +269,7 @@ impl MutationRoot {
         debug!("Received rumble off effect (with {:?})", input);
 
         let controllers = input.map_or(None, |input| Some(input.controllers));
-        process_rumble_effect_mutation(ctx, RumbleEffect::Off, controllers)
+        process_rumble_effect_mutation(ctx, RumbleEffect::off(), controllers)
     }
 
     #[graphql(description = "Set a constant rumble.")]
@@ -269,6 +279,10 @@ impl MutationRoot {
     ) -> FieldResult<MutationResponse> {
         debug!("Received rumble static effect (with {:?})", input);
 
+        if input.duration.filter(|duration| *duration < 0).is_some() {
+            return Err(FieldError::new("Duration must be positive!", Value::Null));
+        }
+
         if input.strength < 0.0 || input.strength > 1.0 {
             return Err(FieldError::new(
                 "Strength must be between 0.0 and 1.0!",
@@ -276,11 +290,15 @@ impl MutationRoot {
             ));
         }
 
-        let effect = RumbleEffect::Static {
+        let details = RumbleEffectDetails::Static {
             strength: input.strength as f32,
         };
 
-        process_rumble_effect_mutation(ctx, effect, input.controllers)
+        process_rumble_effect_mutation(
+            ctx,
+            RumbleEffect::from(details, input.duration),
+            input.controllers,
+        )
     }
 
     #[graphql(description = "Increase rumble strength over time, reaching a peak, then reverting.")]
@@ -289,6 +307,10 @@ impl MutationRoot {
         input: BreathingRumbleEffectInput,
     ) -> FieldResult<MutationResponse> {
         debug!("Received rumble breathing effect (with {:?})", input);
+
+        if input.duration.filter(|duration| *duration < 0).is_some() {
+            return Err(FieldError::new("Duration must be positive!", Value::Null));
+        }
 
         if input.step < 0.0 || input.step > 1.0 {
             return Err(FieldError::new(
@@ -318,14 +340,54 @@ impl MutationRoot {
             ));
         }
 
-        let effect = RumbleEffect::Breathing {
+        let details = RumbleEffectDetails::Breathing {
             initial_strength: input.initial_strength as f32,
             step: input.step as f32,
             peak: input.peak as f32,
             inhaling: true,
         };
 
-        process_rumble_effect_mutation(ctx, effect, input.controllers)
+        process_rumble_effect_mutation(
+            ctx,
+            RumbleEffect::from(details, input.duration),
+            input.controllers,
+        )
+    }
+
+    #[graphql(description = "Alternate between rumble on and off.")]
+    fn set_rumble_blink(
+        ctx: &Context,
+        input: BlinkRumbleEffectInput,
+    ) -> FieldResult<MutationResponse> {
+        info!("Received rumble blink effect");
+        debug!("Effect input: {:?}", input);
+
+        if input.strength < 0.0 || input.strength > 1.0 {
+            return Err(FieldError::new(
+                "Strength must be between 0.0 and 1.0!",
+                Value::Null,
+            ));
+        }
+
+        if input.interval < 0 {
+            return Err(FieldError::new("Interval must be positive!", Value::Null));
+        }
+
+        if input.duration.filter(|duration| *duration < 0).is_some() {
+            return Err(FieldError::new("Duration must be positive!", Value::Null));
+        }
+
+        let details = RumbleEffectDetails::Blink {
+            strength: input.strength as f32,
+            interval: Duration::from_millis(input.interval as u64),
+            last_blink: Instant::now(),
+        };
+
+        process_rumble_effect_mutation(
+            ctx,
+            RumbleEffect::from(details, input.duration),
+            input.controllers,
+        )
     }
 }
 

@@ -96,6 +96,8 @@ pub(super) struct StaticRumbleEffectInput {
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
     pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
+    pub duration: Option<i32>,
     #[graphql(description = "Rumble strength (min 0.0, max 1.0)")]
     pub strength: f64,
 }
@@ -106,6 +108,8 @@ pub(super) struct BreathingRumbleEffectInput {
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
     pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
+    pub duration: Option<i32>,
     #[graphql(description = "Initial rumble strength. (min 0.0, max `peak`)")]
     pub initial_strength: f64,
     #[graphql(
@@ -116,4 +120,18 @@ pub(super) struct BreathingRumbleEffectInput {
     description = "Defines the max rumble that the controller gets to. (min 0.0, max 1.0)"
     )]
     pub peak: f64,
+}
+
+#[derive(GraphQLInputObject, Debug)]
+pub(super) struct BlinkRumbleEffectInput {
+    #[graphql(
+    description = "If specified, must not be empty, and applies the effect only on these controller addresses."
+    )]
+    pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
+    pub duration: Option<i32>,
+    #[graphql(description = "Rumble strength. (min 0.0, max 1.0)")]
+    pub strength: f64,
+    #[graphql(description = "Interval between blinks, in ms.")]
+    pub interval: i32,
 }

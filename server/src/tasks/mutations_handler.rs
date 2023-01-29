@@ -2,7 +2,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use log::{debug, error, info, warn};
-use tokio::sync::broadcast::error::RecvError;
 use tokio::sync::broadcast::Receiver;
 use tokio::task::JoinHandle;
 

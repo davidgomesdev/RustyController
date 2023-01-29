@@ -30,17 +30,18 @@ impl QueryRoot {
                 address: ctl.bt_address.clone(),
                 battery_level: ctl.battery.clone(),
                 connection_type: ctl.connection_type,
-                current_led_effect: match &ctl.led_effect.details {
+                current_led_effect: match ctl.led_effect.details {
                     api::LedEffectDetails::Off => { graphql::LedEffectType::Off }
                     api::LedEffectDetails::Static { .. } => { graphql::LedEffectType::Static }
                     api::LedEffectDetails::Breathing { .. } => { graphql::LedEffectType::Breathing }
                     api::LedEffectDetails::Rainbow { .. } => { graphql::LedEffectType::Rainbow }
                     api::LedEffectDetails::Blink { .. } => { graphql::LedEffectType::Blink }
                 },
-                current_rumble_effect: match ctl.rumble_effect {
-                    api::RumbleEffect::Off => { graphql::RumbleEffectType::Off }
-                    api::RumbleEffect::Static { .. } => { graphql::RumbleEffectType::Static }
-                    api::RumbleEffect::Breathing { .. } => { graphql::RumbleEffectType::Breathing }
+                current_rumble_effect: match ctl.rumble_effect.details {
+                    api::RumbleEffectDetails::Off => { graphql::RumbleEffectType::Off }
+                    api::RumbleEffectDetails::Static { .. } => { graphql::RumbleEffectType::Static }
+                    api::RumbleEffectDetails::Breathing { .. } => { graphql::RumbleEffectType::Breathing }
+                    api::RumbleEffectDetails::Blink { .. } => { graphql::RumbleEffectType::Blink }
                 },
             }
         })

@@ -37,4 +37,5 @@ pub(super) enum RumbleEffectType {
     Off,
     Static,
     Breathing,
+    Blink
 }

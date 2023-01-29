@@ -4,7 +4,7 @@ use hidapi::{HidDevice, HidError};
 use log::{debug, error, info};
 use palette::{FromColor, Hsv, Srgb};
 
-use crate::ps_move::effects::{LedEffect, LedEffectDetails, RumbleEffect};
+use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectDetails};
 use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, fill_button_state, MoveRequestType, MoveSetting};
 use crate::ps_move::models::BatteryLevel::Unknown;
 use crate::tasks::models::Button;
@@ -43,8 +43,8 @@ impl PsMoveController {
             device,
             info,
             bt_address,
-            led_effect: LedEffect::new(LedEffectDetails::Off),
-            rumble_effect: RumbleEffect::Off,
+            led_effect: LedEffect::off(),
+            rumble_effect: RumbleEffect::off(),
             setting: MoveSetting {
                 led: Hsv::from_components((0.0, 0.0, 0.0)),
                 rumble: 0.0,
@@ -53,7 +53,7 @@ impl PsMoveController {
             last_battery: Unknown,
             battery: Unknown,
             last_button_state: HashMap::new(),
-            button_state: HashMap::new()
+            button_state: HashMap::new(),
         }
     }
 
@@ -104,14 +104,14 @@ impl PsMoveController {
     }
 
     pub fn set_rumble_effect(&mut self, effect: RumbleEffect) {
-        match effect {
-            RumbleEffect::Off => {}
-            RumbleEffect::Static { strength } => {
+        match effect.details {
+            RumbleEffectDetails::Off => {}
+            RumbleEffectDetails::Static { strength } => {
                 if strength < 0.0 || strength > 1.0 {
                     error!("Strength must be between 0.0 and 1.0")
                 }
             }
-            RumbleEffect::Breathing {
+            RumbleEffectDetails::Breathing {
                 initial_strength,
                 step,
                 peak,
@@ -127,6 +127,11 @@ impl PsMoveController {
 
                 if peak < initial_strength {
                     error!("Peak must be higher than initial strength")
+                }
+            },
+            RumbleEffectDetails::Blink { strength, .. } => {
+                if strength < 0.0 || strength > 1.0 {
+                    error!("Strength must be between 0.0 and 1.0")
                 }
             }
         };
@@ -173,7 +178,16 @@ impl PsMoveController {
         let rumble_effect = &mut self.rumble_effect;
         let current_rumble = self.setting.rumble;
 
-        self.setting.rumble = rumble_effect.get_updated_rumble(current_rumble);
+        if rumble_effect.duration.is_some() {
+            let duration = rumble_effect.duration.unwrap();
+
+            if rumble_effect.start.elapsed() >= duration {
+                self.set_rumble_effect(RumbleEffect::off());
+                return;
+            }
+        };
+
+        self.setting.rumble = rumble_effect.details.get_updated_rumble(current_rumble);
     }
 
     fn update_hsv_and_rumble(&self) -> Result<(), ()> {
