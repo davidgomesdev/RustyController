@@ -24,7 +24,7 @@ hidapi = "2"
 palette = "0.6"
 
 # Async
-tokio = { version = "1.23", features = ["net", "sync", "macros", "rt-multi-thread", "rt"] }
+tokio = { version = "1.24", features = ["net", "sync", "macros", "rt-multi-thread", "rt"] }
 
 # GraphQL
 warp = "0.3"
