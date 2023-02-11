@@ -10,7 +10,7 @@ use crate::ps_move::controller::PsMoveController;
 use crate::spawn_tasks::InitialLedState;
 
 pub fn spawn(
-    controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
+    controllers: Arc<Mutex<Vec<PsMoveController>>>,
     mut rx: Receiver<EffectChange>,
     initial_state: Arc<Mutex<InitialLedState>>,
 ) -> JoinHandle<()> {

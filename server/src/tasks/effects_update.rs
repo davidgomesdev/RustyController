@@ -11,7 +11,7 @@ use crate::spawn_tasks::InitialLedState;
 pub const INTERVAL_DURATION: Duration = Duration::from_millis(1);
 
 pub fn spawn(
-    controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
+    controllers: Arc<Mutex<Vec<PsMoveController>>>,
     initial_state: Arc<Mutex<InitialLedState>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {

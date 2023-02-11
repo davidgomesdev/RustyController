@@ -29,7 +29,7 @@ fn get_on_connected_effect() -> LedEffect {
 }
 
 pub fn spawn(
-    controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
+    controllers: Arc<Mutex<Vec<PsMoveController>>>,
     mut api: PsMoveApi,
     mut shutdown_signal: ShutdownSignal,
     initial_state: Arc<Mutex<InitialLedState>>,
@@ -97,12 +97,12 @@ pub fn spawn(
 /// Updates controllers that were connected via both Bluetooth and USB,
 /// but are now via only USB or Bluetooth.
 fn update_changed_controllers(
-    current_controllers: &mut Vec<Box<PsMoveController>>,
+    current_controllers: &mut Vec<PsMoveController>,
     disconnected_controllers: &Vec<ControllerInfo>,
 ) {
     current_controllers
         .into_iter()
-        .filter(|controller| controller.connection_type == ConnectionType::USBAndBluetooth)
+        .filter(|controller| controller.connection_type == ConnectionType::UsbAndBluetooth)
         .for_each(|controller| {
             let disconnected_info = disconnected_controllers
                 .iter()
@@ -113,7 +113,7 @@ fn update_changed_controllers(
                 let connection_type = if disconnected_info.bt_path.is_empty() {
                     ConnectionType::Bluetooth
                 } else {
-                    ConnectionType::USB
+                    ConnectionType::Usb
                 };
 
                 info!(
@@ -126,7 +126,7 @@ fn update_changed_controllers(
 }
 
 fn remove_disconnected_controllers(
-    current_controllers: &mut Vec<Box<PsMoveController>>,
+    current_controllers: &mut Vec<PsMoveController>,
     disconnected_controllers: &Vec<ControllerInfo>,
 ) {
     current_controllers.retain(|controller| {
@@ -146,7 +146,7 @@ fn remove_disconnected_controllers(
 }
 
 fn add_connected_controllers(
-    controllers: &mut Vec<Box<PsMoveController>>,
+    controllers: &mut Vec<PsMoveController>,
     controller: Box<PsMoveController>,
 ) {
     let current_controller = controllers
@@ -169,7 +169,7 @@ fn add_connected_controllers(
                 controller.bt_address, controller.connection_type
             );
 
-            controllers.push(controller);
+            controllers.push(*controller);
         }
     }
 }

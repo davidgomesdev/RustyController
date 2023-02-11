@@ -59,9 +59,9 @@ impl PsMoveController {
 
     pub fn is_same_device(&self, info: &ControllerInfo) -> bool {
         match self.connection_type {
-            ConnectionType::USB => self.info.usb_path == info.usb_path,
+            ConnectionType::Usb => self.info.usb_path == info.usb_path,
             ConnectionType::Bluetooth => self.info.bt_path == info.bt_path,
-            ConnectionType::USBAndBluetooth => {
+            ConnectionType::UsbAndBluetooth => {
                 self.info.usb_path == info.usb_path || self.info.bt_path == info.bt_path
             }
         }
@@ -75,12 +75,12 @@ impl PsMoveController {
             panic!("Both controllers are connected the same way! Nothing to merge.")
         }
 
-        if self.connection_type == ConnectionType::USB {
+        if self.connection_type == ConnectionType::Usb {
             self.info.bt_path = other.info.bt_path.clone();
         } else if self.connection_type == ConnectionType::Bluetooth {
             self.info.usb_path = other.info.usb_path.clone();
         }
-        self.connection_type = ConnectionType::USBAndBluetooth;
+        self.connection_type = ConnectionType::UsbAndBluetooth;
     }
 
     #[allow(dead_code)]

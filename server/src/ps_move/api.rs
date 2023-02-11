@@ -53,7 +53,7 @@ impl PsMoveApi {
     ///
     /// Note: has all raw devices info, so one controller can appear twice,
     /// if connected via both USB and BT
-    pub fn list(&mut self, old_controllers: &Vec<Box<PsMoveController>>) -> ListingResult {
+    pub fn list(&mut self, old_controllers: &Vec<PsMoveController>) -> ListingResult {
         let mut result = ListingResult::new();
         let current_controllers = self.list_psmove_devices();
 
@@ -97,13 +97,13 @@ impl PsMoveApi {
 
     /// Adds the `old_controllers` not present in `current_controllers` to `result::disconnected`.
     fn get_disconnected_controllers(
-        old_controllers: &Vec<Box<PsMoveController>>,
+        old_controllers: &Vec<PsMoveController>,
         result: &mut ListingResult,
         current_controllers: &Vec<ControllerInfo>,
     ) {
         old_controllers
             .iter()
-            .filter(|ctl| ctl.connection_type != ConnectionType::USBAndBluetooth)
+            .filter(|ctl| ctl.connection_type != ConnectionType::UsbAndBluetooth)
             .filter(|ctl| {
                 !current_controllers
                     .iter()
@@ -113,7 +113,7 @@ impl PsMoveApi {
 
         old_controllers
             .iter()
-            .filter(|ctl| ctl.connection_type == ConnectionType::USBAndBluetooth)
+            .filter(|ctl| ctl.connection_type == ConnectionType::UsbAndBluetooth)
             .filter(|ctl| {
                 // USB and Bluetooth must appear twice in the listing
                 !current_controllers.iter().any(|info| {
@@ -128,7 +128,7 @@ impl PsMoveApi {
 
     /// Adds the `new_controllers` not present in `old_controllers` to `result::connected`.
     fn get_connected_controllers(
-        old_controllers: &Vec<Box<PsMoveController>>,
+        old_controllers: &Vec<PsMoveController>,
         result: &mut ListingResult,
         current_controllers: Vec<ControllerInfo>,
     ) {
@@ -143,7 +143,7 @@ impl PsMoveApi {
         let path = String::from(path);
 
         let connection_type = if bt_address.is_empty() {
-            ConnectionType::USB
+            ConnectionType::Usb
         } else {
             ConnectionType::Bluetooth
         };
@@ -168,7 +168,7 @@ impl PsMoveApi {
                     }
                 }
 
-                if connection_type == ConnectionType::USB {
+                if connection_type == ConnectionType::Usb {
                     usb_path = path.clone();
                     bt_address = if cfg!(windows) {
                         self.get_bt_address_on_windows(&path)
