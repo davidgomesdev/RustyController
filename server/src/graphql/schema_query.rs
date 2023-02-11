@@ -28,7 +28,7 @@ impl QueryRoot {
         Ok(controllers.iter().map(|ctl| {
             Controller {
                 address: ctl.bt_address.clone(),
-                battery_level: ctl.battery.clone(),
+                battery_level: ctl.battery,
                 connection_type: ctl.connection_type,
                 current_led_effect: match ctl.led_effect.details {
                     api::LedEffectDetails::Off => { graphql::LedEffectType::Off }

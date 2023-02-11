@@ -53,7 +53,7 @@ impl PsMoveApi {
     ///
     /// Note: has all raw devices info, so one controller can appear twice,
     /// if connected via both USB and BT
-    pub fn list(&mut self, old_controllers: &Vec<PsMoveController>) -> ListingResult {
+    pub fn list(&mut self, old_controllers: &[PsMoveController]) -> ListingResult {
         let mut result = ListingResult::new();
         let current_controllers = self.list_psmove_devices();
 
@@ -66,10 +66,10 @@ impl PsMoveApi {
     pub fn connect_controllers(
         &self,
         controllers_info: Vec<ControllerInfo>,
-    ) -> Vec<Box<PsMoveController>> {
+    ) -> Vec<PsMoveController> {
         controllers_info
             .iter()
-            .map(|dev_info| {
+            .filter_map(|dev_info| {
                 let path = if dev_info.bt_path.is_empty() {
                     &dev_info.usb_path
                 } else {
@@ -78,7 +78,6 @@ impl PsMoveApi {
 
                 self.connect_controller(&dev_info.serial_number, path)
             })
-            .flatten()
             .collect()
     }
 
@@ -97,9 +96,9 @@ impl PsMoveApi {
 
     /// Adds the `old_controllers` not present in `current_controllers` to `result::disconnected`.
     fn get_disconnected_controllers(
-        old_controllers: &Vec<PsMoveController>,
+        old_controllers: &[PsMoveController],
         result: &mut ListingResult,
-        current_controllers: &Vec<ControllerInfo>,
+        current_controllers: &[ControllerInfo],
     ) {
         old_controllers
             .iter()
@@ -128,7 +127,7 @@ impl PsMoveApi {
 
     /// Adds the `new_controllers` not present in `old_controllers` to `result::connected`.
     fn get_connected_controllers(
-        old_controllers: &Vec<PsMoveController>,
+        old_controllers: &[PsMoveController],
         result: &mut ListingResult,
         current_controllers: Vec<ControllerInfo>,
     ) {
@@ -138,7 +137,7 @@ impl PsMoveApi {
             .for_each(|info| result.connected.push(info.clone()));
     }
 
-    fn connect_controller(&self, serial_number: &str, path: &str) -> Option<Box<PsMoveController>> {
+    fn connect_controller(&self, serial_number: &str, path: &str) -> Option<PsMoveController> {
         let mut bt_address = String::from(serial_number);
         let path = String::from(path);
 
@@ -152,7 +151,7 @@ impl PsMoveApi {
             self.hid.open_path(&CString::new(path.clone()).unwrap())
         } else {
             self.hid
-                .open_serial(PS_MOVE_VENDOR_ID, PS_MOVE_PRODUCT_ID, &*bt_address)
+                .open_serial(PS_MOVE_VENDOR_ID, PS_MOVE_PRODUCT_ID, &bt_address)
         };
 
         match device {
@@ -163,7 +162,7 @@ impl PsMoveApi {
                 match device.set_blocking_mode(false) {
                     Ok(_) => {}
                     Err(err) => {
-                        error!("Unable to set '{}' to nonblocking {}", bt_address, err);
+                        error!("Unable to set '{bt_address}' to nonblocking {err}");
                         return None;
                     }
                 }
@@ -173,29 +172,29 @@ impl PsMoveApi {
                     bt_address = if cfg!(windows) {
                         self.get_bt_address_on_windows(&path)
                     } else {
-                        Self::get_bt_address(&device).unwrap_or(String::from(""))
+                        Self::get_bt_address(&device).unwrap_or_else(|| String::from(""))
                     }
                 } else {
                     bt_path = path
                 }
 
-                Some(Box::new(PsMoveController::new(
+                Some(PsMoveController::new(
                     device,
                     serial_number,
                     bt_path,
                     usb_path,
                     bt_address,
                     connection_type,
-                )))
+                ))
             }
             Err(err) => {
-                error!("Couldn't open '{}'. Caused by {}", path, err);
+                error!("Couldn't open '{path}'. Caused by {err}");
                 None
             }
         }
     }
 
-    fn get_bt_address_on_windows(&self, path_str: &String) -> String {
+    fn get_bt_address_on_windows(&self, path_str: &str) -> String {
         trace!("Getting bluetooth address by special device, due to Windows.");
 
         let magic_bt_path = path_str
@@ -204,11 +203,11 @@ impl PsMoveApi {
 
         match self
             .hid
-            .open_path(&*CString::new(magic_bt_path.clone()).unwrap())
+            .open_path(&CString::new(magic_bt_path).unwrap())
         {
             Ok(special_bt_device) => {
                 trace!("Got special device for bluetooth.");
-                Self::get_bt_address(&special_bt_device).unwrap_or(String::from(""))
+                Self::get_bt_address(&special_bt_device).unwrap_or_else(|| String::from(""))
             }
             Err(err) => {
                 error!("Couldn't open device. Caused by: {}", err);
@@ -264,7 +263,7 @@ fn build_get_bt_addr_request() -> [u8; PS_MOVE_BT_ADDR_GET_SIZE] {
 
     request[0] = MoveRequestType::GetBluetoothAddr as u8;
 
-    return request;
+    request
 }
 
 pub fn build_hsv(h: f64, s: f64, v: f64) -> Hsv {

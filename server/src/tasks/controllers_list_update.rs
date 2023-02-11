@@ -84,7 +84,7 @@ pub fn spawn(
                         "Setting current initial effect on '{}'. ({})",
                         controller.bt_address, initial_effect
                     );
-                    initial_effect.clone()
+                    initial_effect
                 };
 
                 controller.set_led_effect_with_hsv(effect, initial_state.hsv);
@@ -97,20 +97,19 @@ pub fn spawn(
 /// Updates controllers that were connected via both Bluetooth and USB,
 /// but are now via only USB or Bluetooth.
 fn update_changed_controllers(
-    current_controllers: &mut Vec<PsMoveController>,
-    disconnected_controllers: &Vec<ControllerInfo>,
+    current_controllers: &mut [PsMoveController],
+    disconnected_controllers: &[ControllerInfo],
 ) {
     current_controllers
-        .into_iter()
+        .iter_mut()
         .filter(|controller| controller.connection_type == ConnectionType::UsbAndBluetooth)
         .for_each(|controller| {
             let disconnected_info = disconnected_controllers
                 .iter()
                 .find(|other| controller.is_same_device(other));
 
-            if disconnected_info.is_some() {
-                let disconnected_info = disconnected_info.unwrap();
-                let connection_type = if disconnected_info.bt_path.is_empty() {
+            if let Some(info) = disconnected_info {
+                let connection_type = if info.bt_path.is_empty() {
                     ConnectionType::Bluetooth
                 } else {
                     ConnectionType::Usb
@@ -127,7 +126,7 @@ fn update_changed_controllers(
 
 fn remove_disconnected_controllers(
     current_controllers: &mut Vec<PsMoveController>,
-    disconnected_controllers: &Vec<ControllerInfo>,
+    disconnected_controllers: &[ControllerInfo],
 ) {
     current_controllers.retain(|controller| {
         let is_disconnected = disconnected_controllers
@@ -147,7 +146,7 @@ fn remove_disconnected_controllers(
 
 fn add_connected_controllers(
     controllers: &mut Vec<PsMoveController>,
-    controller: Box<PsMoveController>,
+    controller: PsMoveController,
 ) {
     let current_controller = controllers
         .iter_mut()
@@ -169,7 +168,7 @@ fn add_connected_controllers(
                 controller.bt_address, controller.connection_type
             );
 
-            controllers.push(*controller);
+            controllers.push(controller);
         }
     }
 }

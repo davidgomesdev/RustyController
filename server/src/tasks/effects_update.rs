@@ -30,7 +30,7 @@ pub fn spawn(
             }
 
             let mut initial_state = initial_state.lock().unwrap();
-            let current_hsv = initial_state.hsv.clone();
+            let current_hsv = initial_state.hsv;
             let effect = &mut initial_state.effect;
 
             initial_state.hsv = effect.details.get_updated_hsv(current_hsv);

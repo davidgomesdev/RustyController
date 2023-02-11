@@ -24,22 +24,21 @@ pub fn spawn(
 
                     match target {
                         EffectTarget::All => {
-                            info!("Setting effect '{}' for all controllers", effect);
+                            info!("Setting effect '{effect}' for all controllers");
                             controllers.iter_mut().for_each(|controller| {
                                 mutate_controller_effect(controller, effect);
-                                debug!("Controller '{}' set to {}", controller.bt_address, effect);
+                                debug!("Controller '{}' set to {effect}", controller.bt_address);
                             });
 
                             if let EffectChangeType::Led { effect } = effect {
                                 let mut initial_state = initial_state.lock().unwrap();
-                                *initial_state = InitialLedState::from(effect.clone());
-                                debug!("Set '{}' as initial effect.", effect);
+                                *initial_state = InitialLedState::from(effect);
+                                debug!("Set '{effect}' as initial effect.");
                             }
                         }
                         EffectTarget::Only { bt_addresses } => {
                             debug!(
-                                "Setting effect '{}' for {} controllers only",
-                                effect,
+                                "Setting effect '{effect}' for {} controllers only",
                                 bt_addresses.len()
                             );
                             bt_addresses.iter().for_each(|bt_address| {
@@ -49,15 +48,14 @@ pub fn spawn(
                                     .map_or_else(
                                         || {
                                             warn!(
-                                        "The effect change had a non-existing controller! ('{}')",
-                                        bt_address
+                                        "The effect change had a non-existing controller! ('{bt_address}')"
                                     );
                                         },
                                         |controller| {
                                             mutate_controller_effect(controller, effect);
                                             info!(
-                                                "Controller '{}' set to {}",
-                                                controller.bt_address, effect
+                                                "Controller '{}' set to {effect}",
+                                                controller.bt_address
                                             );
                                         },
                                     );

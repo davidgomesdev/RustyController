@@ -20,7 +20,7 @@ impl MutationRoot {
         info!("Received led off effect");
         debug!("Effect input: {:?}", input);
 
-        let controllers = input.map_or(None, |input| Some(input.controllers));
+        let controllers = input.map(|input| input.controllers);
         process_led_effect_mutation(ctx, LedEffect::off(), controllers)
     }
 
@@ -31,7 +31,7 @@ impl MutationRoot {
             input
                 .name
                 .clone()
-                .map_or(String::from("unnamed"), |name| format!("'{}'", name))
+                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
         debug!("Effect input: {:?}", input);
 
@@ -87,9 +87,9 @@ impl MutationRoot {
             input
                 .name
                 .clone()
-                .map_or(String::from("unnamed"), |name| format!("'{}'", name))
+                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
-        debug!("Effect input: {:?}", input);
+        debug!("Effect input: {input:?}");
 
         if input.name.map_or(false, |name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
@@ -161,7 +161,7 @@ impl MutationRoot {
             input
                 .name
                 .clone()
-                .map_or(String::from("unnamed"), |name| format!("'{}'", name))
+                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
         debug!("Effect input: {:?}", input);
 
@@ -211,7 +211,7 @@ impl MutationRoot {
             input
                 .name
                 .clone()
-                .map_or(String::from("unnamed"), |name| format!("'{}'", name))
+                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
         debug!("Effect input: {:?}", input);
 
@@ -219,21 +219,21 @@ impl MutationRoot {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
-        if input.hue < 0 || input.hue > 360 {
+        if !(0..=360).contains(&input.hue) {
             return Err(FieldError::new(
-                "Hue must be between 0.0 and 360.0!",
+                "Hue must be between 0 and 360!",
                 Value::Null,
             ));
         }
 
-        if input.saturation < 0.0 || input.saturation > 1.0 {
+        if !(0.0..=1.0).contains(&input.saturation) {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
 
-        if input.value < 0.0 || input.value == 0.0 || input.value > 1.0 {
+        if input.value <= 0.0 || input.value > 1.0 {
             return Err(FieldError::new(
                 "Value must be above 0.0 and equal or below 1.0!",
                 Value::Null,
@@ -268,7 +268,7 @@ impl MutationRoot {
     ) -> FieldResult<MutationResponse> {
         debug!("Received rumble off effect (with {:?})", input);
 
-        let controllers = input.map_or(None, |input| Some(input.controllers));
+        let controllers = input.map(|input| input.controllers);
         process_rumble_effect_mutation(ctx, RumbleEffect::off(), controllers)
     }
 
@@ -426,8 +426,8 @@ fn process_effect_mutation(
         }
     };
 
-    return match ctx.effect_tx.send(EffectChange { effect, target }) {
+    match ctx.effect_tx.send(EffectChange { effect, target }) {
         Ok(_) => Ok(MutationResponse::Success),
         Err(_) => Ok(MutationResponse::ServerError),
-    };
+    }
 }
