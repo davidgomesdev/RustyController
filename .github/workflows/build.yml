@@ -22,20 +22,20 @@ jobs:
 
     - uses: actions/checkout@v3
     
-    - name: 🌱 - Install dependencies
+    - name: 🌱 - Install project dependencies
       run: sudo apt-get update; sudo apt-get install -y libudev-dev libsystemd-dev libusb-1.0-0-dev
     
     - name: 🧯 - Check for compile errors
-      run: cargo check
+      run: cargo check -q
     
     - name: 🧐 - Lint check
       run: cargo clippy -- -D warnings
 
     - name: 🔨 - Build
-      run: cargo build
+      run: cargo build -q
 
     - name: 🧪 - Run tests
-      run: cargo test --verbose
+      run: cargo test -q
   
   app:
     runs-on: ubuntu-latest
