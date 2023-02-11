@@ -210,7 +210,7 @@ impl PsMoveApi {
                 Self::get_bt_address(&special_bt_device).unwrap_or_else(|| String::from(""))
             }
             Err(err) => {
-                error!("Couldn't open device. Caused by: {}", err);
+                error!("Couldn't open device. Caused by: {err}");
                 String::from("")
             }
         }
@@ -251,7 +251,7 @@ impl PsMoveApi {
                 Some(addr)
             }
             Err(err) => {
-                error!("Failed to get bt address {}", err);
+                error!("Failed to get bt address {err}");
                 None
             }
         }

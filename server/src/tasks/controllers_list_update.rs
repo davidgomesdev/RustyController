@@ -81,8 +81,8 @@ pub fn spawn(
                     get_on_connected_effect()
                 } else {
                     info!(
-                        "Setting current initial effect on '{}'. ({})",
-                        controller.bt_address, initial_effect
+                        "Setting current initial effect on '{}'. ({initial_effect})",
+                        controller.bt_address
                     );
                     initial_effect
                 };

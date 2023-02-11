@@ -202,11 +202,11 @@ impl PsMoveController {
                 if let HidError::HidApiError { message } = err {
                     // This is an error that sometimes occurs when there's a connection drop
                     if message == "Overlapped I/O operation is in progress." {
-                        debug!("Couldn't set HSV due to {}", err);
+                        debug!("Couldn't set HSV due to {err}");
                         return Ok(());
                     }
                 }
-                error!("Failed to set HSV {}", err);
+                error!("Failed to set HSV {err}");
                 Err(())
             }
         }
@@ -221,13 +221,13 @@ impl PsMoveController {
 
             if *battery == Unknown {
                 info!(
-                    "Controller battery status known. ('{}' at {})",
-                    self.bt_address, curr_battery
+                    "Controller battery status known. ('{}' at {curr_battery})",
+                    self.bt_address
                 );
             } else {
                 info!(
-                    "Controller battery status changed. ('{}' to {})",
-                    self.bt_address, curr_battery
+                    "Controller battery status changed. ('{}' to {curr_battery})",
+                    self.bt_address
                 );
             }
             self.battery = curr_battery;
