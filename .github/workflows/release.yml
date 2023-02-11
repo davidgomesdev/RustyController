@@ -25,7 +25,7 @@ jobs:
       run: sudo apt-get update; sudo apt-get install -y libudev-dev libsystemd-dev libusb-1.0-0-dev
 
     - name: 🔨 - Build
-      run: cargo build --verbose --release
+      run: cargo build --release
         
     - name: 📦 - Copy artifact
       uses: actions/upload-artifact@v3
