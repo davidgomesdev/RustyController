@@ -24,9 +24,15 @@ jobs:
     
     - name: 🌱 - Install dependencies
       run: sudo apt-get update; sudo apt-get install -y libudev-dev libsystemd-dev libusb-1.0-0-dev
+    
+    - name: 🧯 - Check for compile errors
+      run: cargo check
+    
+    - name: 🧐 - Lint check
+      run: cargo clippy -- -D warnings
 
     - name: 🔨 - Build
-      run: cargo build --verbose
+      run: cargo build
 
     - name: 🧪 - Run tests
       run: cargo test --verbose
