@@ -225,7 +225,7 @@ impl LedEffectDetails {
                 peak,
                 ..
             } => {
-                if step < 0.0 || step > 1.0 {
+                if !(0.0..=1.0).contains(&step) {
                     error!("Step must be between 0.0 and 1.0")
                 }
 
@@ -302,7 +302,7 @@ impl LedEffectDetails {
     ) -> Hsv {
         let initial_value = initial_hsv.value;
 
-        let mut new_hsv = initial_hsv.clone();
+        let mut new_hsv = initial_hsv;
         let mut new_value = current_hsv.value;
 
         if *inhaling {

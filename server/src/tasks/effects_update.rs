@@ -11,7 +11,7 @@ use crate::spawn_tasks::InitialLedState;
 pub const INTERVAL_DURATION: Duration = Duration::from_millis(1);
 
 pub fn spawn(
-    controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
+    controllers: Arc<Mutex<Vec<PsMoveController>>>,
     initial_state: Arc<Mutex<InitialLedState>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
@@ -30,7 +30,7 @@ pub fn spawn(
             }
 
             let mut initial_state = initial_state.lock().unwrap();
-            let current_hsv = initial_state.hsv.clone();
+            let current_hsv = initial_state.hsv;
             let effect = &mut initial_state.effect;
 
             initial_state.hsv = effect.details.get_updated_hsv(current_hsv);

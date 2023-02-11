@@ -32,7 +32,7 @@ lazy_static! {
 pub async fn run_move(
     effect_rx: Receiver<EffectChange>,
     ctrl_tx: Sender<ControllerChange>,
-    controllers: &Arc<Mutex<Vec<Box<PsMoveController>>>>,
+    controllers: &Arc<Mutex<Vec<PsMoveController>>>,
 ) -> ShutdownCommand {
     let api = PsMoveApi::new();
     let shutdown_flag = Arc::new(AtomicBool::new(false));

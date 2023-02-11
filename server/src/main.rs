@@ -27,7 +27,7 @@ async fn main() {
         &Button::Move,
         &ButtonState::Down,
     ));
-    let controllers = Arc::new(Mutex::new(Vec::<Box<PsMoveController>>::new()));
+    let controllers = Arc::new(Mutex::new(Vec::<PsMoveController>::new()));
 
     let mut shutdown_command = spawn_tasks::run_move(effect_rx, ctrl_tx, &controllers).await;
     graphql_api::start(Arc::new(effect_tx), Mutex::new(ctrl_rx), controllers).await;

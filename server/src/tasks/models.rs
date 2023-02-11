@@ -24,7 +24,7 @@ impl fmt::Display for EffectChangeType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             EffectChangeType::Led { effect } => { write!(f, "Led::{}", &effect.details) }
-            EffectChangeType::Rumble { effect } => { write!(f, "Rumble::{}", effect) }
+            EffectChangeType::Rumble { effect } => { write!(f, "Rumble::{effect}") }
         }
     }
 }
@@ -61,8 +61,8 @@ pub enum ControllerChange {
 impl ControllerChange {
     pub fn from_button(btn: &Button, state: &ButtonState) -> ControllerChange {
         ControllerChange::ButtonChange(ButtonChange {
-            button: btn.clone(),
-            state: state.clone(),
+            button: *btn,
+            state: *state,
         })
     }
 }

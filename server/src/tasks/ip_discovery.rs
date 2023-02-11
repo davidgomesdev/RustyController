@@ -13,7 +13,7 @@ pub fn spawn() -> JoinHandle<Option<()>> {
         let socket = UdpSocket::bind(format!("0.0.0.0:{HANDSHAKE_BEGIN_PORT}"))
             .await
             .expect("Failed binding");
-        info!("Binding on {}", HANDSHAKE_BEGIN_PORT);
+        info!("Binding on {HANDSHAKE_BEGIN_PORT}");
 
         socket.set_broadcast(true).unwrap();
 
@@ -46,7 +46,7 @@ pub fn spawn() -> JoinHandle<Option<()>> {
             info!("Sending handshake end to {}:{}", src.ip(), src.port());
 
             socket
-                .send_to(&HANDSHAKE_RESPONSE.as_bytes(), &src)
+                .send_to(HANDSHAKE_RESPONSE.as_bytes(), &src)
                 .await
                 .expect("Failed sending response");
 

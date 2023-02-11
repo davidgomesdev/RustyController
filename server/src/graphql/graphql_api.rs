@@ -18,8 +18,8 @@ use super::schema::{Context, create_schema};
 pub async fn start(
     effect_tx: Arc<Sender<EffectChange>>,
     ctrl_rx: Mutex<Receiver<ControllerChange>>,
-    controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
-) -> () {
+    controllers: Arc<Mutex<Vec<PsMoveController>>>,
+) {
     let log = warp::log("warp_subscriptions");
     let ctrl_rx_arc = Arc::new(ctrl_rx);
     let qm_ctx = Context {

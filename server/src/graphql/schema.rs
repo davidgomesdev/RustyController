@@ -13,7 +13,7 @@ use crate::graphql::schema_subscription::SubscriptionRoot;
 pub struct Context {
     pub effect_tx: Arc<Sender<EffectChange>>,
     pub ctrl_rx: Arc<Mutex<Receiver<ControllerChange>>>,
-    pub controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
+    pub controllers: Arc<Mutex<Vec<PsMoveController>>>,
 }
 
 impl juniper::Context for Context {}

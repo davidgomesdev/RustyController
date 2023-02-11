@@ -1,4 +1,3 @@
-use log4rs;
 use log4rs::append::console::ConsoleAppender;
 use log4rs::append::rolling_file::policy::compound::CompoundPolicy;
 use log4rs::append::rolling_file::policy::compound::roll::fixed_window::FixedWindowRoller;
@@ -29,7 +28,7 @@ pub fn setup_logger() {
         let compound_policy = Box::new(CompoundPolicy::new(trigger, roller));
 
         let file = RollingFileAppender::builder()
-            .encoder(Box::new(PatternEncoder::default()))
+            .encoder(Box::<PatternEncoder>::default())
             .build(LOG_PATH, compound_policy)
             .unwrap();
 

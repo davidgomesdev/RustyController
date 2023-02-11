@@ -15,9 +15,9 @@ pub struct MoveSetting {
 
 #[derive(Display, PartialEq, Copy, Clone, GraphQLEnum)]
 pub enum ConnectionType {
-    USB,
+    Usb,
     Bluetooth,
-    USBAndBluetooth,
+    UsbAndBluetooth,
 }
 
 #[derive(Clone, PartialEq)]
@@ -98,7 +98,7 @@ pub fn fill_button_state(
         *pair.1 = match pair.1 {
             ButtonState::Pressed => ButtonState::Down,
             ButtonState::Released => ButtonState::Up,
-            _ => pair.1.clone(),
+            _ => *pair.1,
         }
     });
 
@@ -108,7 +108,7 @@ pub fn fill_button_state(
         last_state
             .entry(*current.0)
             .and_modify(|last| {
-                if let Some(changed_state) = get_changed_state(last, &current.1) {
+                if let Some(changed_state) = get_changed_state(last, current.1) {
                     *current.1 = changed_state;
                 }
             })
@@ -151,8 +151,7 @@ fn fill_state_from_byte_slice(state: &mut HashMap<Button, ButtonState>, bytes: [
 }
 
 fn fill_state(states: &mut HashMap<Button, ButtonState>, button: &Button, is_down: bool) {
-    states
-        .insert(*button, ButtonState::new(is_down));
+    states.insert(*button, ButtonState::new(is_down));
 }
 
 /// `Pressed` means that it was `Up` but now is `Down`, and vice-versa for `Released`

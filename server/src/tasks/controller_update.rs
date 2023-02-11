@@ -16,7 +16,7 @@ use crate::spawn_tasks::ShutdownSignal;
 const INTERVAL_DURATION: Duration = Duration::from_millis(10);
 
 pub fn spawn(
-    controllers: Arc<Mutex<Vec<Box<PsMoveController>>>>,
+    controllers: Arc<Mutex<Vec<PsMoveController>>>,
     ctrl_tx: Sender<ControllerChange>,
     mut shutdown_signal: ShutdownSignal,
 ) -> JoinHandle<()> {
