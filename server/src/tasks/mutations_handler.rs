@@ -64,7 +64,7 @@ pub fn spawn(
                     }
                 }
                 Err(err) => {
-                    error!("Error occurred in receiving effect update. (Cause: {})", err)
+                    error!("Error occurred in receiving effect update. (Cause: {err})")
                 }
             };
         }
