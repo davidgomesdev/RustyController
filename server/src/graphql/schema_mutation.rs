@@ -31,31 +31,35 @@ impl MutationRoot {
             input
                 .label
                 .clone()
-                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
+                .map_or(String::from("unlabeled"), |label| format!("'{label}'"))
         );
         debug!("Effect input: {input:?}");
 
-        if input.label.map_or(false, |name| name.is_empty()) {
-            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        if input.label.map_or(false, |label| label.is_empty()) {
+            return Err(FieldError::new("Label can't be empty!", Value::Null));
         }
 
-        let ColorInput { hue, saturation, value } = input.color;
+        let ColorInput {
+            hue,
+            saturation,
+            value,
+        } = input.color;
 
-        if hue < 0 || hue > 360 {
+        if !(0..=360).contains(&hue) {
             return Err(FieldError::new(
                 "Hue must be between 0 and 360!",
                 Value::Null,
             ));
         }
 
-        if saturation < 0.0 || saturation > 1.0 {
+        if !(0.0..=1.0).contains(&saturation) {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
 
-        if value < 0.0 || value > 1.0 {
+        if !(0.0..=1.0).contains(&value) {
             return Err(FieldError::new(
                 "Value must be between 0.0 and 1.0!",
                 Value::Null,
@@ -89,12 +93,12 @@ impl MutationRoot {
             input
                 .label
                 .clone()
-                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
+                .map_or(String::from("unlabeled"), |label| format!("'{label}'"))
         );
         debug!("Effect input: {input:?}");
 
-        if input.label.map_or(false, |name| name.is_empty()) {
-            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        if input.label.map_or(false, |label| label.is_empty()) {
+            return Err(FieldError::new("Label can't be empty!", Value::Null));
         }
 
         if input.time_to_peak < 0 {
@@ -108,21 +112,21 @@ impl MutationRoot {
             ));
         }
 
-        if input.hue < 0 || input.hue > 360 {
+        if !(0..=360).contains(&input.hue) {
             return Err(FieldError::new(
                 "Hue must be between 0.0 and 360.0!",
                 Value::Null,
             ));
         }
 
-        if input.saturation < 0.0 || input.saturation > 1.0 {
+        if !(0.0..=1.0).contains(&input.saturation) {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
 
-        if input.initial_value < 0.0 || input.initial_value > 1.0 {
+        if !(0.0..=1.0).contains(&input.initial_value) {
             return Err(FieldError::new(
                 "Initial value must be between 0.0 and 1.0!",
                 Value::Null,
@@ -133,7 +137,7 @@ impl MutationRoot {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
         }
 
-        if input.peak < 0.0 || input.peak > 1.0 {
+        if !(0.0..=1.0).contains(&input.peak) {
             return Err(FieldError::new(
                 "Peak must be between 0.0 and 1.0!",
                 Value::Null,
@@ -163,26 +167,26 @@ impl MutationRoot {
             input
                 .label
                 .clone()
-                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
+                .map_or(String::from("unlabeled"), |label| format!("'{label}'"))
         );
         debug!("Effect input: {input:?}");
 
-        if input.label.map_or(false, |name| name.is_empty()) {
-            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        if input.label.map_or(false, |label| label.is_empty()) {
+            return Err(FieldError::new("Label can't be empty!", Value::Null));
         }
 
         if input.time_to_complete < 0.0 {
             return Err(FieldError::new("Step must be positive!", Value::Null));
         }
 
-        if input.saturation < 0.0 || input.saturation > 1.0 {
+        if !(0.0..=1.0).contains(&input.saturation) {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
 
-        if input.value < 0.0 || input.value > 1.0 {
+        if !(0.0..=1.0).contains(&input.value) {
             return Err(FieldError::new(
                 "Value must be between 0.0 and 1.0!",
                 Value::Null,
@@ -213,15 +217,19 @@ impl MutationRoot {
             input
                 .label
                 .clone()
-                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
+                .map_or(String::from("unlabeled"), |label| format!("'{label}'"))
         );
         debug!("Effect input: {input:?}");
 
-        if input.label.map_or(false, |name| name.is_empty()) {
-            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        if input.label.map_or(false, |label| label.is_empty()) {
+            return Err(FieldError::new("Label can't be empty!", Value::Null));
         }
 
-        let ColorInput { hue, saturation, value } = input.color;
+        let ColorInput {
+            hue,
+            saturation,
+            value,
+        } = input.color;
 
         if !(0..=360).contains(&hue) {
             return Err(FieldError::new(
@@ -287,7 +295,7 @@ impl MutationRoot {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
         }
 
-        if input.strength < 0.0 || input.strength > 1.0 {
+        if !(0.0..=1.0).contains(&input.strength) {
             return Err(FieldError::new(
                 "Strength must be between 0.0 and 1.0!",
                 Value::Null,
@@ -316,7 +324,7 @@ impl MutationRoot {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
         }
 
-        if input.step < 0.0 || input.step > 1.0 {
+        if !(0.0..=1.0).contains(&input.step) {
             return Err(FieldError::new(
                 "Step must be between 0.0 and 1.0!",
                 Value::Null,
@@ -330,14 +338,14 @@ impl MutationRoot {
             ));
         }
 
-        if input.initial_strength < 0.0 || input.initial_strength > 1.0 {
+        if !(0.0..=1.0).contains(&input.initial_strength) {
             return Err(FieldError::new(
                 "Initial strength must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
 
-        if input.peak < 0.0 || input.peak > 1.0 {
+        if !(0.0..=1.0).contains(&input.peak) {
             return Err(FieldError::new(
                 "Peak must be between 0.0 and 1.0!",
                 Value::Null,
@@ -366,7 +374,7 @@ impl MutationRoot {
         info!("Received rumble blink effect");
         debug!("Effect input: {input:?}");
 
-        if input.strength < 0.0 || input.strength > 1.0 {
+        if !(0.0..=1.0).contains(&input.strength) {
             return Err(FieldError::new(
                 "Strength must be between 0.0 and 1.0!",
                 Value::Null,
