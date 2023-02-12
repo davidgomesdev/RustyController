@@ -29,31 +29,33 @@ impl MutationRoot {
         info!(
             "Received led static effect ({})",
             input
-                .name
+                .label
                 .clone()
                 .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
         debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.label.map_or(false, |name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
-        if input.hue < 0 || input.hue > 360 {
+        let ColorInput { hue, saturation, value } = input.color;
+
+        if hue < 0 || hue > 360 {
             return Err(FieldError::new(
                 "Hue must be between 0 and 360!",
                 Value::Null,
             ));
         }
 
-        if input.saturation < 0.0 || input.saturation > 1.0 {
+        if saturation < 0.0 || saturation > 1.0 {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
 
-        if input.value < 0.0 || input.value > 1.0 {
+        if value < 0.0 || value > 1.0 {
             return Err(FieldError::new(
                 "Value must be between 0.0 and 1.0!",
                 Value::Null,
@@ -65,7 +67,7 @@ impl MutationRoot {
         }
 
         let effect = LedEffectDetails::Static {
-            hsv: build_hsv(input.hue as f64, input.saturation, input.value),
+            hsv: build_hsv(hue as f64, saturation, value),
         };
 
         process_led_effect_mutation(
@@ -85,13 +87,13 @@ impl MutationRoot {
         info!(
             "Received led breathing effect ({})",
             input
-                .name
+                .label
                 .clone()
                 .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
         debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.label.map_or(false, |name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
@@ -159,13 +161,13 @@ impl MutationRoot {
         info!(
             "Received led rainbow effect ({})",
             input
-                .name
+                .label
                 .clone()
                 .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
         debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.label.map_or(false, |name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
@@ -209,31 +211,33 @@ impl MutationRoot {
         info!(
             "Received led blink effect ({})",
             input
-                .name
+                .label
                 .clone()
                 .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
         debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.label.map_or(false, |name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
-        if !(0..=360).contains(&input.hue) {
+        let ColorInput { hue, saturation, value } = input.color;
+
+        if !(0..=360).contains(&hue) {
             return Err(FieldError::new(
                 "Hue must be between 0 and 360!",
                 Value::Null,
             ));
         }
 
-        if !(0.0..=1.0).contains(&input.saturation) {
+        if !(0.0..=1.0).contains(&saturation) {
             return Err(FieldError::new(
                 "Saturation must be between 0.0 and 1.0!",
                 Value::Null,
             ));
         }
 
-        if input.value <= 0.0 || input.value > 1.0 {
+        if value <= 0.0 || value > 1.0 {
             return Err(FieldError::new(
                 "Value must be above 0.0 and equal or below 1.0!",
                 Value::Null,
@@ -249,7 +253,7 @@ impl MutationRoot {
         }
 
         let effect = LedEffectDetails::Blink {
-            hsv: build_hsv(input.hue as f64, input.saturation, input.value),
+            hsv: build_hsv(hue as f64, saturation, value),
             interval: Duration::from_millis(input.interval as u64),
             last_blink: Instant::now(),
         };
