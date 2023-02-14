@@ -83,6 +83,22 @@ pub(super) struct BlinkLedEffectInput {
 }
 
 #[derive(GraphQLInputObject, Debug)]
+pub(super) struct ShiftLedEffectInput {
+    #[graphql(
+    description = "If specified, must not be empty, and applies the effect only on these controller addresses."
+    )]
+    pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
+    pub duration: Option<i32>,
+    #[graphql(description = "Label the effect.")]
+    pub label: Option<String>,
+    #[graphql(description = "Colors to shift. (min 2, max 7)")]
+    pub colors: Vec<ColorInput>,
+    #[graphql(description = "Interval between blinks, in ms.")]
+    pub speed: i32,
+}
+
+#[derive(GraphQLInputObject, Debug)]
 pub(super) struct StaticRumbleEffectInput {
     #[graphql(
     description = "If specified, must not be empty, and applies the effect only on these controller addresses."

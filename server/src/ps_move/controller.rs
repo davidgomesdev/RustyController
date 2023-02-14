@@ -93,7 +93,7 @@ impl PsMoveController {
     }
 
     pub fn set_led_effect(&mut self, effect: LedEffect) {
-        let mut details = effect.details;
+        let mut details = effect.details.clone();
 
         self.setting.led = details.get_updated_hsv(self.setting.led);
         self.led_effect = effect;

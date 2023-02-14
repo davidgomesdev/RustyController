@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use juniper::{FieldError, FieldResult, Value};
 use log::{debug, info};
+use palette::Hsv;
 use tokio::time::Instant;
 
 use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffectDetails};
@@ -265,6 +266,83 @@ impl MutationRoot {
             interval: Duration::from_millis(input.interval as u64),
             last_blink: Instant::now(),
         };
+
+        process_led_effect_mutation(
+            ctx,
+            LedEffect::from(effect, input.duration),
+            input.controllers,
+        )
+    }
+
+    #[graphql(description = "Shift between colors.")]
+    fn set_led_shift(ctx: &Context, input: ShiftLedEffectInput) -> FieldResult<MutationResponse> {
+        info!(
+            "Received led shift effect ({})",
+            input
+                .label
+                .clone()
+                .map_or(String::from("unlabeled"), |label| format!("'{label}'"))
+        );
+        debug!("Effect input: {input:?}");
+
+        if input.label.map_or(false, |label| label.is_empty()) {
+            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        }
+
+        if input.colors.len() < 2 {
+            return Err(FieldError::new("You must provide at least 2 colors. (Did you mean breathing or static?)", Value::Null));
+        }
+
+        if input.colors.len() > 7 {
+            return Err(FieldError::new("Only 7 colors are allowed.", Value::Null));
+        }
+
+        for color in &input.colors {
+            let ColorInput {
+                hue,
+                saturation,
+                value,
+            } = *color;
+
+            if !(0..=360).contains(&hue) {
+                return Err(FieldError::new(
+                    "Hue must be between 0 and 360!",
+                    Value::Null,
+                ));
+            }
+
+            if !(0.0..=1.0).contains(&saturation) {
+                return Err(FieldError::new(
+                    "Saturation must be between 0.0 and 1.0!",
+                    Value::Null,
+                ));
+            }
+
+            if value <= 0.0 || value > 1.0 {
+                return Err(FieldError::new(
+                    "Value must be above 0.0 and equal or below 1.0!",
+                    Value::Null,
+                ));
+            }
+        }
+
+        if input.duration.filter(|duration| *duration < 0).is_some() {
+            return Err(FieldError::new("Duration must be positive!", Value::Null));
+        }
+
+        let hsv_list = input
+            .colors
+            .iter()
+            .map(|color| {
+                Hsv::new(
+                    color.hue as f32,
+                    color.saturation as f32,
+                    color.value as f32,
+                )
+            })
+            .collect();
+
+        let effect = LedEffectDetails::new_shift(hsv_list);
 
         process_led_effect_mutation(
             ctx,

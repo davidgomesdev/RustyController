@@ -74,7 +74,7 @@ pub fn spawn(
 
             new_controllers.into_iter().for_each(|mut controller| {
                 let initial_state = rt.block_on(async { initial_state.lock().unwrap() });
-                let initial_effect = initial_state.effect;
+                let initial_effect = &initial_state.effect;
 
                 let effect = if initial_effect.is_off() {
                     info!("Setting on connected effect on '{}'.", controller.bt_address);
@@ -84,7 +84,7 @@ pub fn spawn(
                         "Setting current initial effect on '{}'. ({initial_effect})",
                         controller.bt_address
                     );
-                    initial_effect
+                    initial_effect.clone()
                 };
 
                 controller.set_led_effect_with_hsv(effect, initial_state.hsv);

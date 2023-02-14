@@ -1,4 +1,5 @@
 use std::fmt;
+use std::rc::Rc;
 
 use lazy_static::lazy_static;
 use log::error;
@@ -14,7 +15,7 @@ lazy_static! {
 
 const MAX_HUE_VALUE: f32 = 360.0;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct LedEffect {
     pub details: LedEffectDetails,
     pub start: Instant,
@@ -49,7 +50,7 @@ impl LedEffect {
     /// Creates an expiring `LedEffect` if `duration_millis` is present,
     /// otherwise a non-expiring one
     pub fn from(details: LedEffectDetails, duration_millis: Option<i32>) -> LedEffect {
-        duration_millis.map_or(LedEffect::new(details), |millis| {
+        duration_millis.map_or(LedEffect::new(details.clone()), |millis| {
             if millis < 0 {
                 panic!("Negative milliseconds as duration not allowed!")
             }
@@ -77,7 +78,7 @@ impl fmt::Display for LedEffect {
     }
 }
 
-#[derive(Clone, Copy, Display, Debug, PartialEq)]
+#[derive(Clone, Display, Debug, PartialEq)]
 pub enum LedEffectDetails {
     Off,
     Static {
@@ -98,6 +99,10 @@ pub enum LedEffectDetails {
         hsv: Hsv,
         interval: Duration,
         last_blink: Instant,
+    },
+    Shift {
+        hsv_list: Box<Vec<Hsv>>,
+        current_hsv_index: usize,
     },
 }
 
@@ -210,55 +215,63 @@ impl LedEffectDetails {
         }
     }
 
+    pub fn new_shift(hsv_list: Vec<Hsv>) -> LedEffectDetails {
+        LedEffectDetails::Shift {
+            hsv_list: Box::new(hsv_list),
+            current_hsv_index: 0,
+        }
+    }
+
     pub fn get_initial_hsv(&self) -> Hsv {
-        match *self {
+        match &*self {
             LedEffectDetails::Off => Hsv::from_components((0.0, 0.0, 0.0)),
             LedEffectDetails::Static { hsv }
             | LedEffectDetails::Blink {
                 hsv,
                 interval: _,
                 last_blink: _,
-            } => hsv,
+            } => hsv.clone(),
             LedEffectDetails::Breathing {
                 initial_hsv,
                 time_to_peak: step,
                 peak,
                 ..
             } => {
-                if !(0.0..=1.0).contains(&step) {
+                if !(0.0..=1.0).contains(step) {
                     error!("Step must be between 0.0 and 1.0")
                 }
 
-                if peak < initial_hsv.value {
+                if *peak < initial_hsv.value {
                     error!("Peak must be higher than initial value")
                 }
 
-                initial_hsv
+                initial_hsv.clone()
             }
             LedEffectDetails::Rainbow {
                 saturation,
                 value,
                 time_to_complete: step,
             } => {
-                if step > 360.0 {
+                if *step > 360.0 {
                     error!("Step can't be higher than 360 (max hue)")
                 }
 
-                Hsv::from_components((0.0, saturation, value))
+                Hsv::from_components((0.0, *saturation, *value))
             }
+            LedEffectDetails::Shift { hsv_list, .. } => hsv_list.first().unwrap().clone(),
         }
     }
 
     pub fn get_updated_hsv(&mut self, current_hsv: Hsv) -> Hsv {
-        match *self {
+        match self {
             LedEffectDetails::Off => *LED_OFF,
-            LedEffectDetails::Static { hsv } => hsv,
+            LedEffectDetails::Static { hsv } => *hsv,
             LedEffectDetails::Breathing {
                 initial_hsv,
                 time_to_peak: step,
                 peak,
                 ref mut inhaling,
-            } => Self::get_updated_breathing_hsv(current_hsv, initial_hsv, step, peak, inhaling),
+            } => Self::get_updated_breathing_hsv(current_hsv, *initial_hsv, *step, *peak, inhaling),
             LedEffectDetails::Rainbow {
                 saturation,
                 value,
@@ -267,10 +280,10 @@ impl LedEffectDetails {
                 // no need to use [saturation] and [value],
                 // since it was already set in the beginning similar to breathing,
                 // the step is relative to the max possible value
-                let mut new_hsv = current_hsv.shift_hue(time_to_complete);
+                let mut new_hsv = current_hsv.shift_hue(*time_to_complete);
 
-                new_hsv.value = value;
-                new_hsv.saturation = saturation;
+                new_hsv.value = *value;
+                new_hsv.saturation = *saturation;
                 new_hsv
             }
             LedEffectDetails::Blink {
@@ -278,11 +291,11 @@ impl LedEffectDetails {
                 interval,
                 last_blink: ref mut start,
             } => {
-                if start.elapsed() > interval / 2 {
+                if start.elapsed() > *interval / 2 {
                     *start = Instant::now();
 
                     if current_hsv.value == 0.0 {
-                        hsv
+                        *hsv
                     } else {
                         *LED_OFF
                     }

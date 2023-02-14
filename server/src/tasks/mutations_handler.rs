@@ -20,19 +20,19 @@ pub fn spawn(
                 Ok(effect_change) => {
                     let mut controllers = controllers.lock().unwrap();
                     let target = effect_change.target;
-                    let effect = effect_change.effect;
+                    let effect = &effect_change.effect;
 
                     match target {
                         EffectTarget::All => {
                             info!("Setting effect '{effect}' for all controllers");
                             controllers.iter_mut().for_each(|controller| {
-                                mutate_controller_effect(controller, effect);
+                                mutate_controller_effect(controller, effect.clone());
                                 debug!("Controller '{}' set to {effect}", controller.bt_address);
                             });
 
                             if let EffectChangeType::Led { effect } = effect {
                                 let mut initial_state = initial_state.lock().unwrap();
-                                *initial_state = InitialLedState::from(effect);
+                                *initial_state = InitialLedState::from(effect.clone());
                                 debug!("Set '{effect}' as initial effect.");
                             }
                         }
@@ -52,7 +52,7 @@ pub fn spawn(
                                     );
                                         },
                                         |controller| {
-                                            mutate_controller_effect(controller, effect);
+                                            mutate_controller_effect(controller, effect.clone());
                                             info!(
                                                 "Controller '{}' set to {effect}",
                                                 controller.bt_address

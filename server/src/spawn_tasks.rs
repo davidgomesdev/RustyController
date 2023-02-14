@@ -36,7 +36,7 @@ pub async fn run_move(
 ) -> ShutdownCommand {
     let api = PsMoveApi::new();
     let shutdown_flag = Arc::new(AtomicBool::new(false));
-    let initial_effect = Arc::new(Mutex::new(InitialLedState::from(*ON_STARTUP_EFFECT)));
+    let initial_effect = Arc::new(Mutex::new(InitialLedState::from(ON_STARTUP_EFFECT.clone())));
     let (send, recv) = mpsc::channel::<()>(1);
 
     mutations_handler::spawn(controllers.clone(), effect_rx, initial_effect.clone());
