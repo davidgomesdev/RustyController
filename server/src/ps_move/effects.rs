@@ -1,7 +1,6 @@
 use std::fmt;
 
 use lazy_static::lazy_static;
-use log::error;
 use palette::{Hsv, Hue};
 use strum_macros::Display;
 use tokio::time::{Duration, Instant};
@@ -226,11 +225,11 @@ impl LedEffectDetails {
                 ..
             } => {
                 if !(0.0..=1.0).contains(&step) {
-                    error!("Step must be between 0.0 and 1.0")
+                    tracing::error!("Step must be between 0.0 and 1.0")
                 }
 
                 if peak < initial_hsv.value {
-                    error!("Peak must be higher than initial value")
+                    tracing::error!("Peak must be higher than initial value")
                 }
 
                 initial_hsv
@@ -241,7 +240,7 @@ impl LedEffectDetails {
                 time_to_complete: step,
             } => {
                 if step > 360.0 {
-                    error!("Step can't be higher than 360 (max hue)")
+                    tracing::error!("Step can't be higher than 360 (max hue)")
                 }
 
                 Hsv::from_components((0.0, saturation, value))

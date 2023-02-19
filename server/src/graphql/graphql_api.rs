@@ -5,7 +5,6 @@ use futures::FutureExt as _;
 use juniper_graphql_ws::ConnectionConfig;
 use juniper_warp::playground_filter;
 use juniper_warp::subscriptions::serve_graphql_ws;
-use log::{error, info};
 use tokio::sync::broadcast::Sender;
 use tokio::sync::watch::Receiver;
 use warp::{Filter, http::Response};
@@ -40,7 +39,7 @@ pub async fn start(
 
     let root_node = Arc::new(create_schema());
 
-    info!("Listening on 0.0.0.0:8080");
+    tracing::info!("Listening on 0.0.0.0:8080");
 
     let routes = (warp::path("subscriptions")
         .and(warp::ws())
@@ -56,7 +55,7 @@ pub async fn start(
                 serve_graphql_ws(websocket, root_node, ConnectionConfig::new(ctx.clone()))
                     .map(|r| {
                         if let Err(e) = r {
-                            error!("Websocket error: {e}");
+                            tracing::error!("Websocket error: {e}");
                         }
                     })
                     .await

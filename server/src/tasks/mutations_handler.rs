@@ -1,7 +1,6 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use log::{debug, error, info, warn};
 use tokio::sync::broadcast::Receiver;
 use tokio::task::JoinHandle;
 
@@ -24,20 +23,20 @@ pub fn spawn(
 
                     match target {
                         EffectTarget::All => {
-                            info!("Setting effect '{effect}' for all controllers");
+                            tracing::info!("Setting effect '{effect}' for all controllers");
                             controllers.iter_mut().for_each(|controller| {
                                 mutate_controller_effect(controller, effect);
-                                debug!("Controller '{}' set to {effect}", controller.bt_address);
+                                tracing::debug!("Controller '{}' set to {effect}", controller.bt_address);
                             });
 
                             if let EffectChangeType::Led { effect } = effect {
                                 let mut initial_state = initial_state.lock().unwrap();
                                 *initial_state = InitialLedState::from(effect);
-                                debug!("Set '{effect}' as initial effect.");
+                                tracing::debug!("Set '{effect}' as initial effect.");
                             }
                         }
                         EffectTarget::Only { bt_addresses } => {
-                            debug!(
+                            tracing::debug!(
                                 "Setting effect '{effect}' for {} controllers only",
                                 bt_addresses.len()
                             );
@@ -47,13 +46,13 @@ pub fn spawn(
                                     .find(|controller| controller.bt_address == *bt_address)
                                     .map_or_else(
                                         || {
-                                            warn!(
+                                            tracing::warn!(
                                         "The effect change had a non-existing controller! ('{bt_address}')"
                                     );
                                         },
                                         |controller| {
                                             mutate_controller_effect(controller, effect);
-                                            info!(
+                                            tracing::info!(
                                                 "Controller '{}' set to {effect}",
                                                 controller.bt_address
                                             );
@@ -64,7 +63,7 @@ pub fn spawn(
                     }
                 }
                 Err(err) => {
-                    error!("Error occurred in receiving effect update. (Cause: {err})")
+                    tracing::error!("Error occurred in receiving effect update. (Cause: {err})")
                 }
             };
         }

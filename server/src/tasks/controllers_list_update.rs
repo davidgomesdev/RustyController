@@ -2,7 +2,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Duration;
 
-use log::{debug, info};
 use palette::Hsv;
 use tokio::{task, time};
 use tokio::runtime::Handle;
@@ -39,7 +38,7 @@ pub fn spawn(
         let mut interval = time::interval(INTERVAL_DURATION);
 
         rt.block_on(async {
-            info!("Listing controllers with '{}' as the initial effect.", initial_state.lock().unwrap().effect);
+            tracing::info!("Listing controllers with '{}' as the initial effect.", initial_state.lock().unwrap().effect);
         });
 
         while !shutdown_signal.check_is_shutting_down() {
@@ -47,7 +46,7 @@ pub fn spawn(
                 {
                     let initial_effect = &mut initial_state.lock().unwrap().effect;
                     if initial_effect.has_expired() {
-                        debug!(
+                        tracing::debug!(
                         "Initial '{}' effect has expired.",
                         initial_effect
                     );
@@ -77,10 +76,10 @@ pub fn spawn(
                 let initial_effect = initial_state.effect;
 
                 let effect = if initial_effect.is_off() {
-                    info!("Setting on connected effect on '{}'.", controller.bt_address);
+                    tracing::info!("Setting on connected effect on '{}'.", controller.bt_address);
                     get_on_connected_effect()
                 } else {
-                    info!(
+                    tracing::info!(
                         "Setting current initial effect on '{}'. ({initial_effect})",
                         controller.bt_address
                     );
@@ -115,7 +114,7 @@ fn update_changed_controllers(
                     ConnectionType::Usb
                 };
 
-                info!(
+                tracing::info!(
                     "Controller connection changed. ('{}' to {})",
                     controller.bt_address, controller.connection_type
                 );
@@ -134,7 +133,7 @@ fn remove_disconnected_controllers(
             .any(|other| controller.is_same_device(other));
 
         if is_disconnected {
-            info!(
+            tracing::info!(
                 "Controller disconnected. ('{}' by {})",
                 controller.bt_address, controller.connection_type
             );
@@ -156,14 +155,14 @@ fn add_connected_controllers(
         Some(current_controller) => {
             if controller.connection_type != current_controller.connection_type {
                 current_controller.merge_with(&controller);
-                info!(
+                tracing::info!(
                     "Controller connection changed. ('{}' to {})",
                     current_controller.bt_address, current_controller.connection_type
                 );
             }
         }
         None => {
-            info!(
+            tracing::info!(
                 "New controller! ('{}' by {})",
                 controller.bt_address, controller.connection_type
             );

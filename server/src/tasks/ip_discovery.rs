@@ -1,4 +1,3 @@
-use log::{debug, info};
 use tokio::net::UdpSocket;
 use tokio::task::JoinHandle;
 
@@ -13,7 +12,7 @@ pub fn spawn() -> JoinHandle<Option<()>> {
         let socket = UdpSocket::bind(format!("0.0.0.0:{HANDSHAKE_BEGIN_PORT}"))
             .await
             .expect("Failed binding");
-        info!("Binding on {HANDSHAKE_BEGIN_PORT}");
+        tracing::info!("Binding on {HANDSHAKE_BEGIN_PORT}");
 
         socket.set_broadcast(true).unwrap();
 
@@ -31,11 +30,11 @@ pub fn spawn() -> JoinHandle<Option<()>> {
             let ascii_packet = String::from_utf8_lossy(&packet[..14]);
 
             if !ascii_packet.starts_with(HANDSHAKE_REQUEST) {
-                debug!("Received a packet that's not the Rusty handshake");
+                tracing::debug!("Received a packet that's not the Rusty handshake");
                 continue;
             }
 
-            info!(
+            tracing::info!(
                 "Received Rusty handshake begin from {}:{}!",
                 src.ip(),
                 src.port()
@@ -43,14 +42,14 @@ pub fn spawn() -> JoinHandle<Option<()>> {
 
             src.set_port(HANDSHAKE_END_PORT);
 
-            info!("Sending handshake end to {}:{}", src.ip(), src.port());
+            tracing::info!("Sending handshake end to {}:{}", src.ip(), src.port());
 
             socket
                 .send_to(HANDSHAKE_RESPONSE.as_bytes(), &src)
                 .await
                 .expect("Failed sending response");
 
-            info!("Handshake with {} finished", src.ip());
+            tracing::info!("Handshake with {} finished", src.ip());
         }
     })
 }

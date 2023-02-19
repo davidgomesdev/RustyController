@@ -2,7 +2,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Duration;
 
-use log::info;
 use tokio::{task, time};
 use tokio::runtime::Handle;
 use tokio::sync::watch::Sender;
@@ -36,7 +35,7 @@ pub fn spawn(
                     Ok(_) => {
                         controller.button_state.iter().for_each(|btn| match btn.1 {
                             ButtonState::Pressed | ButtonState::Released => {
-                                info!(
+                                tracing::info!(
                                     "Controller {} button {} changed to {}",
                                     controller.bt_address, btn.0, btn.1
                                 );
@@ -50,7 +49,7 @@ pub fn spawn(
                     Err(_) => {
                         let bt_address = &controller.bt_address;
 
-                        info!(
+                        tracing::info!(
                             "Controller disconnected during update. ('{}' by {})",
                             *bt_address, controller.connection_type
                         );
