@@ -19,7 +19,7 @@ mod tracing_setup;
 
 #[tokio::main]
 async fn main() {
-    setup_tracing();
+    setup_tracing().await;
 
     let (effect_tx, effect_rx) = broadcast::channel(32);
     let (ctrl_tx, ctrl_rx) = watch::channel(ControllerChange::from_button(
