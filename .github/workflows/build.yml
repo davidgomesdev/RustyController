@@ -6,6 +6,21 @@ on:
     branches-ignore: [ "main" ]
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      server: ${{ steps.filter.outputs.server }}
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          server:
+            - 'server/**'
+          app:
+            - 'app/**'
+
   server:
     runs-on: ubuntu-latest
     
