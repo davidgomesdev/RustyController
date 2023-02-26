@@ -6,12 +6,14 @@ on:
     branches-ignore: [ "main" ]
 
 jobs:
-  changes:
+  detect-changes:
     runs-on: ubuntu-latest
     outputs:
       server: ${{ steps.filter.outputs.server }}
       app: ${{ steps.filter.outputs.app }}
     steps:
+    - uses: actions/checkout@v3
+
     - uses: dorny/paths-filter@v2
       id: filter
       with:
