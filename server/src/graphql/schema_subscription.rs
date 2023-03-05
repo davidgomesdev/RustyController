@@ -19,7 +19,7 @@ impl SubscriptionRoot {
     * Only available when the controller is connected by Bluetooth, or Bluetooth+USB"
     )]
     async fn button_change(context: &Context) -> ButtonChangeStream {
-        let mut rx = { context.ctrl_rx.clone().lock().unwrap().clone() };
+        let mut rx = { context.ctrl_rx.clone().lock().await.clone() };
 
         // Ignore the current value, send only new values
         let _ = rx.changed().await;

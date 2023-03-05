@@ -1,8 +1,8 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 use std::time::Duration;
 
 use palette::Hsv;
+use tokio::sync::Mutex;
 use tokio::time;
 use tokio::time::Instant;
 
@@ -35,12 +35,12 @@ pub async fn run(
 
     tracing::info!(
         "Listing controllers with '{}' as the initial effect.",
-        initial_state.lock().unwrap().effect
+        initial_state.lock().await.effect
     );
 
     while !shutdown_signal.check_is_shutting_down() {
         {
-            let initial_effect = &mut initial_state.lock().unwrap().effect;
+            let initial_effect = &mut initial_state.lock().await.effect;
             if initial_effect.has_expired() {
                 tracing::debug!("Initial '{}' effect has expired.", initial_effect);
                 *initial_effect = LedEffect::off();
@@ -52,19 +52,20 @@ pub async fn run(
         api.refresh();
 
         let list_result = {
-            let controllers = controllers.lock().unwrap();
+            let controllers = controllers.lock().await;
             api.list(&controllers)
         };
 
         let new_controllers = api.connect_controllers(list_result.connected);
 
-        let mut controllers = controllers.lock().unwrap();
+        let mut controllers = controllers.lock().await;
 
         update_changed_controllers(&mut controllers, &list_result.disconnected);
         remove_disconnected_controllers(&mut controllers, &list_result.disconnected);
 
+        let initial_state = initial_state.lock().await;
+
         new_controllers.into_iter().for_each(|mut controller| {
-            let initial_state = initial_state.lock().unwrap();
             let initial_effect = initial_state.effect;
 
             let effect = if initial_effect.is_off() {

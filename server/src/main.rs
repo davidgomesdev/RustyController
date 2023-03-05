@@ -1,7 +1,7 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use tokio::sync::{broadcast, watch};
+use tokio::sync::Mutex;
 
 use graphql::graphql_api;
 use ps_move::effects::LedEffectDetails;

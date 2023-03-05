@@ -1,7 +1,7 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 use std::time::Duration;
 
+use tokio::sync::Mutex;
 use tokio::sync::watch::Sender;
 use tokio::time;
 
@@ -22,7 +22,7 @@ pub async fn run(
     while !shutdown_signal.check_is_shutting_down() {
         interval.tick().await;
 
-        let mut controllers = controllers.lock().unwrap();
+        let mut controllers = controllers.lock().await;
         let mut failed_addresses = Vec::<String>::new();
 
         controllers

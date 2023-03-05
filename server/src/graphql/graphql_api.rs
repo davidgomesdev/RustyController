@@ -1,11 +1,11 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use futures::FutureExt as _;
 use juniper_graphql_ws::ConnectionConfig;
 use juniper_warp::playground_filter;
 use juniper_warp::subscriptions::serve_graphql_ws;
 use tokio::sync::broadcast::Sender;
+use tokio::sync::Mutex;
 use tokio::sync::watch::Receiver;
 use warp::{Filter, http::Response};
 
