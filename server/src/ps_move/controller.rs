@@ -201,7 +201,7 @@ impl PsMoveController {
                 if let HidError::HidApiError { message } = err {
                     // This is an error that sometimes occurs when there's a connection drop
                     if message == "Overlapped I/O operation is in progress." {
-                        tracing::debug!("Couldn't set HSV due to {err}");
+                        tracing::trace!("Couldn't set HSV due to {err}");
                         return Ok(());
                     }
                 }
