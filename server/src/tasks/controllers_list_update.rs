@@ -3,9 +3,7 @@ use std::sync::Mutex;
 use std::time::Duration;
 
 use palette::Hsv;
-use tokio::{task, time};
-use tokio::runtime::Handle;
-use tokio::task::JoinHandle;
+use tokio::time;
 use tokio::time::Instant;
 
 use crate::ps_move::api::PsMoveApi;
@@ -27,70 +25,66 @@ fn get_on_connected_effect() -> LedEffect {
     )
 }
 
-pub fn spawn(
+pub async fn run(
     controllers: Arc<Mutex<Vec<PsMoveController>>>,
     mut api: PsMoveApi,
     mut shutdown_signal: ShutdownSignal,
     initial_state: Arc<Mutex<InitialLedState>>,
-) -> JoinHandle<()> {
-    task::spawn_blocking(move || {
-        let rt = Handle::current();
-        let mut interval = time::interval(INTERVAL_DURATION);
+) {
+    let mut interval = time::interval(INTERVAL_DURATION);
 
-        rt.block_on(async {
-            tracing::info!("Listing controllers with '{}' as the initial effect.", initial_state.lock().unwrap().effect);
-        });
+    tracing::info!(
+        "Listing controllers with '{}' as the initial effect.",
+        initial_state.lock().unwrap().effect
+    );
 
-        while !shutdown_signal.check_is_shutting_down() {
-            rt.block_on(async {
-                {
-                    let initial_effect = &mut initial_state.lock().unwrap().effect;
-                    if initial_effect.has_expired() {
-                        tracing::debug!(
-                        "Initial '{}' effect has expired.",
-                        initial_effect
-                    );
-                        *initial_effect = LedEffect::off();
-                    }
-                }
+    while !shutdown_signal.check_is_shutting_down() {
+        {
+            let initial_effect = &mut initial_state.lock().unwrap().effect;
+            if initial_effect.has_expired() {
+                tracing::debug!("Initial '{}' effect has expired.", initial_effect);
+                *initial_effect = LedEffect::off();
+            }
+        }
 
-                interval.tick().await;
-            });
+        interval.tick().await;
 
-            api.refresh();
+        api.refresh();
 
-            let list_result = {
-                let controllers = rt.block_on(async { controllers.lock().unwrap() });
-                api.list(&controllers)
+        let list_result = {
+            let controllers = controllers.lock().unwrap();
+            api.list(&controllers)
+        };
+
+        let new_controllers = api.connect_controllers(list_result.connected);
+
+        let mut controllers = controllers.lock().unwrap();
+
+        update_changed_controllers(&mut controllers, &list_result.disconnected);
+        remove_disconnected_controllers(&mut controllers, &list_result.disconnected);
+
+        new_controllers.into_iter().for_each(|mut controller| {
+            let initial_state = initial_state.lock().unwrap();
+            let initial_effect = initial_state.effect;
+
+            let effect = if initial_effect.is_off() {
+                tracing::info!(
+                    "Setting on connected effect on '{}'.",
+                    controller.bt_address
+                );
+                get_on_connected_effect()
+            } else {
+                tracing::info!(
+                    "Setting current initial effect on '{}'. ({initial_effect})",
+                    controller.bt_address
+                );
+                initial_effect
             };
 
-            let new_controllers = api.connect_controllers(list_result.connected);
-
-            let mut controllers = rt.block_on(async { controllers.lock().unwrap() });
-
-            update_changed_controllers(&mut controllers, &list_result.disconnected);
-            remove_disconnected_controllers(&mut controllers, &list_result.disconnected);
-
-            new_controllers.into_iter().for_each(|mut controller| {
-                let initial_state = rt.block_on(async { initial_state.lock().unwrap() });
-                let initial_effect = initial_state.effect;
-
-                let effect = if initial_effect.is_off() {
-                    tracing::info!("Setting on connected effect on '{}'.", controller.bt_address);
-                    get_on_connected_effect()
-                } else {
-                    tracing::info!(
-                        "Setting current initial effect on '{}'. ({initial_effect})",
-                        controller.bt_address
-                    );
-                    initial_effect
-                };
-
-                controller.set_led_effect_with_hsv(effect, initial_state.hsv);
-                add_connected_controllers(&mut controllers, controller);
-            });
-        }
-    })
+            controller.set_led_effect_with_hsv(effect, initial_state.hsv);
+            add_connected_controllers(&mut controllers, controller);
+        });
+    }
 }
 
 /// Updates controllers that were connected via both Bluetooth and USB,
@@ -116,7 +110,8 @@ fn update_changed_controllers(
 
                 tracing::info!(
                     "Controller connection changed. ('{}' to {})",
-                    controller.bt_address, controller.connection_type
+                    controller.bt_address,
+                    controller.connection_type
                 );
                 controller.connection_type = connection_type;
             }
@@ -135,7 +130,8 @@ fn remove_disconnected_controllers(
         if is_disconnected {
             tracing::info!(
                 "Controller disconnected. ('{}' by {})",
-                controller.bt_address, controller.connection_type
+                controller.bt_address,
+                controller.connection_type
             );
         }
 
@@ -157,14 +153,16 @@ fn add_connected_controllers(
                 current_controller.merge_with(&controller);
                 tracing::info!(
                     "Controller connection changed. ('{}' to {})",
-                    current_controller.bt_address, current_controller.connection_type
+                    current_controller.bt_address,
+                    current_controller.connection_type
                 );
             }
         }
         None => {
             tracing::info!(
                 "New controller! ('{}' by {})",
-                controller.bt_address, controller.connection_type
+                controller.bt_address,
+                controller.connection_type
             );
 
             controllers.push(controller);

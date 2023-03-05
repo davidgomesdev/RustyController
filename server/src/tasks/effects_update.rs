@@ -10,30 +10,28 @@ use crate::spawn_tasks::InitialLedState;
 
 pub const INTERVAL_DURATION: Duration = Duration::from_millis(1);
 
-pub fn spawn(
+pub async fn run(
     controllers: Arc<Mutex<Vec<PsMoveController>>>,
     initial_state: Arc<Mutex<InitialLedState>>,
 ) -> JoinHandle<()> {
-    tokio::spawn(async move {
-        let mut interval = time::interval(INTERVAL_DURATION);
+    let mut interval = time::interval(INTERVAL_DURATION);
 
-        loop {
-            interval.tick().await;
+    loop {
+        interval.tick().await;
 
-            {
-                let mut controllers = controllers.lock().unwrap();
+        {
+            let mut controllers = controllers.lock().unwrap();
 
-                controllers.iter_mut().for_each(|controller| {
-                    controller.transform_led();
-                    controller.transform_rumble();
-                });
-            }
-
-            let mut initial_state = initial_state.lock().unwrap();
-            let current_hsv = initial_state.hsv;
-            let effect = &mut initial_state.effect;
-
-            initial_state.hsv = effect.details.get_updated_hsv(current_hsv);
+            controllers.iter_mut().for_each(|controller| {
+                controller.transform_led();
+                controller.transform_rumble();
+            });
         }
-    })
+
+        let mut initial_state = initial_state.lock().unwrap();
+        let current_hsv = initial_state.hsv;
+        let effect = &mut initial_state.effect;
+
+        initial_state.hsv = effect.details.get_updated_hsv(current_hsv);
+    }
 }
