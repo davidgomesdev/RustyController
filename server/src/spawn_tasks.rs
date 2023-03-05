@@ -43,6 +43,23 @@ pub async fn run_move(
         controller_update: TaskMonitor::new(),
     };
 
+    {
+        let frequency = Duration::from_millis(10_000);
+        // TODO: to test for now
+        let monitor = monitors.controller_update.clone();
+        tokio::spawn(async move {
+            for metrics in monitor.intervals() {
+                tracing::warn!(
+                    "Durations: Poll {:.2?} / Scheduled {:.2?} / Idle {:.2?}",
+                    metrics.mean_poll_duration(),
+                    metrics.mean_scheduled_duration(),
+                    metrics.mean_idle_duration()
+                );
+                tokio::time::sleep(frequency).await;
+            }
+        });
+    }
+
     let api = PsMoveApi::new();
     let shutdown_flag = Arc::new(AtomicBool::new(false));
     let initial_effect = Arc::new(Mutex::new(InitialLedState::from(*ON_STARTUP_EFFECT)));
