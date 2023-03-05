@@ -105,7 +105,9 @@ pub async fn run_move(
         });
     }
 
-    ip_discovery::spawn();
+    task::spawn_blocking(move || {
+        Handle::current().block_on(ip_discovery::spawn())
+    });
 
     ShutdownCommand {
         flag: shutdown_flag,
