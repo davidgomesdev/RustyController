@@ -2,10 +2,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Duration;
 
-use tokio::{task, time};
-use tokio::runtime::Handle;
 use tokio::sync::watch::Sender;
-use tokio::task::JoinHandle;
+use tokio::time;
 
 use crate::ControllerChange;
 use crate::ps_move::controller::PsMoveController;
@@ -14,51 +12,52 @@ use crate::spawn_tasks::ShutdownSignal;
 
 const INTERVAL_DURATION: Duration = Duration::from_millis(10);
 
-pub fn spawn(
+pub async fn run(
     controllers: Arc<Mutex<Vec<PsMoveController>>>,
     ctrl_tx: Sender<ControllerChange>,
     mut shutdown_signal: ShutdownSignal,
-) -> JoinHandle<()> {
-    task::spawn_blocking(move || {
-        let rt = Handle::current();
+) {
+    let mut interval = time::interval(INTERVAL_DURATION);
 
-        while !shutdown_signal.check_is_shutting_down() {
-            let mut controllers = rt.block_on(async {
-                time::sleep(INTERVAL_DURATION).await;
-                controllers.lock().unwrap()
+    while !shutdown_signal.check_is_shutting_down() {
+        interval.tick().await;
+
+        let mut controllers = controllers.lock().unwrap();
+        let mut failed_addresses = Vec::<String>::new();
+
+        controllers
+            .iter_mut()
+            .for_each(|controller| match controller.update() {
+                Ok(_) => {
+                    controller.button_state.iter().for_each(|btn| match btn.1 {
+                        ButtonState::Pressed | ButtonState::Released => {
+                            tracing::info!(
+                                "Controller {} button {} changed to {}",
+                                controller.bt_address,
+                                btn.0,
+                                btn.1
+                            );
+
+                            ctrl_tx
+                                .send(ControllerChange::from_button(btn.0, btn.1))
+                                .unwrap();
+                        }
+                        _ => {}
+                    });
+                }
+                Err(_) => {
+                    let bt_address = &controller.bt_address;
+
+                    tracing::info!(
+                        "Controller disconnected during update. ('{}' by {})",
+                        *bt_address,
+                        controller.connection_type
+                    );
+
+                    failed_addresses.push(bt_address.clone());
+                }
             });
-            let mut failed_addresses = Vec::<String>::new();
 
-            controllers
-                .iter_mut()
-                .for_each(|controller| match controller.update() {
-                    Ok(_) => {
-                        controller.button_state.iter().for_each(|btn| match btn.1 {
-                            ButtonState::Pressed | ButtonState::Released => {
-                                tracing::info!(
-                                    "Controller {} button {} changed to {}",
-                                    controller.bt_address, btn.0, btn.1
-                                );
-
-                                ctrl_tx
-                                    .send(ControllerChange::from_button(btn.0, btn.1)).unwrap();
-                            }
-                            _ => {}
-                        });
-                    }
-                    Err(_) => {
-                        let bt_address = &controller.bt_address;
-
-                        tracing::info!(
-                            "Controller disconnected during update. ('{}' by {})",
-                            *bt_address, controller.connection_type
-                        );
-
-                        failed_addresses.push(bt_address.clone());
-                    }
-                });
-
-            controllers.retain(|c| !failed_addresses.contains(&c.bt_address));
-        }
-    })
+        controllers.retain(|c| !failed_addresses.contains(&c.bt_address));
+    }
 }

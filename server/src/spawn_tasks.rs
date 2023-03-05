@@ -40,6 +40,7 @@ pub async fn run_move(
     let monitors = Monitors {
         effects_update: TaskMonitor::new(),
         controllers_list: TaskMonitor::new(),
+        controller_update: TaskMonitor::new(),
     };
 
     let api = PsMoveApi::new();
@@ -52,7 +53,11 @@ pub async fn run_move(
         let initial_effect = initial_effect.clone();
 
         task::spawn_blocking(move || {
-            Handle::current().block_on(mutations_handler::run(controllers, effect_rx, initial_effect))
+            Handle::current().block_on(mutations_handler::run(
+                controllers,
+                effect_rx,
+                initial_effect,
+            ))
         });
     }
 
@@ -64,6 +69,7 @@ pub async fn run_move(
     {
         let controllers = controllers.clone();
         let shutdown_signal = ShutdownSignal::new(&send, &shutdown_flag);
+
         task::spawn_blocking(move || {
             Handle::current().block_on(monitors.controllers_list.instrument(
                 controllers_list_update::run(controllers, api, shutdown_signal, initial_effect),
@@ -71,11 +77,16 @@ pub async fn run_move(
         });
     }
 
-    controller_update::spawn(
-        controllers.clone(),
-        ctrl_tx,
-        ShutdownSignal::new(&send, &shutdown_flag),
-    );
+    {
+        let controllers = controllers.clone();
+        let shutdown_signal = ShutdownSignal::new(&send, &shutdown_flag);
+
+        task::spawn_blocking(move || {
+            Handle::current().block_on(monitors.controller_update.instrument(
+                controller_update::run(controllers, ctrl_tx, shutdown_signal),
+            ))
+        });
+    }
 
     ip_discovery::spawn();
 
@@ -146,4 +157,5 @@ impl InitialLedState {
 struct Monitors {
     effects_update: TaskMonitor,
     controllers_list: TaskMonitor,
+    controller_update: TaskMonitor,
 }
