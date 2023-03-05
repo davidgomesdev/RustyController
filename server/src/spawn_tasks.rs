@@ -47,7 +47,14 @@ pub async fn run_move(
     let initial_effect = Arc::new(Mutex::new(InitialLedState::from(*ON_STARTUP_EFFECT)));
     let (send, recv) = mpsc::channel::<()>(1);
 
-    mutations_handler::spawn(controllers.clone(), effect_rx, initial_effect.clone());
+    {
+        let controllers = controllers.clone();
+        let initial_effect = initial_effect.clone();
+
+        task::spawn_blocking(move || {
+            Handle::current().block_on(mutations_handler::run(controllers, effect_rx, initial_effect))
+        });
+    }
 
     tokio::spawn(monitors.effects_update.instrument(effects_update::run(
         controllers.clone(),
