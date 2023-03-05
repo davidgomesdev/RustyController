@@ -1,3 +1,4 @@
+use std::iter::Iterator;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
@@ -10,7 +11,7 @@ use tokio::sync::broadcast::Receiver;
 use tokio::sync::watch::Sender;
 use tokio::task;
 use tokio::time::Instant;
-use tokio_metrics::TaskMonitor;
+use tokio_metrics::{TaskMetrics, TaskMonitor};
 
 use crate::ControllerChange;
 use crate::ps_move::api::PsMoveApi;
@@ -43,23 +44,6 @@ pub async fn run_move(
         controller_update: TaskMonitor::new(),
     };
 
-    {
-        let frequency = Duration::from_millis(10_000);
-        // TODO: to test for now
-        let monitor = monitors.controller_update.clone();
-        tokio::spawn(async move {
-            for metrics in monitor.intervals() {
-                tracing::warn!(
-                    "Durations: Poll {:.2?} / Scheduled {:.2?} / Idle {:.2?}",
-                    metrics.mean_poll_duration(),
-                    metrics.mean_scheduled_duration(),
-                    metrics.mean_idle_duration()
-                );
-                tokio::time::sleep(frequency).await;
-            }
-        });
-    }
-
     let api = PsMoveApi::new();
     let shutdown_flag = Arc::new(AtomicBool::new(false));
     let initial_effect = Arc::new(Mutex::new(InitialLedState::from(*ON_STARTUP_EFFECT)));
@@ -78,17 +62,22 @@ pub async fn run_move(
         });
     }
 
-    tokio::spawn(monitors.effects_update.instrument(effects_update::run(
-        controllers.clone(),
-        initial_effect.clone(),
-    )));
+    tokio::spawn(
+        monitors
+            .effects_update
+            .instrument(effects_update::run(
+                controllers.clone(),
+                initial_effect.clone(),
+            )),
+    );
 
     {
         let controllers = controllers.clone();
         let shutdown_signal = ShutdownSignal::new(&send, &shutdown_flag);
+        let monitor = monitors.controllers_list.clone();
 
         task::spawn_blocking(move || {
-            Handle::current().block_on(monitors.controllers_list.instrument(
+            Handle::current().block_on(monitor.instrument(
                 controllers_list_update::run(controllers, api, shutdown_signal, initial_effect),
             ))
         });
@@ -97,22 +86,51 @@ pub async fn run_move(
     {
         let controllers = controllers.clone();
         let shutdown_signal = ShutdownSignal::new(&send, &shutdown_flag);
+        let monitor = monitors.controller_update.clone();
 
         task::spawn_blocking(move || {
-            Handle::current().block_on(monitors.controller_update.instrument(
+            Handle::current().block_on(monitor.instrument(
                 controller_update::run(controllers, ctrl_tx, shutdown_signal),
             ))
         });
     }
 
-    task::spawn_blocking(move || {
-        Handle::current().block_on(ip_discovery::spawn())
+    task::spawn_blocking(move || Handle::current().block_on(ip_discovery::spawn()));
+
+    let frequency = Duration::from_millis(10_000);
+
+    tokio::spawn(async move {
+        let intervals = monitors.effects_update.intervals().zip(
+            monitors
+                .controllers_list
+                .intervals()
+                .zip(monitors.controller_update.intervals()),
+        );
+
+        for (effects_update, (controllers_list, controller_update)) in intervals {
+            log_metrics("effects_update", effects_update);
+            log_metrics("controllers_list", controllers_list);
+            log_metrics("controller_update", controller_update);
+
+            tokio::time::sleep(frequency).await;
+        }
     });
 
     ShutdownCommand {
         flag: shutdown_flag,
         channel: recv,
     }
+}
+
+fn log_metrics(name: &str, metrics: TaskMetrics) {
+    tracing::info!(
+        target = name,
+        is_metric = true,
+        "Durations: Poll {:.2?} / Scheduled {:.2?} / Idle {:.2?}",
+        metrics.mean_poll_duration(),
+        metrics.mean_scheduled_duration(),
+        metrics.mean_idle_duration(),
+    );
 }
 
 pub struct ShutdownCommand {

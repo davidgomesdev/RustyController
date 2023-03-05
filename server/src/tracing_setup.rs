@@ -38,9 +38,7 @@ pub async fn setup_tracing() {
         Ok(_) => {
             let (layer, task) = build_loki_layer();
 
-            registry
-                .with(layer)
-                .init();
+            registry.with(layer).init();
             tokio::spawn(task);
 
             tracing::info!("Loki initialized");
