@@ -4,10 +4,13 @@ use std::time::Duration;
 
 use lazy_static::lazy_static;
 use palette::Hsv;
+use tokio::runtime::Handle;
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::mpsc;
 use tokio::sync::watch::Sender;
+use tokio::task;
 use tokio::time::Instant;
+use tokio_metrics::TaskMonitor;
 
 use crate::ControllerChange;
 use crate::ps_move::api::PsMoveApi;
@@ -34,24 +37,39 @@ pub async fn run_move(
     ctrl_tx: Sender<ControllerChange>,
     controllers: &Arc<Mutex<Vec<PsMoveController>>>,
 ) -> ShutdownCommand {
+    let monitors = Monitors {
+        effects_update: TaskMonitor::new(),
+        controllers_list: TaskMonitor::new(),
+    };
+
     let api = PsMoveApi::new();
     let shutdown_flag = Arc::new(AtomicBool::new(false));
     let initial_effect = Arc::new(Mutex::new(InitialLedState::from(*ON_STARTUP_EFFECT)));
     let (send, recv) = mpsc::channel::<()>(1);
 
     mutations_handler::spawn(controllers.clone(), effect_rx, initial_effect.clone());
-    effects_update::spawn(controllers.clone(), initial_effect.clone());
-    controllers_list_update::spawn(
+
+    tokio::spawn(monitors.effects_update.instrument(effects_update::run(
         controllers.clone(),
-        api,
-        ShutdownSignal::new(&send, &shutdown_flag),
-        initial_effect,
-    );
+        initial_effect.clone(),
+    )));
+
+    {
+        let controllers = controllers.clone();
+        let shutdown_signal = ShutdownSignal::new(&send, &shutdown_flag);
+        task::spawn_blocking(move || {
+            Handle::current().block_on(monitors.controllers_list.instrument(
+                controllers_list_update::run(controllers, api, shutdown_signal, initial_effect),
+            ))
+        });
+    }
+
     controller_update::spawn(
         controllers.clone(),
         ctrl_tx,
         ShutdownSignal::new(&send, &shutdown_flag),
     );
+
     ip_discovery::spawn();
 
     ShutdownCommand {
@@ -116,4 +134,9 @@ impl InitialLedState {
             effect,
         }
     }
+}
+
+struct Monitors {
+    effects_update: TaskMonitor,
+    controllers_list: TaskMonitor,
 }
