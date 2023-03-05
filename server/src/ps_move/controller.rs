@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use hidapi::{HidDevice, HidError};
-use log::{debug, error, info};
 use palette::{FromColor, Hsv, Srgb};
 
 use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectDetails};
@@ -109,7 +108,7 @@ impl PsMoveController {
             RumbleEffectDetails::Off => {}
             RumbleEffectDetails::Static { strength } => {
                 if !(0.0..=1.0).contains(&strength) {
-                    error!("Strength must be between 0.0 and 1.0")
+                    tracing::error!("Strength must be between 0.0 and 1.0")
                 }
             }
             RumbleEffectDetails::Breathing {
@@ -119,20 +118,20 @@ impl PsMoveController {
                 ..
             } => {
                 if !(0.0..=1.0).contains(&initial_strength) {
-                    error!("Initial strength must be between 0.0 and 1.0")
+                    tracing::error!("Initial strength must be between 0.0 and 1.0")
                 }
 
                 if !(0.0..=1.0).contains(&step) {
-                    error!("Step must be between 0.0 and 1.0")
+                    tracing::error!("Step must be between 0.0 and 1.0")
                 }
 
                 if peak < initial_strength {
-                    error!("Peak must be higher than initial strength")
+                    tracing::error!("Peak must be higher than initial strength")
                 }
             },
             RumbleEffectDetails::Blink { strength, .. } => {
                 if !(0.0..=1.0).contains(&strength) {
-                    error!("Strength must be between 0.0 and 1.0")
+                    tracing::error!("Strength must be between 0.0 and 1.0")
                 }
             }
         };
@@ -202,11 +201,11 @@ impl PsMoveController {
                 if let HidError::HidApiError { message } = err {
                     // This is an error that sometimes occurs when there's a connection drop
                     if message == "Overlapped I/O operation is in progress." {
-                        debug!("Couldn't set HSV due to {err}");
+                        tracing::debug!("Couldn't set HSV due to {err}");
                         return Ok(());
                     }
                 }
-                error!("Failed to set HSV {err}");
+                tracing::error!("Failed to set HSV {err}");
                 Err(())
             }
         }
@@ -220,12 +219,12 @@ impl PsMoveController {
             self.last_battery = *battery;
 
             if *battery == Unknown {
-                info!(
+                tracing::info!(
                     "Controller battery status known. ('{}' at {curr_battery})",
                     self.bt_address
                 );
             } else {
-                info!(
+                tracing::info!(
                     "Controller battery status changed. ('{}' to {curr_battery})",
                     self.bt_address
                 );

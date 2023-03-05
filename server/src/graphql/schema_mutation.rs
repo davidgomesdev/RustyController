@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use juniper::{FieldError, FieldResult, Value};
-use log::{debug, info};
 use tokio::time::Instant;
 
 use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffectDetails};
@@ -17,8 +16,8 @@ pub struct MutationRoot;
 impl MutationRoot {
     #[graphql(description = "Turn the led off.")]
     fn set_led_off(ctx: &Context, input: Option<OffEffectInput>) -> FieldResult<MutationResponse> {
-        info!("Received led off effect");
-        debug!("Effect input: {input:?}");
+        tracing::info!("Received led off effect");
+        tracing::debug!("Effect input: {input:?}");
 
         let controllers = input.map(|input| input.controllers);
         process_led_effect_mutation(ctx, LedEffect::off(), controllers)
@@ -26,14 +25,14 @@ impl MutationRoot {
 
     #[graphql(description = "Set a constant color.")]
     fn set_led_static(ctx: &Context, input: StaticLedEffectInput) -> FieldResult<MutationResponse> {
-        info!(
+        tracing::info!(
             "Received led static effect ({})",
             input
                 .name
                 .clone()
                 .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
-        debug!("Effect input: {input:?}");
+        tracing::debug!("Effect input: {input:?}");
 
         if input.name.map_or(false, |name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
@@ -82,14 +81,14 @@ impl MutationRoot {
         ctx: &Context,
         input: BreathingLedEffectInput,
     ) -> FieldResult<MutationResponse> {
-        info!(
+        tracing::info!(
             "Received led breathing effect ({})",
             input
                 .name
                 .clone()
                 .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
-        debug!("Effect input: {input:?}");
+        tracing::debug!("Effect input: {input:?}");
 
         if input.name.map_or(false, |name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
@@ -156,14 +155,14 @@ impl MutationRoot {
         ctx: &Context,
         input: RainbowLedEffectInput,
     ) -> FieldResult<MutationResponse> {
-        info!(
+        tracing::info!(
             "Received led rainbow effect ({})",
             input
                 .name
                 .clone()
                 .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
-        debug!("Effect input: {input:?}");
+        tracing::debug!("Effect input: {input:?}");
 
         if input.name.map_or(false, |name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
@@ -206,14 +205,14 @@ impl MutationRoot {
 
     #[graphql(description = "Alternate between color and off.")]
     fn set_led_blink(ctx: &Context, input: BlinkLedEffectInput) -> FieldResult<MutationResponse> {
-        info!(
+        tracing::info!(
             "Received led blink effect ({})",
             input
                 .name
                 .clone()
                 .map_or(String::from("unnamed"), |name| format!("'{name}'"))
         );
-        debug!("Effect input: {input:?}");
+        tracing::debug!("Effect input: {input:?}");
 
         if input.name.map_or(false, |name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
@@ -266,7 +265,7 @@ impl MutationRoot {
         ctx: &Context,
         input: Option<OffEffectInput>,
     ) -> FieldResult<MutationResponse> {
-        debug!("Received rumble off effect (with {input:?})");
+        tracing::debug!("Received rumble off effect (with {input:?})");
 
         let controllers = input.map(|input| input.controllers);
         process_rumble_effect_mutation(ctx, RumbleEffect::off(), controllers)
@@ -277,7 +276,7 @@ impl MutationRoot {
         ctx: &Context,
         input: StaticRumbleEffectInput,
     ) -> FieldResult<MutationResponse> {
-        debug!("Received rumble static effect (with {input:?})");
+        tracing::debug!("Received rumble static effect (with {input:?})");
 
         if input.duration.filter(|duration| *duration < 0).is_some() {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
@@ -306,7 +305,7 @@ impl MutationRoot {
         ctx: &Context,
         input: BreathingRumbleEffectInput,
     ) -> FieldResult<MutationResponse> {
-        debug!("Received rumble breathing effect (with {input:?})");
+        tracing::debug!("Received rumble breathing effect (with {input:?})");
 
         if input.duration.filter(|duration| *duration < 0).is_some() {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
@@ -359,8 +358,8 @@ impl MutationRoot {
         ctx: &Context,
         input: BlinkRumbleEffectInput,
     ) -> FieldResult<MutationResponse> {
-        info!("Received rumble blink effect");
-        debug!("Effect input: {input:?}");
+        tracing::info!("Received rumble blink effect");
+        tracing::debug!("Effect input: {input:?}");
 
         if input.strength < 0.0 || input.strength > 1.0 {
             return Err(FieldError::new(

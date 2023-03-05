@@ -2,7 +2,6 @@ use std::ffi::CString;
 use std::str;
 
 use hidapi::{DeviceInfo, HidApi, HidDevice};
-use log::{error, trace};
 use palette::Hsv;
 
 use crate::ps_move::controller::PsMoveController;
@@ -44,7 +43,7 @@ impl PsMoveApi {
         let result = self.hid.refresh_devices();
 
         if result.is_err() {
-            error!("Failed to refresh devices {}", result.unwrap_err());
+            tracing::error!("Failed to refresh devices {}", result.unwrap_err());
         }
     }
 
@@ -162,7 +161,7 @@ impl PsMoveApi {
                 match device.set_blocking_mode(false) {
                     Ok(_) => {}
                     Err(err) => {
-                        error!("Unable to set '{bt_address}' to nonblocking {err}");
+                        tracing::error!("Unable to set '{bt_address}' to nonblocking {err}");
                         return None;
                     }
                 }
@@ -188,14 +187,14 @@ impl PsMoveApi {
                 ))
             }
             Err(err) => {
-                error!("Couldn't open '{path}'. Caused by {err}");
+                tracing::error!("Couldn't open '{path}'. Caused by {err}");
                 None
             }
         }
     }
 
     fn get_bt_address_on_windows(&self, path_str: &str) -> String {
-        trace!("Getting bluetooth address by special device, due to Windows.");
+        tracing::trace!("Getting bluetooth address by special device, due to Windows.");
 
         let magic_bt_path = path_str
             .replace(MAGIC_PATH, WINDOWS_BLUETOOTH_MAGIC_PATH)
@@ -206,11 +205,11 @@ impl PsMoveApi {
             .open_path(&CString::new(magic_bt_path).unwrap())
         {
             Ok(special_bt_device) => {
-                trace!("Got special device for bluetooth.");
+                tracing::trace!("Got special device for bluetooth.");
                 Self::get_bt_address(&special_bt_device).unwrap_or_else(|| String::from(""))
             }
             Err(err) => {
-                error!("Couldn't open device. Caused by: {err}");
+                tracing::error!("Couldn't open device. Caused by: {err}");
                 String::from("")
             }
         }
@@ -246,12 +245,12 @@ impl PsMoveApi {
                     addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]
                 );
 
-                trace!("Got bluetooth address {}", addr);
+                tracing::trace!("Got bluetooth address {}", addr);
 
                 Some(addr)
             }
             Err(err) => {
-                error!("Failed to get bt address {err}");
+                tracing::error!("Failed to get bt address {err}");
                 None
             }
         }
