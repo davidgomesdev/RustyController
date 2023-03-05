@@ -3,7 +3,8 @@ use std::io;
 use tracing::Level;
 use tracing_loki::BackgroundTask;
 use tracing_loki::url::Url;
-use tracing_subscriber::{filter, fmt};
+use tracing_subscriber::{filter, fmt, Layer};
+use tracing_subscriber::filter::filter_fn;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -28,9 +29,13 @@ pub async fn setup_tracing() {
         .with_target("rusty_controller", Level::DEBUG)
         .with_default(Level::WARN);
 
-    let registry = tracing_subscriber::registry()
-        .with(filter)
-        .with(fmt::layer().with_writer(io::stdout.and(file)));
+    let registry = tracing_subscriber::registry().with(filter).with(
+        fmt::layer()
+            .with_writer(io::stdout.and(file))
+            .with_filter(filter_fn(|metadata| {
+                metadata.target() != "rusty_controller::metrics"
+            })),
+    );
 
     let http = Client::new();
 

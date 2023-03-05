@@ -124,8 +124,11 @@ pub async fn run_move(
 
 fn log_metrics(name: &str, metrics: TaskMetrics) {
     tracing::info!(
-        target = name,
-        is_metric = true,
+        target: "rusty_controller::metrics",
+        task = name,
+        poll_duration = metrics.mean_poll_duration().as_nanos(),
+        scheduled_duration = metrics.mean_scheduled_duration().as_nanos(),
+        idle_duration = metrics.mean_idle_duration().as_nanos(),
         "Durations: Poll {:.2?} / Scheduled {:.2?} / Idle {:.2?}",
         metrics.mean_poll_duration(),
         metrics.mean_scheduled_duration(),
