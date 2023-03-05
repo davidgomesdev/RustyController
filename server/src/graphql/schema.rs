@@ -1,8 +1,8 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use juniper::RootNode;
 use tokio::sync::broadcast::Sender;
+use tokio::sync::Mutex;
 use tokio::sync::watch::Receiver;
 
 use crate::{ControllerChange, EffectChange, PsMoveController};

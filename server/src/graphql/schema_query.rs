@@ -23,7 +23,7 @@ impl QueryRoot {
 
     #[graphql(description = "Lists all connected controllers")]
     async fn controllers(_ctx: &Context) -> FieldResult<Vec<Controller>> {
-        let controllers = _ctx.controllers.lock().unwrap();
+        let controllers = _ctx.controllers.lock().await;
 
         Ok(controllers.iter().map(|ctl| {
             Controller {

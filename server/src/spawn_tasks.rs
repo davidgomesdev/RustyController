@@ -1,12 +1,12 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use lazy_static::lazy_static;
 use palette::Hsv;
 use tokio::runtime::Handle;
+use tokio::sync::{mpsc, Mutex};
 use tokio::sync::broadcast::Receiver;
-use tokio::sync::mpsc;
 use tokio::sync::watch::Sender;
 use tokio::task;
 use tokio::time::Instant;

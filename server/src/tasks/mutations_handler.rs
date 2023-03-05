@@ -1,7 +1,7 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use tokio::sync::broadcast::Receiver;
+use tokio::sync::Mutex;
 
 use crate::{EffectChange, EffectChangeType, EffectTarget};
 use crate::ps_move::controller::PsMoveController;
@@ -15,7 +15,7 @@ pub async fn run(
     loop {
         match rx.recv().await {
             Ok(effect_change) => {
-                let mut controllers = controllers.lock().unwrap();
+                let mut controllers = controllers.lock().await;
                 let target = effect_change.target;
                 let effect = effect_change.effect;
 
@@ -31,7 +31,7 @@ pub async fn run(
                         });
 
                         if let EffectChangeType::Led { effect } = effect {
-                            let mut initial_state = initial_state.lock().unwrap();
+                            let mut initial_state = initial_state.lock().await;
                             *initial_state = InitialLedState::from(effect);
                             tracing::debug!("Set '{effect}' as initial effect.");
                         }
