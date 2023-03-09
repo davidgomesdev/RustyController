@@ -35,12 +35,13 @@ _Note: This whole process achieves minimal downtime, by launching only after hav
 You can run it every midnight or so, by adding the following line on: `crontab -e`.
 
 ```bash
-0 0 * * * ( cd /home/kali/RustyController && cp server/scripts/auto-update.sh /tmp/rusty-auto-update.sh && bash /tmp/rusty-auto-update.sh >> /var/log/rusty-auto-update.log 2>&1 )
+0 0 * * * ( cd /home/kali/RustyController && cp server/scripts/auto-update.sh /tmp/rusty-auto-update.sh && bash /tmp/rusty-auto-update.sh >> /var/log/rusty-controller/auto_update.log 2>&1 )
 ```
 
 ### Logs
 
-That cron logs to `/var/log`, if you're running as a non-sudo user, you need to create and give permission to the file
+That cron logs to `/var/log/rusty-controller`, if you're running as a non-sudo user, you need to create and give
+permission to that folder
 beforehand.
 
-`sudo touch /var/log/rusty_auto_update.log && sudo chown your_user:your_group /var/log/rusty_auto_update.log`
+`sudo mkdir -p /var/log/rusty-controller && sudo chown -R your_user:your_group /var/log/rusty-controller`
