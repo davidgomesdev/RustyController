@@ -13,6 +13,7 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - loki
+    restart: always
 
   promtail:
     image: grafana/promtail:2.7.4
@@ -21,6 +22,7 @@ services:
       - /var/log/rusty-controller:/var/log/rusty-controller
     networks:
       - loki
+    restart: always
 
   grafana:
     image: grafana/grafana:latest
@@ -28,3 +30,4 @@ services:
       - "3000:3000"
     networks:
       - loki
+    restart: always
