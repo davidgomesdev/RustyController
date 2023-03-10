@@ -24,6 +24,7 @@ pub struct PsMoveController {
     pub battery: BatteryLevel,
     last_button_state: HashMap<Button, ButtonState>,
     pub button_state: HashMap<Button, ButtonState>,
+    pub trigger: f32,
     pub connection_type: ConnectionType,
 }
 
@@ -53,6 +54,7 @@ impl PsMoveController {
             battery: Unknown,
             last_button_state: HashMap::new(),
             button_state: HashMap::new(),
+            trigger: 0.0
         }
     }
 
@@ -151,6 +153,7 @@ impl PsMoveController {
 
             self.update_battery(data.battery);
             self.update_button_state(data.get_button_slice());
+            self.trigger = data.get_trigger();
         }
 
         Ok(())

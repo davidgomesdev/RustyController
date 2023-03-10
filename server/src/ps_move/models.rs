@@ -319,4 +319,8 @@ impl DataInput {
     pub fn get_button_slice(&self) -> [u8; 4] {
         [self.buttons1, self.buttons2, self.buttons3, self.buttons4]
     }
+
+    pub fn get_trigger(&self) -> f32 {
+        (self.trigger + self.trigger2) as f32 / 2.0
+    }
 }

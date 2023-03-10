@@ -53,9 +53,15 @@ pub struct ButtonChange {
     state: ButtonState,
 }
 
+#[derive(GraphQLObject, PartialEq, Copy, Clone, Debug)]
+pub struct TriggerChange {
+    value: f64,
+}
+
 #[derive(Copy, Clone, Display, Debug)]
 pub enum ControllerChange {
-    ButtonChange(ButtonChange)
+    ButtonChange(ButtonChange),
+    TriggerChange(TriggerChange),
 }
 
 impl ControllerChange {
@@ -63,6 +69,12 @@ impl ControllerChange {
         ControllerChange::ButtonChange(ButtonChange {
             button: *btn,
             state: *state,
+        })
+    }
+
+    pub fn from_trigger(value: f32) -> ControllerChange {
+        ControllerChange::TriggerChange(TriggerChange {
+            value: value as f64
         })
     }
 }
