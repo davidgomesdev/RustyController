@@ -4,7 +4,7 @@ use hidapi::{HidDevice, HidError};
 use palette::{FromColor, Hsv, Srgb};
 
 use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectDetails};
-use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, fill_button_state, MoveRequestType, MoveSetting};
+use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, fill_state_from_byte_slice, MoveRequestType, MoveSetting};
 use crate::ps_move::models::BatteryLevel::Unknown;
 use crate::tasks::models::Button;
 
@@ -23,7 +23,7 @@ pub struct PsMoveController {
     pub last_battery: BatteryLevel,
     pub battery: BatteryLevel,
     last_button_state: HashMap<Button, ButtonState>,
-    pub button_state: HashMap<Button, ButtonState>,
+    button_state: HashMap<Button, ButtonState>,
     pub trigger: f32,
     pub connection_type: ConnectionType,
 }
@@ -54,7 +54,7 @@ impl PsMoveController {
             battery: Unknown,
             last_button_state: HashMap::new(),
             button_state: HashMap::new(),
-            trigger: 0.0
+            trigger: 0.0,
         }
     }
 
@@ -88,9 +88,7 @@ impl PsMoveController {
     pub fn set_led_pwm_frequency(&self, frequency: u64) -> bool {
         let request = build_set_led_pwm_request(frequency);
 
-        self.device
-            .write(&request)
-            .is_ok()
+        self.device.write(&request).is_ok()
     }
 
     pub fn set_led_effect(&mut self, effect: LedEffect) {
@@ -130,7 +128,7 @@ impl PsMoveController {
                 if peak < initial_strength {
                     tracing::error!("Peak must be higher than initial strength")
                 }
-            },
+            }
             RumbleEffectDetails::Blink { strength, .. } => {
                 if !(0.0..=1.0).contains(&strength) {
                     tracing::error!("Strength must be between 0.0 and 1.0")
@@ -157,6 +155,18 @@ impl PsMoveController {
         }
 
         Ok(())
+    }
+
+    pub fn get_changed_buttons(&self) -> HashMap<Button, ButtonState> {
+        if self.last_button_state.is_empty() {
+            return HashMap::new()
+        }
+
+        HashMap::<Button, ButtonState>::from_iter(self.button_state
+            .iter()
+            .filter(|(btn, state)| self.last_button_state.get(btn).unwrap() != *state)
+            .map(|a| (*a.0, *a.1))
+            .collect::<Vec<(Button, ButtonState)>>())
     }
 
     pub fn transform_led(&mut self) {
@@ -238,7 +248,7 @@ impl PsMoveController {
 
     fn update_button_state(&mut self, bytes: [u8; 4]) {
         self.last_button_state.clone_from(&self.button_state);
-        fill_button_state(&mut self.last_button_state, &mut self.button_state, bytes);
+        fill_state_from_byte_slice(&mut self.button_state, bytes);
     }
 }
 

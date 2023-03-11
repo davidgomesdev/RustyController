@@ -24,7 +24,7 @@ async fn main() {
     let (effect_tx, effect_rx) = broadcast::channel(32);
     let (ctrl_tx, ctrl_rx) = watch::channel(ControllerChange::from_button(
         &Button::Move,
-        &ButtonState::Down,
+        &ButtonState::Released,
     ));
     let controllers = Arc::new(Mutex::new(Vec::<PsMoveController>::new()));
 

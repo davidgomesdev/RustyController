@@ -28,20 +28,17 @@ pub async fn run(
             .iter_mut()
             .for_each(|controller| match controller.update() {
                 Ok(_) => {
-                    controller.button_state.iter().for_each(|btn| match btn.1 {
-                        ButtonState::Pressed | ButtonState::Released => {
-                            tracing::info!(
-                                "Controller {} button {} changed to {}",
-                                controller.bt_address,
-                                btn.0,
-                                btn.1
-                            );
+                    controller.get_changed_buttons().iter().for_each(|btn| {
+                        tracing::info!(
+                            "Controller {} button {} changed to {}",
+                            controller.bt_address,
+                            btn.0,
+                            btn.1
+                        );
 
-                            ctrl_tx
-                                .send(ControllerChange::from_button(btn.0, btn.1))
-                                .unwrap();
-                        }
-                        _ => {}
+                        ctrl_tx
+                            .send(ControllerChange::from_button(btn.0, btn.1))
+                            .unwrap();
                     });
 
                     ctrl_tx
