@@ -11,5 +11,10 @@ scrape_configs:
       - targets:
           - localhost
         labels:
-          job: rusty-logs
-          __path__: /var/log/rusty-controller/**
+          job: rusty-plugins
+          __path__: /var/log/rusty-controller/**/*.log
+      - targets:
+          - localhost
+        labels:
+          job: rusty-server
+          __path__: /var/log/rusty-controller/**/daily**
