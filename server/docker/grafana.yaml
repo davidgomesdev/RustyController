@@ -1,33 +1,39 @@
 version: "3"
 
-name: grafana-loki
+name: grafana
 
 networks:
   loki:
 
 services:
   loki:
-    image: grafana/loki:2.7.4
+    # This version is used because the newer ones break on ARM
+    image: grafana/loki:2.4.0
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    volumes:
+      - ${DATA-FOLDER-.}/loki-data:/loki
     networks:
       - loki
-    restart: always
 
   promtail:
     image: grafana/promtail:2.7.4
-    command: -config.file=/etc/promtail/config.yml
+    command: -config.file=/mnt/config/config.yml
     volumes:
+      - config/promtail.yaml:/mnt/config/config.yaml
       - /var/log/rusty-controller:/var/log/rusty-controller
     networks:
       - loki
-    restart: always
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    volumes:
+      - ${DATA-FOLDER-.}/grafana-data:/var/lib/grafana
     networks:
       - loki
-    restart: always
+    restart: unless-stopped
