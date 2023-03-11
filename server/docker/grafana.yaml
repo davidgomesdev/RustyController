@@ -14,7 +14,7 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     restart: unless-stopped
     volumes:
-      - ${DATA_FOLDER-.}/loki-data:/loki
+      - loki-data:/loki
     networks:
       - loki
 
@@ -22,7 +22,7 @@ services:
     image: grafana/promtail:2.7.4
     command: -config.file=/mnt/config/config.yml
     volumes:
-      - config/promtail.yaml:/mnt/config/config.yaml
+      - ./config/promtail.yaml:/mnt/config/config.yaml
       - /var/log/rusty-controller:/var/log/rusty-controller
     networks:
       - loki
@@ -33,7 +33,11 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ${DATA_FOLDER-.}/grafana-data:/var/lib/grafana
+      - grafana-data:/var/lib/grafana
     networks:
       - loki
     restart: unless-stopped
+
+volumes:
+  grafana-data:
+  loki-data:
