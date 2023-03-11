@@ -9,7 +9,7 @@ use crate::ControllerChange;
 use crate::ps_move::controller::PsMoveController;
 use crate::spawn_tasks::ShutdownSignal;
 
-const INTERVAL_DURATION: Duration = Duration::from_millis(50);
+const INTERVAL_DURATION: Duration = Duration::from_millis(10);
 
 pub async fn run(
     controllers: Arc<Mutex<Vec<PsMoveController>>>,
