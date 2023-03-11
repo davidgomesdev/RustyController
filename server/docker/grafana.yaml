@@ -14,7 +14,7 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     restart: unless-stopped
     volumes:
-      - ${DATA-FOLDER-.}/loki-data:/loki
+      - ${DATA_FOLDER-.}/loki-data:/loki
     networks:
       - loki
 
@@ -33,7 +33,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ${DATA-FOLDER-.}/grafana-data:/var/lib/grafana
+      - ${DATA_FOLDER-.}/grafana-data:/var/lib/grafana
     networks:
       - loki
     restart: unless-stopped
