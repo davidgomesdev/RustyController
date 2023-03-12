@@ -19,7 +19,8 @@ echo "$INFO* Running at $(date)$RESET"
 cd "$HOME" || exit 1
 
 build () {
-    echo "$INFO* Building...$RESET"
+    echo "$INFO* Checking out main...$RESET"
+    echo
     
     git reset --hard > /dev/null || exit 1
 
@@ -30,7 +31,15 @@ build () {
 
     cd server/ || exit 1
 
+    echo
+    echo "$INFO* Updating crates...$RESET"
+    echo
+
     cargo update -q || exit 1
+
+    echo "$INFO* Build...$RESET"
+    echo
+
     time cargo build --release -q || exit 1
 
     newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
