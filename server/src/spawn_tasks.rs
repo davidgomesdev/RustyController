@@ -97,7 +97,7 @@ pub async fn run_move(
 
     task::spawn_blocking(move || Handle::current().block_on(ip_discovery::spawn()));
 
-    let frequency = Duration::from_millis(10_000);
+    let frequency = Duration::from_secs(10);
 
     tokio::spawn(async move {
         let intervals = monitors.effects_update.intervals().zip(

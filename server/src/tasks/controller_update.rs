@@ -40,10 +40,6 @@ pub async fn run(
                             .send(ControllerChange::from_button(btn.0, btn.1))
                             .unwrap();
                     });
-
-                    ctrl_tx
-                        .send(ControllerChange::from_trigger(controller.trigger))
-                        .unwrap();
                 }
                 Err(_) => {
                     let bt_address = &controller.bt_address;
