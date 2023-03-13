@@ -8,6 +8,8 @@
        `/etc/udev/rules.d/10-psmove-hidraw-permissions.rules` and write: `SUBSYSTEM=="usb", ATTR{idVendor}=="054c", MODE="0660", GROUP="psmove"`
     3. add your user to that group `sudo usermod -a -G psmove your_username`
 
+*Note: On Ubuntu, you might need to run `rfkill unblock bluetooth`.*
+
 Then just `export RUST_LOG=info,rusty_controller=debug; cargo run`.
 
 ## Pairing
