@@ -126,9 +126,9 @@ fn log_metrics(name: &str, metrics: TaskMetrics) {
     tracing::info!(
         target: "rusty_controller::metrics",
         task = name,
-        poll_duration_ms = metrics.mean_poll_duration().as_micros(),
-        scheduled_duration_ms = metrics.mean_scheduled_duration().as_micros(),
-        idle_duration_ms = metrics.mean_idle_duration().as_micros(),
+        poll_duration_μ = metrics.mean_poll_duration().as_micros(),
+        scheduled_duration_μ = metrics.mean_scheduled_duration().as_micros(),
+        idle_duration_μ = metrics.mean_idle_duration().as_micros(),
         "Durations: Poll {:.2?} / Scheduled {:.2?} / Idle {:.2?}",
         metrics.mean_poll_duration(),
         metrics.mean_scheduled_duration(),
