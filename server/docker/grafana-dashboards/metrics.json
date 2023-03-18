@@ -63,9 +63,6 @@
           },
           "overrides": []
         },
-        "libraryPanel": {
-          "uid": "EUAx2ZWgk"
-        },
         "options": {
           "legend": {
             "calcs": [],
@@ -79,6 +76,13 @@
           }
         },
         "pluginVersion": "9.4.3",
+        "scopedVars": {
+          "task": {
+            "selected": true,
+            "text": "controllers_list",
+            "value": "controllers_list"
+          }
+        },
         "targets": [
           {
             "datasource": {
@@ -99,7 +103,7 @@
               "format": "json",
               "jsonPaths": [
                 {
-                  "path": "scheduled_duration"
+                  "path": "scheduled_duration_micros"
                 }
               ],
               "keepTime": true,
@@ -113,27 +117,10 @@
               "conversions": [
                 {
                   "destinationType": "number",
-                  "targetField": "scheduled_duration (allValues)"
+                  "targetField": "scheduled_duration_micros"
                 }
               ],
               "fields": {}
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "scheduled_duration_ns",
-              "binary": {
-                "left": "scheduled_duration",
-                "operator": "/",
-                "reducer": "sum",
-                "right": "1000"
-              },
-              "mode": "binary",
-              "reduce": {
-                "reducer": "sum"
-              },
-              "replaceFields": true
             }
           }
         ],
@@ -203,9 +190,6 @@
           },
           "overrides": []
         },
-        "libraryPanel": {
-          "uid": "-3BbhWZRz"
-        },
         "options": {
           "legend": {
             "calcs": [],
@@ -219,6 +203,13 @@
           }
         },
         "pluginVersion": "9.4.3",
+        "scopedVars": {
+          "task": {
+            "selected": true,
+            "text": "controllers_list",
+            "value": "controllers_list"
+          }
+        },
         "targets": [
           {
             "datasource": {
@@ -239,7 +230,7 @@
               "format": "json",
               "jsonPaths": [
                 {
-                  "path": "poll_duration"
+                  "path": "poll_duration_micros"
                 }
               ],
               "keepTime": true,
@@ -253,27 +244,10 @@
               "conversions": [
                 {
                   "destinationType": "number",
-                  "targetField": "poll_duration"
+                  "targetField": "poll_duration_micros"
                 }
               ],
               "fields": {}
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "poll_duration_ns",
-              "binary": {
-                "left": "poll_duration",
-                "operator": "/",
-                "reducer": "sum",
-                "right": "1000"
-              },
-              "mode": "binary",
-              "reduce": {
-                "reducer": "sum"
-              },
-              "replaceFields": true
             }
           }
         ],
@@ -343,9 +317,6 @@
           },
           "overrides": []
         },
-        "libraryPanel": {
-          "uid": "gs8xhZZgk"
-        },
         "options": {
           "legend": {
             "calcs": [],
@@ -359,6 +330,13 @@
           }
         },
         "pluginVersion": "9.4.3",
+        "scopedVars": {
+          "task": {
+            "selected": true,
+            "text": "controllers_list",
+            "value": "controllers_list"
+          }
+        },
         "targets": [
           {
             "datasource": {
@@ -379,7 +357,7 @@
               "format": "json",
               "jsonPaths": [
                 {
-                  "path": "idle_duration"
+                  "path": "idle_duration_micros"
                 }
               ],
               "keepTime": true,
@@ -393,7 +371,7 @@
               "conversions": [
                 {
                   "destinationType": "number",
-                  "targetField": "idle_duration"
+                  "targetField": "idle_duration_micros"
                 }
               ],
               "fields": {}
@@ -404,10 +382,10 @@
             "options": {
               "alias": "idle_duration_ms",
               "binary": {
-                "left": "idle_duration",
+                "left": "idle_duration_micros",
                 "operator": "/",
                 "reducer": "sum",
-                "right": "1000000"
+                "right": "1000"
               },
               "mode": "binary",
               "reduce": {
@@ -566,13 +544,13 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
-  "title": "RustyController Metrics",
+  "title": "Metrics",
   "uid": "TrD1CkZgk",
-  "version": 1,
+  "version": 3,
   "weekStart": ""
 }
