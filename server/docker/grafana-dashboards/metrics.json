@@ -14,27 +14,33 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "mode": "continuous-YlBl"
+              "mode": "continuous-purples",
+              "seriesBy": "max"
             },
             "custom": {
               "axisCenteredZero": false,
               "axisColorMode": "text",
+              "axisGridShow": true,
               "axisLabel": "",
               "axisPlacement": "auto",
               "barAlignment": 0,
               "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
+              "fillOpacity": 59,
+              "gradientMode": "hue",
               "hideFrom": {
                 "legend": false,
                 "tooltip": false,
                 "viz": false
               },
-              "lineInterpolation": "linear",
+              "lineInterpolation": "smooth",
+              "lineStyle": {
+                "fill": "solid"
+              },
               "lineWidth": 1,
               "pointSize": 5,
               "scaleDistribution": {
-                "type": "linear"
+                "log": 2,
+                "type": "log"
               },
               "showPoints": "auto",
               "spanNulls": false,
@@ -46,6 +52,7 @@
                 "mode": "off"
               }
             },
+            "displayName": "scheduled duration",
             "mappings": [],
             "thresholds": {
               "mode": "absolute",
@@ -59,13 +66,19 @@
                   "value": 80
                 }
               ]
-            }
+            },
+            "unit": "µs"
           },
           "overrides": []
         },
+        "maxPerRow": 3,
         "options": {
           "legend": {
-            "calcs": [],
+            "calcs": [
+              "max",
+              "min",
+              "variance"
+            ],
             "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
@@ -76,11 +89,13 @@
           }
         },
         "pluginVersion": "9.4.3",
+        "repeat": "task",
+        "repeatDirection": "h",
         "scopedVars": {
           "task": {
-            "selected": true,
-            "text": "controllers_list",
-            "value": "controllers_list"
+            "selected": false,
+            "text": "controller_update",
+            "value": "controller_update"
           }
         },
         "targets": [
@@ -95,7 +110,7 @@
             "refId": "A"
           }
         ],
-        "title": "Scheduled duration",
+        "title": "[$task] Scheduled duration",
         "transformations": [
           {
             "id": "extractFields",
@@ -141,7 +156,8 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "mode": "palette-classic"
+              "mode": "continuous-reds",
+              "seriesBy": "max"
             },
             "custom": {
               "axisCenteredZero": false,
@@ -150,18 +166,22 @@
               "axisPlacement": "auto",
               "barAlignment": 0,
               "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
+              "fillOpacity": 50,
+              "gradientMode": "hue",
               "hideFrom": {
                 "legend": false,
                 "tooltip": false,
                 "viz": false
               },
-              "lineInterpolation": "linear",
+              "lineInterpolation": "smooth",
+              "lineStyle": {
+                "fill": "solid"
+              },
               "lineWidth": 1,
               "pointSize": 5,
               "scaleDistribution": {
-                "type": "linear"
+                "log": 2,
+                "type": "log"
               },
               "showPoints": "auto",
               "spanNulls": false,
@@ -173,6 +193,7 @@
                 "mode": "off"
               }
             },
+            "displayName": "poll duration",
             "mappings": [],
             "thresholds": {
               "mode": "absolute",
@@ -186,13 +207,19 @@
                   "value": 80
                 }
               ]
-            }
+            },
+            "unit": "µs"
           },
           "overrides": []
         },
+        "maxPerRow": 3,
         "options": {
           "legend": {
-            "calcs": [],
+            "calcs": [
+              "max",
+              "mean",
+              "variance"
+            ],
             "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
@@ -203,11 +230,13 @@
           }
         },
         "pluginVersion": "9.4.3",
+        "repeat": "task",
+        "repeatDirection": "h",
         "scopedVars": {
           "task": {
-            "selected": true,
-            "text": "controllers_list",
-            "value": "controllers_list"
+            "selected": false,
+            "text": "controller_update",
+            "value": "controller_update"
           }
         },
         "targets": [
@@ -222,7 +251,7 @@
             "refId": "A"
           }
         ],
-        "title": "Poll duration",
+        "title": "[$task] Poll duration",
         "transformations": [
           {
             "id": "extractFields",
@@ -268,7 +297,8 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "mode": "continuous-BlPu"
+              "mode": "continuous-blues",
+              "seriesBy": "max"
             },
             "custom": {
               "axisCenteredZero": false,
@@ -277,14 +307,17 @@
               "axisPlacement": "auto",
               "barAlignment": 0,
               "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
+              "fillOpacity": 50,
+              "gradientMode": "hue",
               "hideFrom": {
                 "legend": false,
                 "tooltip": false,
                 "viz": false
               },
-              "lineInterpolation": "linear",
+              "lineInterpolation": "smooth",
+              "lineStyle": {
+                "fill": "solid"
+              },
               "lineWidth": 1,
               "pointSize": 5,
               "scaleDistribution": {
@@ -300,6 +333,7 @@
                 "mode": "off"
               }
             },
+            "displayName": "idle duration",
             "mappings": [],
             "thresholds": {
               "mode": "absolute",
@@ -313,13 +347,19 @@
                   "value": 80
                 }
               ]
-            }
+            },
+            "unit": "ms"
           },
           "overrides": []
         },
+        "maxPerRow": 3,
         "options": {
           "legend": {
-            "calcs": [],
+            "calcs": [
+              "max",
+              "mean",
+              "variance"
+            ],
             "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
@@ -330,11 +370,13 @@
           }
         },
         "pluginVersion": "9.4.3",
+        "repeat": "task",
+        "repeatDirection": "h",
         "scopedVars": {
           "task": {
             "selected": true,
-            "text": "controllers_list",
-            "value": "controllers_list"
+            "text": "controller_update",
+            "value": "controller_update"
           }
         },
         "targets": [
@@ -349,7 +391,7 @@
             "refId": "A"
           }
         ],
-        "title": "Idle duration",
+        "title": "[$task] Idle duration",
         "transformations": [
           {
             "id": "extractFields",
@@ -438,26 +480,11 @@
   "liveNow": false,
   "panels": [
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 4,
-      "panels": [],
-      "repeat": "task",
-      "repeatDirection": "h",
-      "title": "Task $task",
-      "type": "row"
-    },
-    {
       "gridPos": {
         "h": 8,
-        "w": 7,
+        "w": 8,
         "x": 0,
-        "y": 1
+        "y": 0
       },
       "id": 2,
       "libraryPanel": {
@@ -468,9 +495,9 @@
     {
       "gridPos": {
         "h": 8,
-        "w": 7,
-        "x": 7,
-        "y": 1
+        "w": 8,
+        "x": 0,
+        "y": 8
       },
       "id": 5,
       "libraryPanel": {
@@ -481,9 +508,9 @@
     {
       "gridPos": {
         "h": 8,
-        "w": 7,
-        "x": 14,
-        "y": 1
+        "w": 8,
+        "x": 0,
+        "y": 16
       },
       "id": 6,
       "libraryPanel": {
@@ -500,9 +527,8 @@
   "templating": {
     "list": [
       {
-        "allValue": "controller_list,controller_update,effects_update",
         "current": {
-          "selected": true,
+          "selected": false,
           "text": [
             "controllers_list",
             "controller_update",
@@ -514,16 +540,16 @@
             "effects_update"
           ]
         },
-        "hide": 0,
-        "includeAll": false,
+        "hide": 1,
+        "includeAll": true,
         "label": "Task",
         "multi": true,
         "name": "task",
         "options": [
           {
-            "selected": true,
-            "text": "controllers_list",
-            "value": "controllers_list"
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
           },
           {
             "selected": true,
@@ -532,11 +558,16 @@
           },
           {
             "selected": true,
+            "text": "controllers_list",
+            "value": "controllers_list"
+          },
+          {
+            "selected": true,
             "text": "effects_update",
             "value": "effects_update"
           }
         ],
-        "query": "controllers_list,controller_update,effects_update",
+        "query": "controller_update,controllers_list,effects_update",
         "queryValue": "",
         "skipUrlSync": false,
         "type": "custom"
@@ -544,13 +575,13 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Metrics",
   "uid": "TrD1CkZgk",
-  "version": 3,
+  "version": 6,
   "weekStart": ""
 }
