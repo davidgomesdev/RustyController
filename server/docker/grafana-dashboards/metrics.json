@@ -136,9 +136,10 @@
       "options": {
         "legend": {
           "calcs": [
-            "max",
             "min",
-            "variance"
+            "max",
+            "mean",
+            "stdDev"
           ],
           "displayMode": "list",
           "placement": "bottom",
@@ -272,9 +273,10 @@
       "options": {
         "legend": {
           "calcs": [
+            "min",
             "max",
             "mean",
-            "variance"
+            "stdDev"
           ],
           "displayMode": "list",
           "placement": "bottom",
@@ -407,9 +409,10 @@
       "options": {
         "legend": {
           "calcs": [
+            "min",
             "max",
             "mean",
-            "variance"
+            "stdDev"
           ],
           "displayMode": "list",
           "placement": "bottom",
@@ -548,6 +551,6 @@
   "timezone": "",
   "title": "Metrics",
   "uid": "TrD1CkZgk",
-  "version": 7,
+  "version": 12,
   "weekStart": ""
 }
