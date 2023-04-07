@@ -1,453 +1,33 @@
 {
-  "__inputs": [],
-  "__elements": {
-    "EUAx2ZWgk": {
-      "name": "Scheduled duration",
-      "uid": "EUAx2ZWgk",
-      "kind": 1,
-      "model": {
-        "datasource": {
-          "type": "loki",
-          "uid": "5pufFKZRk"
-        },
-        "description": "Time it waited to start running",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "continuous-purples",
-              "seriesBy": "max"
-            },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisGridShow": true,
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 59,
-              "gradientMode": "hue",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "smooth",
-              "lineStyle": {
-                "fill": "solid"
-              },
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "log": 2,
-                "type": "log"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "displayName": "scheduled duration",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            },
-            "unit": "µs"
-          },
-          "overrides": []
-        },
-        "maxPerRow": 3,
-        "options": {
-          "legend": {
-            "calcs": [
-              "max",
-              "min",
-              "variance"
-            ],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "9.4.3",
-        "repeat": "task",
-        "repeatDirection": "h",
-        "scopedVars": {
-          "task": {
-            "selected": false,
-            "text": "controller_update",
-            "value": "controller_update"
-          }
-        },
-        "targets": [
-          {
-            "datasource": {
-              "type": "loki",
-              "uid": "5pufFKZRk"
-            },
-            "editorMode": "builder",
-            "expr": "{host=\"rusty_controller\"} | json | _target = `rusty_controller::metrics` | task = `$task`",
-            "queryType": "range",
-            "refId": "A"
-          }
-        ],
-        "title": "[$task] Scheduled duration",
-        "transformations": [
-          {
-            "id": "extractFields",
-            "options": {
-              "format": "json",
-              "jsonPaths": [
-                {
-                  "path": "scheduled_duration_micros"
-                }
-              ],
-              "keepTime": true,
-              "replace": true,
-              "source": "labels"
-            }
-          },
-          {
-            "id": "convertFieldType",
-            "options": {
-              "conversions": [
-                {
-                  "destinationType": "number",
-                  "targetField": "scheduled_duration_micros"
-                }
-              ],
-              "fields": {}
-            }
-          }
-        ],
-        "transparent": true,
-        "type": "timeseries"
-      }
-    },
-    "-3BbhWZRz": {
-      "name": "Poll duration",
-      "uid": "-3BbhWZRz",
-      "kind": 1,
-      "model": {
-        "datasource": {
-          "type": "loki",
-          "uid": "5pufFKZRk"
-        },
-        "description": "Time it spent running",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "continuous-reds",
-              "seriesBy": "max"
-            },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 50,
-              "gradientMode": "hue",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "smooth",
-              "lineStyle": {
-                "fill": "solid"
-              },
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "log": 2,
-                "type": "log"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "displayName": "poll duration",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            },
-            "unit": "µs"
-          },
-          "overrides": []
-        },
-        "maxPerRow": 3,
-        "options": {
-          "legend": {
-            "calcs": [
-              "max",
-              "mean",
-              "variance"
-            ],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "9.4.3",
-        "repeat": "task",
-        "repeatDirection": "h",
-        "scopedVars": {
-          "task": {
-            "selected": false,
-            "text": "controller_update",
-            "value": "controller_update"
-          }
-        },
-        "targets": [
-          {
-            "datasource": {
-              "type": "loki",
-              "uid": "5pufFKZRk"
-            },
-            "editorMode": "builder",
-            "expr": "{host=\"rusty_controller\"} | json | _target = `rusty_controller::metrics` | task = `$task`",
-            "queryType": "range",
-            "refId": "A"
-          }
-        ],
-        "title": "[$task] Poll duration",
-        "transformations": [
-          {
-            "id": "extractFields",
-            "options": {
-              "format": "json",
-              "jsonPaths": [
-                {
-                  "path": "poll_duration_micros"
-                }
-              ],
-              "keepTime": true,
-              "replace": true,
-              "source": "labels"
-            }
-          },
-          {
-            "id": "convertFieldType",
-            "options": {
-              "conversions": [
-                {
-                  "destinationType": "number",
-                  "targetField": "poll_duration_micros"
-                }
-              ],
-              "fields": {}
-            }
-          }
-        ],
-        "transparent": true,
-        "type": "timeseries"
-      }
-    },
-    "gs8xhZZgk": {
-      "name": "Idle duration",
-      "uid": "gs8xhZZgk",
-      "kind": 1,
-      "model": {
-        "datasource": {
-          "type": "loki",
-          "uid": "5pufFKZRk"
-        },
-        "description": "Time it slept (waiting for the interval tick)",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "continuous-blues",
-              "seriesBy": "max"
-            },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 50,
-              "gradientMode": "hue",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "smooth",
-              "lineStyle": {
-                "fill": "solid"
-              },
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "displayName": "idle duration",
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            },
-            "unit": "ms"
-          },
-          "overrides": []
-        },
-        "maxPerRow": 3,
-        "options": {
-          "legend": {
-            "calcs": [
-              "max",
-              "mean",
-              "variance"
-            ],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "9.4.3",
-        "repeat": "task",
-        "repeatDirection": "h",
-        "scopedVars": {
-          "task": {
-            "selected": true,
-            "text": "controller_update",
-            "value": "controller_update"
-          }
-        },
-        "targets": [
-          {
-            "datasource": {
-              "type": "loki",
-              "uid": "5pufFKZRk"
-            },
-            "editorMode": "builder",
-            "expr": "{host=\"rusty_controller\"} | json | _target = `rusty_controller::metrics` | task = `$task`",
-            "queryType": "range",
-            "refId": "A"
-          }
-        ],
-        "title": "[$task] Idle duration",
-        "transformations": [
-          {
-            "id": "extractFields",
-            "options": {
-              "format": "json",
-              "jsonPaths": [
-                {
-                  "path": "idle_duration_micros"
-                }
-              ],
-              "keepTime": true,
-              "replace": true,
-              "source": "labels"
-            }
-          },
-          {
-            "id": "convertFieldType",
-            "options": {
-              "conversions": [
-                {
-                  "destinationType": "number",
-                  "targetField": "idle_duration_micros"
-                }
-              ],
-              "fields": {}
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "idle_duration_ms",
-              "binary": {
-                "left": "idle_duration_micros",
-                "operator": "/",
-                "reducer": "sum",
-                "right": "1000"
-              },
-              "mode": "binary",
-              "reduce": {
-                "reducer": "sum"
-              },
-              "replaceFields": true
-            }
-          }
-        ],
-        "transparent": true,
-        "type": "timeseries"
-      }
+  "__inputs": [
+    {
+      "name": "DS_LOKI",
+      "label": "Loki",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "loki",
+      "pluginName": "Loki"
     }
-  },
+  ],
+  "__elements": {},
   "__requires": [
     {
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
       "version": "9.4.3"
+    },
+    {
+      "type": "datasource",
+      "id": "loki",
+      "name": "Loki",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
     }
   ],
   "annotations": {
@@ -480,6 +60,71 @@
   "liveNow": false,
   "panels": [
     {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "description": "Time it waited to start running",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-purples",
+            "seriesBy": "max"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisGridShow": true,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 59,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "log": 2,
+              "type": "log"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "scheduled duration",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "µs"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -487,12 +132,135 @@
         "y": 0
       },
       "id": 2,
-      "libraryPanel": {
-        "uid": "EUAx2ZWgk",
-        "name": "Scheduled duration"
-      }
+      "maxPerRow": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "min",
+            "variance"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.4.3",
+      "repeat": "task",
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "editorMode": "builder",
+          "expr": "{host=\"rusty_controller\"} | json | _target = `rusty_controller::metrics` | task = `$task`",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "[$task] Scheduled duration",
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "format": "json",
+            "jsonPaths": [
+              {
+                "path": "scheduled_duration_micros"
+              }
+            ],
+            "keepTime": true,
+            "replace": true,
+            "source": "labels"
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "number",
+                "targetField": "scheduled_duration_micros"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ],
+      "transparent": true,
+      "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "description": "Time it spent running",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-reds",
+            "seriesBy": "max"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 50,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "log": 2,
+              "type": "log"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "poll duration",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "µs"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -500,12 +268,134 @@
         "y": 8
       },
       "id": 5,
-      "libraryPanel": {
-        "uid": "-3BbhWZRz",
-        "name": "Poll duration"
-      }
+      "maxPerRow": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "mean",
+            "variance"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.4.3",
+      "repeat": "task",
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "editorMode": "builder",
+          "expr": "{host=\"rusty_controller\"} | json | _target = `rusty_controller::metrics` | task = `$task`",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "[$task] Poll duration",
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "format": "json",
+            "jsonPaths": [
+              {
+                "path": "poll_duration_micros"
+              }
+            ],
+            "keepTime": true,
+            "replace": true,
+            "source": "labels"
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "number",
+                "targetField": "poll_duration_micros"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ],
+      "transparent": true,
+      "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "description": "Time it slept (waiting for the interval tick)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-blues",
+            "seriesBy": "max"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 50,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "idle duration",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -513,10 +403,86 @@
         "y": 16
       },
       "id": 6,
-      "libraryPanel": {
-        "uid": "gs8xhZZgk",
-        "name": "Idle duration"
-      }
+      "maxPerRow": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "mean",
+            "variance"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.4.3",
+      "repeat": "task",
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "editorMode": "builder",
+          "expr": "{host=\"rusty_controller\"} | json | _target = `rusty_controller::metrics` | task = `$task`",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "[$task] Idle duration",
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "format": "json",
+            "jsonPaths": [
+              {
+                "path": "idle_duration_micros"
+              }
+            ],
+            "keepTime": true,
+            "replace": true,
+            "source": "labels"
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "number",
+                "targetField": "idle_duration_micros"
+              }
+            ],
+            "fields": {}
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "idle_duration_ms",
+            "binary": {
+              "left": "idle_duration_micros",
+              "operator": "/",
+              "reducer": "sum",
+              "right": "1000"
+            },
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "replaceFields": true
+          }
+        }
+      ],
+      "transparent": true,
+      "type": "timeseries"
     }
   ],
   "refresh": "",
@@ -528,7 +494,7 @@
     "list": [
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "controllers_list",
             "controller_update",
@@ -575,13 +541,13 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Metrics",
   "uid": "TrD1CkZgk",
-  "version": 6,
+  "version": 7,
   "weekStart": ""
 }
