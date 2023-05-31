@@ -72,6 +72,7 @@ pub async fn run(
 
 fn mutate_controller_effect(controller: &mut PsMoveController, effect: EffectChangeType) {
     match effect {
+        EffectChangeType::RevertLed => { controller.revert_led_effect() }
         EffectChangeType::Led { effect } => controller.set_led_effect(effect),
         EffectChangeType::Rumble { effect } => controller.set_rumble_effect(effect),
     }

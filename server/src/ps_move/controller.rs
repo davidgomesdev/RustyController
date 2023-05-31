@@ -17,6 +17,7 @@ pub struct PsMoveController {
     device: HidDevice,
     pub(super) info: ControllerInfo,
     pub bt_address: String,
+    pub last_led_effect: LedEffect,
     pub led_effect: LedEffect,
     pub rumble_effect: RumbleEffect,
     pub setting: MoveSetting,
@@ -43,10 +44,12 @@ impl PsMoveController {
             device,
             info,
             bt_address,
+            last_led_effect: LedEffect::off(),
             led_effect: LedEffect::off(),
             rumble_effect: RumbleEffect::off(),
             setting: MoveSetting {
                 led: Hsv::from_components((0.0, 0.0, 0.0)),
+                last_led: Hsv::from_components((0.0, 0.0, 0.0)),
                 rumble: 0.0,
             },
             connection_type,
@@ -89,6 +92,17 @@ impl PsMoveController {
         let request = build_set_led_pwm_request(frequency);
 
         self.device.write(&request).is_ok()
+    }
+
+    pub fn revert_led_effect(&mut self) {
+        let current_effect = self.led_effect;
+        let current_led = self.setting.led;
+
+        self.led_effect = self.last_led_effect;
+        self.setting.led = self.setting.last_led;
+
+        self.last_led_effect = current_effect;
+        self.setting.last_led = current_led;
     }
 
     pub fn set_led_effect(&mut self, effect: LedEffect) {
@@ -170,6 +184,19 @@ impl PsMoveController {
     }
 
     pub fn transform_led(&mut self) {
+        let last_led_effect = &mut self.last_led_effect;
+
+        if last_led_effect.duration.is_some() {
+            let duration = last_led_effect.duration.unwrap();
+
+            if last_led_effect.start.elapsed() >= duration {
+                let off_effect = LedEffect::off();
+
+                self.last_led_effect = off_effect;
+                self.setting.last_led = off_effect.details.get_initial_hsv()
+            }
+        };
+
         let led_effect = &mut self.led_effect;
         let current_hsv = self.setting.led;
 

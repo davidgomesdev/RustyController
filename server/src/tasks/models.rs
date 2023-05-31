@@ -16,6 +16,7 @@ pub enum EffectTarget {
 
 #[derive(Clone, Copy)]
 pub enum EffectChangeType {
+    RevertLed,
     Led { effect: LedEffect },
     Rumble { effect: RumbleEffect },
 }
@@ -23,6 +24,7 @@ pub enum EffectChangeType {
 impl fmt::Display for EffectChangeType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            EffectChangeType::RevertLed => { write!(f, "RevertLed") }
             EffectChangeType::Led { effect } => { write!(f, "Led::{}", &effect.details) }
             EffectChangeType::Rumble { effect } => { write!(f, "Rumble::{effect}") }
         }

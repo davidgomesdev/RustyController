@@ -9,11 +9,30 @@ use crate::graphql::schema_input::*;
 use crate::graphql::schema_response::MutationResponse;
 use crate::ps_move::api::build_hsv;
 use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectDetails};
+use crate::tasks::models::EffectChangeType::RevertLed;
 
 pub struct MutationRoot;
 
 #[juniper::graphql_object(Context = Context)]
 impl MutationRoot {
+    #[graphql(description = "Revert the led to the last effect. (if it's expired, it goes off)")]
+    fn revert_led(ctx: &Context, input: Option<RevertEffectInput>) -> FieldResult<MutationResponse> {
+        tracing::info!("Received led to last effect");
+        tracing::debug!("Effect input: {input:?}");
+
+        let controllers = input.map(|input| input.controllers);
+
+        let target = match controller_to_effect_target(controllers) {
+            Ok(value) => value,
+            Err(value) => return value,
+        };
+
+        match ctx.effect_tx.send(EffectChange { effect: RevertLed, target }) {
+            Ok(_) => Ok(MutationResponse::Success),
+            Err(_) => Ok(MutationResponse::ServerError),
+        }
+    }
+
     #[graphql(description = "Turn the led off.")]
     fn set_led_off(ctx: &Context, input: Option<OffEffectInput>) -> FieldResult<MutationResponse> {
         tracing::info!("Received led off effect");
@@ -409,24 +428,31 @@ fn process_rumble_effect_mutation(
 fn process_effect_mutation(
     ctx: &Context,
     effect: EffectChangeType,
-    target: Option<Vec<String>>,
+    controllers: Option<Vec<String>>,
 ) -> FieldResult<MutationResponse> {
-    let target = match target {
-        None => EffectTarget::All,
-        Some(bt_addresses) => {
-            if bt_addresses.is_empty() {
-                return Err(FieldError::new(
-                    "You must specify controllers!",
-                    Value::Null,
-                ));
-            } else {
-                EffectTarget::Only { bt_addresses }
-            }
-        }
+    let target = match controller_to_effect_target(controllers) {
+        Ok(value) => value,
+        Err(value) => return value,
     };
 
     match ctx.effect_tx.send(EffectChange { effect, target }) {
         Ok(_) => Ok(MutationResponse::Success),
         Err(_) => Ok(MutationResponse::ServerError),
     }
+}
+
+fn controller_to_effect_target(controllers: Option<Vec<String>>) -> Result<EffectTarget, FieldResult<MutationResponse>> {
+    Ok(match controllers {
+        None => EffectTarget::All,
+        Some(bt_addresses) => {
+            if bt_addresses.is_empty() {
+                return Err(Err(FieldError::new(
+                    "You must specify controllers!",
+                    Value::Null,
+                )));
+            } else {
+                EffectTarget::Only { bt_addresses }
+            }
+        }
+    })
 }

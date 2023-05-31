@@ -10,6 +10,7 @@ use crate::tasks::models::Button;
 #[derive(Clone)]
 pub struct MoveSetting {
     pub led: Hsv,
+    pub last_led: Hsv,
     pub rumble: f32,
 }
 

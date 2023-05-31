@@ -1,6 +1,14 @@
 use juniper::GraphQLInputObject;
 
 #[derive(GraphQLInputObject, Debug)]
+pub(super) struct RevertEffectInput {
+    #[graphql(
+    description = "Applies the effect only on these controller addresses. (must not be empty)"
+    )]
+    pub controllers: Vec<String>,
+}
+
+#[derive(GraphQLInputObject, Debug)]
 pub(super) struct OffEffectInput {
     #[graphql(
     description = "Applies the effect only on these controller addresses. (must not be empty)"
