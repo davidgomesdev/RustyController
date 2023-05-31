@@ -4,8 +4,10 @@
 2. give permission for the move controller(s) to your user
     1. create a group called psmove (`sudo groupadd psmove`)
     2. give permission to access the USB devices of PS:
-        1. create the file
-       `/etc/udev/rules.d/10-psmove-hidraw-permissions.rules` and write: `SUBSYSTEM=="usb", ATTR{idVendor}=="054c", MODE="0660", GROUP="psmove"`
+       1. create the file
+       `/etc/udev/rules.d/10-psmove-hidraw-permissions.rules` with:
+        
+        `KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660", GROUP="psmove"`
     3. add your user to that group `sudo usermod -a -G psmove your_username`
 
 *Note: On Ubuntu, you might need to run `rfkill unblock bluetooth`.*
