@@ -107,6 +107,8 @@ pub enum LedEffectDetails {
         value_sample: Uniform<f32>,
         min_value: f32,
         max_value: f32,
+        interval: i32,
+        last_change: Instant,
     },
 }
 
@@ -223,6 +225,7 @@ impl LedEffectDetails {
         min_value: f32,
         max_value: f32,
         variability: f32,
+        interval: Option<i32>
     ) -> LedEffectDetails {
         let value_range = max_value - min_value;
         let value_sample = Uniform::new_inclusive(
@@ -236,6 +239,8 @@ impl LedEffectDetails {
             min_value,
             max_value,
             value_sample,
+            interval: interval.unwrap_or(1),
+            last_change: Instant::now(),
         }
     }
 
@@ -331,12 +336,20 @@ impl LedEffectDetails {
                 value_sample,
                 min_value,
                 max_value,
+                interval,
+                ref mut last_change
             } => {
-                let value = value_sample
-                    .sample(&mut thread_rng())
-                    .clamp(min_value, max_value);
+                if last_change.elapsed().as_millis() as i32 > interval {
+                    *last_change = Instant::now();
 
-                Hsv::from_components((hue, saturation, value))
+                    let new_value = value_sample
+                        .sample(&mut thread_rng())
+                        .clamp(min_value, max_value);
+
+                    Hsv::from_components((hue, saturation, new_value))
+                } else {
+                    current_hsv
+                }
             }
         }
     }
