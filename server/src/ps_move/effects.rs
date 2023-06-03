@@ -84,10 +84,9 @@ pub enum LedEffectDetails {
     },
     Breathing {
         initial_hsv: Hsv,
-        time_to_peak: i32,
+        time_to_peak: f32,
         peak: f32,
         inhaling: bool,
-        time_elapsed: i32,
     },
     Rainbow {
         saturation: f32,
@@ -179,14 +178,16 @@ impl LedEffectDetails {
         time_to_peak: Duration,
         peak: f32,
     ) -> LedEffectDetails {
-        let time_to_peak = time_to_peak.as_millis() as i32;
+        let time_to_peak = time_to_peak.as_millis() as f32;
+        let step = effects_update::INTERVAL_DURATION.as_millis() as f32
+            * (peak - initial_hsv.value)
+            / time_to_peak;
 
         LedEffectDetails::Breathing {
             initial_hsv,
-            time_to_peak,
+            time_to_peak: step,
             peak,
             inhaling: initial_hsv.value < peak,
-            time_elapsed: 0,
         }
     }
 
@@ -219,9 +220,14 @@ impl LedEffectDetails {
             } => hsv,
             LedEffectDetails::Breathing {
                 initial_hsv,
+                time_to_peak: step,
                 peak,
                 ..
             } => {
+                if !(0.0..=1.0).contains(&step) {
+                    tracing::error!("Step must be between 0.0 and 1.0")
+                }
+
                 if peak < initial_hsv.value {
                     tracing::error!("Peak must be higher than initial value")
                 }
@@ -248,17 +254,10 @@ impl LedEffectDetails {
             LedEffectDetails::Static { hsv } => hsv,
             LedEffectDetails::Breathing {
                 initial_hsv,
-                time_to_peak,
+                time_to_peak: step,
                 peak,
                 ref mut inhaling,
-                ref mut time_elapsed,
-            } => Self::get_updated_breathing_hsv(
-                initial_hsv,
-                time_elapsed,
-                time_to_peak,
-                peak,
-                inhaling,
-            ),
+            } => Self::get_updated_breathing_hsv(current_hsv, initial_hsv, step, peak, inhaling),
             LedEffectDetails::Rainbow {
                 saturation,
                 value,
@@ -294,34 +293,29 @@ impl LedEffectDetails {
     }
 
     fn get_updated_breathing_hsv(
+        current_hsv: Hsv,
         initial_hsv: Hsv,
-        time_elapsed: &mut i32,
-        time_to_peak: i32,
+        step: f32,
         peak: f32,
         inhaling: &mut bool,
     ) -> Hsv {
         let initial_value = initial_hsv.value;
 
         let mut new_hsv = initial_hsv;
+        let mut new_value = current_hsv.value;
 
-        *time_elapsed += 1;
-
-        let log_factor = ((*time_elapsed / time_to_peak) as f32).log10();
-
-        let mut new_value = if *inhaling {
-            initial_value + (peak - initial_value) * log_factor
+        if *inhaling {
+            new_value += step
         } else {
-            initial_value - (initial_value - peak) * log_factor
-        };
+            new_value -= step
+        }
 
-        if *inhaling && new_value >= peak {
-            *time_elapsed = 0;
+        if new_value >= peak {
             new_value = peak;
-            *inhaling = false;
-        } else if !*inhaling && new_value <= initial_value {
-            *time_elapsed = 0;
+            *inhaling = false
+        } else if new_value <= initial_value {
             new_value = initial_value;
-            *inhaling = true;
+            *inhaling = true
         }
 
         new_hsv.value = new_value;
