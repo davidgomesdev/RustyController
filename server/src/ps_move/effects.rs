@@ -1,7 +1,9 @@
 use std::fmt;
 
 use lazy_static::lazy_static;
-use palette::{Hsv, Hue};
+use palette::{Hsv, ShiftHue};
+use rand::distributions::{Distribution, Uniform};
+use rand::thread_rng;
 use strum_macros::Display;
 use tokio::time::{Duration, Instant};
 
@@ -99,6 +101,13 @@ pub enum LedEffectDetails {
         interval: Duration,
         last_blink: Instant,
     },
+    Candle {
+        hue: f32,
+        saturation: f32,
+        value_sample: Uniform<f32>,
+        min_value: f32,
+        max_value: f32,
+    },
 }
 
 #[derive(Clone, Copy)]
@@ -186,7 +195,7 @@ impl LedEffectDetails {
             time_to_peak,
             peak,
             inhaling: initial_hsv.value < peak,
-            last_update: Instant::now()
+            last_update: Instant::now(),
         }
     }
 
@@ -208,6 +217,28 @@ impl LedEffectDetails {
         }
     }
 
+    pub fn new_candle(
+        hue: f32,
+        saturation: f32,
+        min_value: f32,
+        max_value: f32,
+        variability: f32,
+    ) -> LedEffectDetails {
+        let value_range = max_value - min_value;
+        let value_sample = Uniform::new_inclusive(
+            min_value - variability * value_range,
+            max_value + variability * value_range,
+        );
+
+        LedEffectDetails::Candle {
+            hue,
+            saturation,
+            min_value,
+            max_value,
+            value_sample,
+        }
+    }
+
     pub fn get_initial_hsv(&self) -> Hsv {
         match *self {
             LedEffectDetails::Off => Hsv::from_components((0.0, 0.0, 0.0)),
@@ -218,9 +249,7 @@ impl LedEffectDetails {
                 last_blink: _,
             } => hsv,
             LedEffectDetails::Breathing {
-                initial_hsv,
-                peak,
-                ..
+                initial_hsv, peak, ..
             } => {
                 if peak < initial_hsv.value {
                     tracing::error!("Peak must be higher than initial value")
@@ -239,6 +268,12 @@ impl LedEffectDetails {
 
                 Hsv::from_components((0.0, saturation, value))
             }
+            LedEffectDetails::Candle {
+                hue,
+                saturation,
+                min_value,
+                ..
+            } => Hsv::from_components((hue, saturation, min_value)),
         }
     }
 
@@ -289,6 +324,19 @@ impl LedEffectDetails {
                 } else {
                     current_hsv
                 }
+            }
+            LedEffectDetails::Candle {
+                hue,
+                saturation,
+                value_sample,
+                min_value,
+                max_value,
+            } => {
+                let value = value_sample
+                    .sample(&mut thread_rng())
+                    .clamp(min_value, max_value);
+
+                Hsv::from_components((hue, saturation, value))
             }
         }
     }

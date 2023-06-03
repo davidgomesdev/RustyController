@@ -1,6 +1,8 @@
+use std::cmp::min;
 use std::time::Duration;
 
 use juniper::{FieldError, FieldResult, Value};
+use rand::distributions::Uniform;
 use tokio::time::Instant;
 
 use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffectDetails};
@@ -16,7 +18,10 @@ pub struct MutationRoot;
 #[juniper::graphql_object(Context = Context)]
 impl MutationRoot {
     #[graphql(description = "Revert the led to the last effect. (if it's expired, it goes off)")]
-    fn revert_led(ctx: &Context, input: Option<RevertEffectInput>) -> FieldResult<MutationResponse> {
+    fn revert_led(
+        ctx: &Context,
+        input: Option<RevertEffectInput>,
+    ) -> FieldResult<MutationResponse> {
         tracing::info!("Received led to last effect");
         tracing::debug!("Effect input: {input:?}");
 
@@ -27,7 +32,10 @@ impl MutationRoot {
             Err(value) => return value,
         };
 
-        match ctx.effect_tx.send(EffectChange { effect: RevertLed, target }) {
+        match ctx.effect_tx.send(EffectChange {
+            effect: RevertLed,
+            target,
+        }) {
             Ok(_) => Ok(MutationResponse::Success),
             Err(_) => Ok(MutationResponse::ServerError),
         }
@@ -279,6 +287,78 @@ impl MutationRoot {
         )
     }
 
+    #[graphql(
+    description = "Randomly set brightness between min value and max value, simulating a candle/flame."
+    )]
+    fn set_led_candle(ctx: &Context, input: CandleLedEffectInput) -> FieldResult<MutationResponse> {
+        tracing::info!(
+            "Received led candle effect ({})",
+            input
+                .name
+                .clone()
+                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
+        );
+        tracing::debug!("Effect input: {input:?}");
+
+        if input.name.map_or(false, |name| name.is_empty()) {
+            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        }
+
+        if !(0..=360).contains(&input.hue) {
+            return Err(FieldError::new(
+                "Hue must be between 0 and 360!",
+                Value::Null,
+            ));
+        }
+
+        if !(0.0..=1.0).contains(&input.saturation) {
+            return Err(FieldError::new(
+                "Saturation must be between 0.0 and 1.0!",
+                Value::Null,
+            ));
+        }
+
+        if !(0.0..=1.0).contains(&input.min_value) {
+            return Err(FieldError::new(
+                "Min value must between 0.0 and 1.0!",
+                Value::Null,
+            ));
+        }
+
+        if !(0.0..=1.0).contains(&input.max_value) {
+            return Err(FieldError::new(
+                "Max value must be between 0.0 and 1.0!",
+                Value::Null,
+            ));
+        }
+
+        if !(0.0..=1.0).contains(&input.variability) {
+            return Err(FieldError::new(
+                "Variability must be between 0.0 and 1.0!",
+                Value::Null,
+            ));
+        }
+
+        if input.duration.filter(|duration| *duration < 0).is_some() {
+            return Err(FieldError::new("Duration must be positive!", Value::Null));
+        }
+
+        let hue = input.hue as f32;
+        let saturation = input.saturation as f32;
+        let min_value = input.min_value as f32;
+        let max_value = input.max_value as f32;
+        let variability = input.variability as f32;
+
+        let effect =
+            LedEffectDetails::new_candle(hue, saturation, min_value, max_value, variability);
+
+        process_led_effect_mutation(
+            ctx,
+            LedEffect::from(effect, input.duration),
+            input.controllers,
+        )
+    }
+
     #[graphql(description = "Turn rumble off.")]
     fn set_rumble_off(
         ctx: &Context,
@@ -441,7 +521,9 @@ fn process_effect_mutation(
     }
 }
 
-fn controller_to_effect_target(controllers: Option<Vec<String>>) -> Result<EffectTarget, FieldResult<MutationResponse>> {
+fn controller_to_effect_target(
+    controllers: Option<Vec<String>>,
+) -> Result<EffectTarget, FieldResult<MutationResponse>> {
     Ok(match controllers {
         None => EffectTarget::All,
         Some(bt_addresses) => {
