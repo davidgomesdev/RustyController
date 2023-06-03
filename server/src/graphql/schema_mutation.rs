@@ -1,8 +1,6 @@
-use std::cmp::min;
 use std::time::Duration;
 
 use juniper::{FieldError, FieldResult, Value};
-use rand::distributions::Uniform;
 use tokio::time::Instant;
 
 use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffectDetails};
@@ -349,8 +347,14 @@ impl MutationRoot {
         let max_value = input.max_value as f32;
         let variability = input.variability as f32;
 
-        let effect =
-            LedEffectDetails::new_candle(hue, saturation, min_value, max_value, variability);
+        let effect = LedEffectDetails::new_candle(
+            hue,
+            saturation,
+            min_value,
+            max_value,
+            variability,
+            input.interval,
+        );
 
         process_led_effect_mutation(
             ctx,

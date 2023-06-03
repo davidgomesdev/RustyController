@@ -1680,9 +1680,9 @@ dependencies = [
     "tokio-metrics",
     "tracing",
     "tracing-appender",
- "tracing-loki",
- "tracing-subscriber",
- "warp",
+    "tracing-loki",
+    "tracing-subscriber",
+    "warp",
 ]
 
 [[package]]
