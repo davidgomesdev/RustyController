@@ -36,6 +36,7 @@ impl QueryRoot {
                     api::LedEffectDetails::Breathing { .. } => { graphql::LedEffectType::Breathing }
                     api::LedEffectDetails::Rainbow { .. } => { graphql::LedEffectType::Rainbow }
                     api::LedEffectDetails::Blink { .. } => { graphql::LedEffectType::Blink }
+                    api::LedEffectDetails::Candle { .. } => { graphql::LedEffectType::Candle }
                 },
                 current_rumble_effect: match ctl.rumble_effect.details {
                     api::RumbleEffectDetails::Off => { graphql::RumbleEffectType::Off }
