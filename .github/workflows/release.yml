@@ -7,35 +7,58 @@ on:
 jobs:
   build-server:
     runs-on: ubuntu-latest
-    
+
+    strategy:
+      matrix:
+        build: [amd64, arm-v7]
+        include:
+        - build: amd64
+          os: ubuntu-latest
+          rust: stable
+          target: x86_64-unknown-linux-gnu
+          platform: linux
+        - build: arm-v7
+          os: ubuntu-latest
+          rust: stable
+          target: armv7-unknown-linux-gnueabihf
+          platform: pi
+
     env:
       CARGO_TERM_COLOR: always
-      
+
     defaults:
       run:
         shell: bash
         working-directory: ./server
 
     steps:
-    - uses: rui314/setup-mold@v1
-
     - uses: actions/checkout@v3
-    
+
+    - name: 🦀 - Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        target: ${{ matrix.target }}
+        override: true
+
     - name: 🌱 - Install dependencies
-      run: sudo apt-get update; sudo apt-get install -y libudev-dev libsystemd-dev libusb-1.0-0-dev
+      run: cargo install cross --git https://github.com/cross-rs/cross
 
     - name: 🔨 - Build
-      run: cargo build --release
-        
+      run: >
+        cross build --release --target ${{ matrix.target }} && \
+          mv target/**/release/rusty_controller server-${{ matrix.build }}
+
     - name: 📦 - Copy artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: rusty_controller
-        path: server/target/release/rusty_controller
+        name: server-${{ matrix.build }}
+        path: server/server-${{ matrix.build }}
+        if-no-files-found: error
   
   build-app:
     runs-on: ubuntu-latest
-    
+
     defaults:
       run:
        shell: bash
@@ -50,38 +73,36 @@ jobs:
 
     - name: 🌱 - Get dependencies
       run: flutter pub get
-      
-    - name: 🔨 - Build Apk
+
+    - name: 🔨 - Build APK
       run: flutter build apk
-    
-    - run: mv build/app/outputs/flutter-apk/app-release.apk ../RustyController.apk
+
+    - run: mv build/app/outputs/flutter-apk/app-release.apk ../app.apk
 
     - name: 📦 - Copy artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: RustyController.apk
-        path: RustyController.apk
-
+        name: app.apk
+        path: app.apk
 
   upload:
     needs: [build-server, build-app]
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📦 - Copy server artifact
-      uses: actions/download-artifact@v3
+    - name: 📦 - Copy server artifacts
+      uses: actions/download-artifact@v4
       with:
-        name: rusty_controller
-
-    - name: 📦 - Copy app artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: RustyController.apk
+        path: .
+        merge-multiple: true
+      
+    - name: 🧐 - Display structure of downloaded artifacts
+      run: ls -R
 
     - name: 🌠 - Release
       uses: ncipollo/release-action@v1.12.0
       with:
-        artifacts: "rusty_controller,RustyController.apk"
+        artifacts: "server-*,app.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
         allowUpdates: true
         removeArtifacts: true
