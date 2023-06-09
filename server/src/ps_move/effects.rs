@@ -295,7 +295,7 @@ impl LedEffectDetails {
             } => Self::get_updated_breathing_hsv(
                 initial_hsv,
                 last_update,
-                time_to_peak,
+                time_to_peak as f32,
                 peak,
                 inhaling,
             ),
@@ -357,24 +357,20 @@ impl LedEffectDetails {
     fn get_updated_breathing_hsv(
         initial_hsv: Hsv,
         last_update: &mut Instant,
-        time_to_peak: i32,
+        time_to_peak: f32,
         peak: f32,
         inhaling: &mut bool,
     ) -> Hsv {
         let initial_value = initial_hsv.value;
 
-        let mut new_hsv = initial_hsv;
+        let time_elapsed = (*last_update).elapsed().as_millis() as f32;
 
-        let time_elapsed_f32 = (*last_update).elapsed().as_millis() as f32;
-        let time_to_peak_f32 = time_to_peak as f32;
-
-        let factor = time_elapsed_f32 / time_to_peak_f32;
-        let pow_factor = factor.powf(2.0);
+        let factor = (time_elapsed / time_to_peak).powf(2.0);
 
         let mut new_value = if *inhaling {
-            initial_value + (peak - initial_value) * pow_factor
+            initial_value + (peak - initial_value) * factor
         } else {
-            initial_value - (initial_value - peak) * (1.0 - pow_factor)
+            initial_value - (initial_value - peak) * (1.0 - factor)
         };
 
         if *inhaling && new_value >= peak {
@@ -387,8 +383,7 @@ impl LedEffectDetails {
             *inhaling = true;
         }
 
-        new_hsv.value = new_value;
-        new_hsv
+        Hsv::from_components((initial_hsv.hue, initial_hsv.saturation, new_value))
     }
 }
 

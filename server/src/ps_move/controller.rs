@@ -103,6 +103,8 @@ impl PsMoveController {
 
         self.last_led_effect = current_effect;
         self.setting.last_led = current_led;
+
+        tracing::info!("Reverted '{:?}' to '{}'", self.bt_address, self.led_effect);
     }
 
     pub fn set_led_effect(&mut self, effect: LedEffect) {
