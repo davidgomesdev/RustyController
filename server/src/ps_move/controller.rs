@@ -2,15 +2,14 @@ use std::collections::HashMap;
 
 use hidapi::{HidDevice, HidError};
 use palette::{FromColor, Hsv, Srgb};
+use tracing::info;
 
 use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectDetails};
 use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, fill_state_from_byte_slice, MoveRequestType, MoveSetting};
 use crate::ps_move::models::BatteryLevel::Unknown;
 use crate::tasks::models::Button;
 
-#[allow(dead_code)]
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;
-#[allow(dead_code)]
 pub const MAX_LED_PWM_FREQUENCY: u64 = 0x24e6;
 
 pub struct PsMoveController {
@@ -104,7 +103,7 @@ impl PsMoveController {
         self.last_led_effect = current_effect;
         self.setting.last_led = current_led;
 
-        tracing::info!("Reverted '{:?}' to '{}'", self.bt_address, self.led_effect);
+        info!("Reverted '{:?}' to '{}'", self.bt_address, self.led_effect);
     }
 
     pub fn set_led_effect(&mut self, effect: LedEffect) {
@@ -192,6 +191,7 @@ impl PsMoveController {
             let duration = last_led_effect.duration.unwrap();
 
             if last_led_effect.start.elapsed() >= duration {
+                info!("Last led effect of '{}' expired", self.bt_address);
                 let off_effect = LedEffect::off();
 
                 self.last_led_effect = off_effect;
@@ -203,6 +203,7 @@ impl PsMoveController {
         let current_hsv = self.setting.led;
 
         if led_effect.duration.is_some() {
+            info!("Led effect of '{}' expired", self.bt_address);
             let duration = led_effect.duration.unwrap();
 
             if led_effect.start.elapsed() >= duration {
@@ -261,12 +262,12 @@ impl PsMoveController {
             self.last_battery = *battery;
 
             if *battery == Unknown {
-                tracing::info!(
+                info!(
                     "Controller battery status known. ('{}' at {curr_battery})",
                     self.bt_address
                 );
             } else {
-                tracing::info!(
+                info!(
                     "Controller battery status changed. ('{}' to {curr_battery})",
                     self.bt_address
                 );
