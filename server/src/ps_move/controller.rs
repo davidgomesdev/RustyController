@@ -203,10 +203,10 @@ impl PsMoveController {
         let current_hsv = self.setting.led;
 
         if led_effect.duration.is_some() {
-            info!("Led effect of '{}' expired", self.bt_address);
             let duration = led_effect.duration.unwrap();
 
             if led_effect.start.elapsed() >= duration {
+                info!("Led effect of '{}' expired", self.bt_address);
                 self.set_led_effect(LedEffect::off());
                 return;
             }
