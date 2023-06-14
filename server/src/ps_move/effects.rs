@@ -1,4 +1,5 @@
 use std::fmt;
+use std::fmt::{Display, Formatter};
 
 use lazy_static::lazy_static;
 use palette::{Hsv, ShiftHue};
@@ -73,7 +74,7 @@ impl LedEffect {
 }
 
 impl fmt::Display for LedEffect {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Led::{}", &self.details)
     }
 }
@@ -109,76 +110,6 @@ pub enum LedEffectDetails {
         max_value: f32,
         interval: i32,
         last_change: Instant,
-    },
-}
-
-#[derive(Clone, Copy)]
-pub struct RumbleEffect {
-    pub details: RumbleEffectDetails,
-    pub start: Instant,
-    pub duration: Option<Duration>,
-}
-
-impl RumbleEffect {
-    pub fn new_expiring(details: RumbleEffectDetails, duration: Duration) -> RumbleEffect {
-        RumbleEffect {
-            details,
-            start: Instant::now(),
-            duration: Some(duration),
-        }
-    }
-
-    pub fn new(details: RumbleEffectDetails) -> RumbleEffect {
-        RumbleEffect {
-            details,
-            start: Instant::now(),
-            duration: None,
-        }
-    }
-
-    pub fn off() -> RumbleEffect {
-        RumbleEffect {
-            details: RumbleEffectDetails::Off,
-            start: Instant::now(),
-            duration: None,
-        }
-    }
-
-    /// Creates an expiring `RumbleEffect` if `duration_millis` is present,
-    /// otherwise a non-expiring one
-    pub fn from(details: RumbleEffectDetails, duration_millis: Option<i32>) -> RumbleEffect {
-        duration_millis.map_or(RumbleEffect::new(details), |millis| {
-            if millis < 0 {
-                panic!("Negative milliseconds as duration not allowed!")
-            }
-
-            RumbleEffect::new_expiring(details, Duration::from_millis(millis as u64))
-        })
-    }
-}
-
-impl fmt::Display for RumbleEffect {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Rumble::{}", &self.details)
-    }
-}
-
-#[derive(Clone, Copy, Display, Debug, PartialEq)]
-pub enum RumbleEffectDetails {
-    Off,
-    Static {
-        strength: f32,
-    },
-    Breathing {
-        initial_strength: f32,
-        step: f32,
-        peak: f32,
-        inhaling: bool,
-    },
-    Blink {
-        strength: f32,
-        interval: Duration,
-        last_blink: Instant,
     },
 }
 
@@ -385,6 +316,76 @@ impl LedEffectDetails {
 
         Hsv::from_components((initial_hsv.hue, initial_hsv.saturation, new_value))
     }
+}
+
+#[derive(Clone, Copy)]
+pub struct RumbleEffect {
+    pub details: RumbleEffectDetails,
+    pub start: Instant,
+    pub duration: Option<Duration>,
+}
+
+impl RumbleEffect {
+    pub fn new_expiring(details: RumbleEffectDetails, duration: Duration) -> RumbleEffect {
+        RumbleEffect {
+            details,
+            start: Instant::now(),
+            duration: Some(duration),
+        }
+    }
+
+    pub fn new(details: RumbleEffectDetails) -> RumbleEffect {
+        RumbleEffect {
+            details,
+            start: Instant::now(),
+            duration: None,
+        }
+    }
+
+    pub fn off() -> RumbleEffect {
+        RumbleEffect {
+            details: RumbleEffectDetails::Off,
+            start: Instant::now(),
+            duration: None,
+        }
+    }
+
+    /// Creates an expiring `RumbleEffect` if `duration_millis` is present,
+    /// otherwise a non-expiring one
+    pub fn from(details: RumbleEffectDetails, duration_millis: Option<i32>) -> RumbleEffect {
+        duration_millis.map_or(RumbleEffect::new(details), |millis| {
+            if millis < 0 {
+                panic!("Negative milliseconds as duration not allowed!")
+            }
+
+            RumbleEffect::new_expiring(details, Duration::from_millis(millis as u64))
+        })
+    }
+}
+
+impl fmt::Display for RumbleEffect {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Rumble::{}", &self.details)
+    }
+}
+
+#[derive(Clone, Copy, Display, Debug, PartialEq)]
+pub enum RumbleEffectDetails {
+    Off,
+    Static {
+        strength: f32,
+    },
+    Breathing {
+        initial_strength: f32,
+        step: f32,
+        peak: f32,
+        inhaling: bool,
+    },
+    Blink {
+        strength: f32,
+        interval: Duration,
+        last_blink: Instant,
+    },
 }
 
 impl RumbleEffectDetails {

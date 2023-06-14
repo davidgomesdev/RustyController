@@ -191,7 +191,7 @@ impl PsMoveController {
             let duration = last_led_effect.duration.unwrap();
 
             if last_led_effect.start.elapsed() >= duration {
-                info!("Last led effect of '{}' expired", self.bt_address);
+                info!("Last led effect '{}' of '{}' expired", last_led_effect, self.bt_address);
                 let off_effect = LedEffect::off();
 
                 self.last_led_effect = off_effect;
@@ -206,7 +206,7 @@ impl PsMoveController {
             let duration = led_effect.duration.unwrap();
 
             if led_effect.start.elapsed() >= duration {
-                info!("Led effect of '{}' expired", self.bt_address);
+                info!("Led effect '{}' of '{}' expired", led_effect, self.bt_address);
                 self.set_led_effect(LedEffect::off());
                 return;
             }
