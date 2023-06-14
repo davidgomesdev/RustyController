@@ -1,5 +1,5 @@
 use std::fmt;
-use std::fmt::{Display, Formatter};
+use std::fmt::Formatter;
 
 use lazy_static::lazy_static;
 use palette::{Hsv, ShiftHue};
@@ -231,18 +231,13 @@ impl LedEffectDetails {
                 inhaling,
             ),
             LedEffectDetails::Rainbow {
-                saturation,
-                value,
                 time_to_complete,
+                ..
             } => {
                 // no need to use [saturation] and [value],
                 // since it was already set in the beginning similar to breathing,
                 // the step is relative to the max possible value
-                let mut new_hsv = current_hsv.shift_hue(time_to_complete);
-
-                new_hsv.value = value;
-                new_hsv.saturation = saturation;
-                new_hsv
+                current_hsv.shift_hue(time_to_complete)
             }
             LedEffectDetails::Blink {
                 hsv,
@@ -364,7 +359,7 @@ impl RumbleEffect {
 }
 
 impl fmt::Display for RumbleEffect {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Rumble::{}", &self.details)
     }
 }

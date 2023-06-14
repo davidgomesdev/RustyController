@@ -4,6 +4,7 @@ use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::sync::watch::Sender;
 use tokio::time;
+use tokio::time::MissedTickBehavior;
 
 use crate::ControllerChange;
 use crate::ps_move::controller::PsMoveController;
@@ -17,6 +18,8 @@ pub async fn run(
     mut shutdown_signal: ShutdownSignal,
 ) {
     let mut interval = time::interval(INTERVAL_DURATION);
+
+    interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
 
     while !shutdown_signal.check_is_shutting_down() {
         interval.tick().await;

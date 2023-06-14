@@ -4,6 +4,7 @@ use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 use tokio::time;
+use tokio::time::MissedTickBehavior;
 
 use crate::ps_move::controller::PsMoveController;
 use crate::spawn_tasks::InitialLedState;
@@ -15,6 +16,8 @@ pub async fn run(
     initial_state: Arc<Mutex<InitialLedState>>,
 ) -> JoinHandle<()> {
     let mut interval = time::interval(INTERVAL_DURATION);
+
+    interval.set_missed_tick_behavior(MissedTickBehavior::Burst);
 
     loop {
         interval.tick().await;

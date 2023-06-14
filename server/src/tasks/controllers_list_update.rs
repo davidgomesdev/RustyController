@@ -4,7 +4,7 @@ use std::time::Duration;
 use palette::Hsv;
 use tokio::sync::Mutex;
 use tokio::time;
-use tokio::time::Instant;
+use tokio::time::{Instant, MissedTickBehavior};
 
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
@@ -32,6 +32,8 @@ pub async fn run(
     initial_state: Arc<Mutex<InitialLedState>>,
 ) {
     let mut interval = time::interval(INTERVAL_DURATION);
+
+    interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
 
     tracing::info!(
         "Listing controllers with '{}' as the initial effect.",

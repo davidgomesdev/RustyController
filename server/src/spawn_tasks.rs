@@ -53,23 +53,17 @@ pub async fn run_move(
         let controllers = controllers.clone();
         let initial_effect = initial_effect.clone();
 
-        task::spawn_blocking(move || {
-            Handle::current().block_on(mutations_handler::run(
-                controllers,
-                effect_rx,
-                initial_effect,
-            ))
-        });
+        tokio::spawn(mutations_handler::run(
+            controllers,
+            effect_rx,
+            initial_effect,
+        ));
     }
 
-    tokio::spawn(
-        monitors
-            .effects_update
-            .instrument(effects_update::run(
-                controllers.clone(),
-                initial_effect.clone(),
-            )),
-    );
+    tokio::spawn(monitors.effects_update.instrument(effects_update::run(
+        controllers.clone(),
+        initial_effect.clone(),
+    )));
 
     {
         let controllers = controllers.clone();
@@ -77,9 +71,12 @@ pub async fn run_move(
         let monitor = monitors.controllers_list.clone();
 
         task::spawn_blocking(move || {
-            Handle::current().block_on(monitor.instrument(
-                controllers_list_update::run(controllers, api, shutdown_signal, initial_effect),
-            ))
+            Handle::current().block_on(monitor.instrument(controllers_list_update::run(
+                controllers,
+                api,
+                shutdown_signal,
+                initial_effect,
+            )))
         });
     }
 
@@ -89,13 +86,15 @@ pub async fn run_move(
         let monitor = monitors.controller_update.clone();
 
         task::spawn_blocking(move || {
-            Handle::current().block_on(monitor.instrument(
-                controller_update::run(controllers, ctrl_tx, shutdown_signal),
-            ))
+            Handle::current().block_on(monitor.instrument(controller_update::run(
+                controllers,
+                ctrl_tx,
+                shutdown_signal,
+            )))
         });
     }
 
-    task::spawn_blocking(move || Handle::current().block_on(ip_discovery::spawn()));
+    tokio::spawn(ip_discovery::spawn());
 
     let frequency = Duration::from_secs(10);
 

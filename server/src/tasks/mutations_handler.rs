@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::Mutex;
+use tokio::task::JoinHandle;
 
 use crate::{EffectChange, EffectChangeType, EffectTarget};
 use crate::ps_move::controller::PsMoveController;
@@ -11,7 +12,7 @@ pub async fn run(
     controllers: Arc<Mutex<Vec<PsMoveController>>>,
     mut rx: Receiver<EffectChange>,
     initial_state: Arc<Mutex<InitialLedState>>,
-) {
+) -> JoinHandle<()> {
     loop {
         match rx.recv().await {
             Ok(effect_change) => {
