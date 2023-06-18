@@ -13,7 +13,7 @@ fi
 
 # Start Grafana stack
 
-(cd server/docker && docker compose -f grafana.yaml up --wait)
+(cd server/docker && docker compose -f grafana.yaml up --wait -d)
 
 # Update and launch server
 
