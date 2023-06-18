@@ -42,6 +42,12 @@ You can run it every midnight or so, by adding the following line on: `crontab -
 0 0 * * * ( cd /home/kali/RustyController && cp server/scripts/auto-update.sh /tmp/rusty-auto-update.sh && bash /tmp/rusty-auto-update.sh >> /var/log/rusty-controller/auto_update.log 2>&1 )
 ```
 
+## Grafana stack
+
+To launch Grafana (along with Loki and Prometheus), run `docker compose -f grafana.yaml up -d` on the [docker](docker) folder.
+
+To get the host machine's metrics, you need to run [node_exporter](https://github.com/prometheus/node_exporter). (a simple binary that exposes the metrics via an endpoint)
+
 ### Logs
 
 That cron logs to `/var/log/rusty-controller`, if you're running as a non-sudo user, you need to create and give
