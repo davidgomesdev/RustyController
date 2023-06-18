@@ -32,7 +32,7 @@ build in `releases`.
 
 The [auto-update](scripts/auto-update.sh) script, clones/pulls `main`, builds the binary.
 
-If the build newer, runs [run-tmux-session.sh](scripts/run-tmux-session.sh), which re-launches Rusty.
+If the build newer, runs [run-server.sh](scripts/run-server.sh), which re-launches Rusty.
 
 _Note: This whole process achieves minimal downtime, by launching only after having it built._
 
