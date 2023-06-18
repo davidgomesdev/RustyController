@@ -51,7 +51,7 @@ build () {
 
 launch () {
   echo "$SUCCESS* Launching built version...$RESET"
-  . "$RUSTY_HOME_DIR/server/scripts/run-tmux-session.sh"
+  . "$RUSTY_HOME_DIR/server/scripts/run-server.sh"
 }
 
 if [[ ! -d "$RUSTY_HOME_DIR" ]]; then
