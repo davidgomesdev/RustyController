@@ -3,7 +3,7 @@ version: "3"
 name: grafana
 
 networks:
-  loki:
+  grafana:
 
 services:
   loki:
@@ -15,7 +15,7 @@ services:
     volumes:
       - loki-data:/loki
     networks:
-      - loki
+      - grafana
 
   promtail:
     image: grafana/promtail:2.7.4
@@ -24,7 +24,7 @@ services:
       - ./config/promtail.yaml:/mnt/config/config.yaml
       - /var/log/rusty-controller:/var/log/rusty-controller
     networks:
-      - loki
+      - grafana
 
   prometheus:
     image: prom/prometheus
@@ -34,6 +34,8 @@ services:
       - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - grafana
 
   grafana:
     image: grafana/grafana:latest
@@ -42,7 +44,7 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
     networks:
-      - loki
+      - grafana
 
 volumes:
   grafana-data:
