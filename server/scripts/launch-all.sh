@@ -13,7 +13,7 @@ fi
 
 # Start Grafana stack
 
-(cd server/docker && docker compose -f grafana.yaml up --wait -d)
+(cd server/docker && docker compose -f grafana.yaml up --wait -d) >> /var/log/rusty-controller/run-grafana-stack.log 2>&1
 
 # Update and launch server
 
