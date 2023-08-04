@@ -16,6 +16,7 @@ mod ps_move;
 mod spawn_tasks;
 mod tasks;
 mod tracing_setup;
+mod metrics;
 
 #[tokio::main]
 async fn main() {

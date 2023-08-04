@@ -6,6 +6,7 @@ use tokio::sync::Mutex;
 use tokio::time;
 use tokio::time::{Instant, MissedTickBehavior};
 
+use crate::metrics::metrics::CONNECTED_DEVICES_GAUGE;
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
 use crate::ps_move::effects::{LedEffect, LedEffectDetails};
@@ -87,6 +88,8 @@ pub async fn run(
             controller.set_led_effect_with_hsv(effect, initial_state.hsv);
             add_connected_controllers(&mut controllers, controller);
         });
+
+        CONNECTED_DEVICES_GAUGE.set(controllers.len() as i64);
     }
 }
 

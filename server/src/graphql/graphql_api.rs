@@ -10,6 +10,7 @@ use tokio::sync::watch::Receiver;
 use warp::{Filter, http::Response};
 
 use crate::{ControllerChange, EffectChange};
+use crate::metrics::metrics::metrics_handler;
 use crate::ps_move::controller::PsMoveController;
 
 use super::schema::{Context, create_schema};
@@ -68,6 +69,7 @@ pub async fn start(
         .or(warp::get()
             .and(warp::path("playground"))
             .and(playground_filter("/graphql", Some("/subscriptions"))))
+        .or(warp::get().and(warp::path("metrics")).and_then(metrics_handler))
         .or(homepage)
         .with(log);
 

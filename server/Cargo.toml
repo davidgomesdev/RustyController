@@ -33,6 +33,9 @@ tracing-loki = { version = "0.2", default-features = false, features = ["rustls"
 tokio-metrics = "0.2"
 console-subscriber = "0.1"
 
+# Monitoring
+prometheus = { version = "0.13.3", features = ["process"] }
+
 # GraphQL
 warp = "0.3"
 serde = "1.0.136"
