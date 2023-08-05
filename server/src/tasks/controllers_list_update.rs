@@ -6,7 +6,7 @@ use tokio::sync::Mutex;
 use tokio::time;
 use tokio::time::{Instant, MissedTickBehavior};
 
-use crate::metrics::metrics::CONNECTED_DEVICES_GAUGE;
+use crate::monitoring::metrics::CONNECTED_DEVICES_GAUGE;
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
 use crate::ps_move::effects::{LedEffect, LedEffectDetails};

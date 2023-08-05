@@ -10,7 +10,7 @@ use tokio::sync::watch::Receiver;
 use warp::{Filter, http::Response};
 
 use crate::{ControllerChange, EffectChange};
-use crate::metrics::metrics::metrics_handler;
+use crate::monitoring::metrics::metrics_handler;
 use crate::ps_move::controller::PsMoveController;
 
 use super::schema::{Context, create_schema};
