@@ -16,6 +16,10 @@ services:
       - loki-data:/loki
     networks:
       - grafana
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
   promtail:
     image: grafana/promtail:2.7.4
@@ -25,6 +29,10 @@ services:
       - /var/log/rusty-controller:/var/log/rusty-controller
     networks:
       - grafana
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
   prometheus:
     image: prom/prometheus:v2.24.0
@@ -32,10 +40,15 @@ services:
       - "9090:9090"
     volumes:
       - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - prom-data:/prometheus
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
       - grafana
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
   grafana:
     image: grafana/grafana:latest
@@ -45,7 +58,12 @@ services:
       - grafana-data:/var/lib/grafana
     networks:
       - grafana
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
 
 volumes:
-  grafana-data:
   loki-data:
+  prom-data:
+  grafana-data:
