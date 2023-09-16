@@ -1,6 +1,6 @@
 ## Running the server
 
-1. install libusb: `sudo apt-get install libudev-dev libsystemd-dev libusb-1.0-0-dev`
+1. install libusb: `sudo apt-get install libudev-dev libsystemd-dev libusb-1.0-0-dev libusb-0.1-4`
 2. give permission for the move controller(s) to your user
     1. create a group called psmove (`sudo groupadd psmove`)
     2. give permission to access the USB devices of PS:
