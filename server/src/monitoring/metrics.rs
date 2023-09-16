@@ -1,11 +1,23 @@
 use lazy_static::lazy_static;
-use prometheus::{Encoder, IntGauge, opts, register_int_gauge};
+use prometheus::{Encoder, HistogramVec, IntGauge, opts, register_int_gauge, register_histogram_vec, histogram_opts};
 use warp::{Rejection, Reply};
 
 lazy_static! {
-    pub static ref CONNECTED_DEVICES_GAUGE: IntGauge =
+    pub static ref CONNECTED_DEVICES_METRIC: IntGauge =
         register_int_gauge!(opts!("connected_devices", "Number of devices connected"))
-            .expect("Failed to create gauge");
+            .expect("Failed to create connected devices metric");
+
+    pub static ref SCHEDULED_DURATION_METRIC: HistogramVec =
+        register_histogram_vec!(histogram_opts!("scheduled_duration", "Time it takes for a task to be executed by the scheduler"), &["task"])
+            .expect("Failed to create scheduled duration metric");
+
+    pub static ref POLL_DURATION_METRIC: HistogramVec =
+        register_histogram_vec!(histogram_opts!("poll_duration", "Time a task takes to complete"), &["task"])
+            .expect("Failed to create poll duration metric");
+
+    pub static ref IDLE_DURATION_METRIC: HistogramVec =
+        register_histogram_vec!(histogram_opts!("idle_duration", "The time a task spent idle (i.e. sleeping)"), &["task"])
+            .expect("Failed to create idle duration metric");
 }
 
 pub async fn metrics_handler() -> Result<impl Reply, Rejection> {
