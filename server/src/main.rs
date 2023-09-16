@@ -9,7 +9,7 @@ use ps_move::effects::LedEffectDetails;
 use crate::ps_move::controller::PsMoveController;
 use crate::ps_move::models::ButtonState;
 use crate::tasks::models::*;
-use crate::tracing_setup::setup_tracing;
+use crate::tracing_setup::setup_loki;
 
 mod graphql;
 mod ps_move;
@@ -20,7 +20,7 @@ mod monitoring;
 
 #[tokio::main]
 async fn main() {
-    setup_tracing().await;
+    setup_loki().await;
 
     let (effect_tx, effect_rx) = broadcast::channel(32);
     let (ctrl_tx, ctrl_rx) = watch::channel(ControllerChange::from_button(
