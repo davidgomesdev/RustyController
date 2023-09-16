@@ -14,6 +14,7 @@ use tokio::time::Instant;
 use tokio_metrics::{TaskMetrics, TaskMonitor};
 
 use crate::ControllerChange;
+use crate::monitoring::metrics::{IDLE_DURATION_METRIC, POLL_DURATION_METRIC, SCHEDULED_DURATION_METRIC};
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
 use crate::ps_move::effects::{LedEffect, LedEffectDetails};
@@ -98,7 +99,7 @@ pub async fn run_move(
 
     let frequency = Duration::from_secs(10);
 
-    tokio::spawn(async move {
+    task::spawn(async move {
         let intervals = monitors.effects_update.intervals().zip(
             monitors
                 .controllers_list
@@ -111,7 +112,7 @@ pub async fn run_move(
             log_metrics("controllers_list", controllers_list);
             log_metrics("controller_update", controller_update);
 
-            tokio::time::sleep(frequency).await;
+            let _ = tokio::time::sleep(frequency).await;
         }
     });
 
@@ -121,18 +122,10 @@ pub async fn run_move(
     }
 }
 
-fn log_metrics(name: &str, metrics: TaskMetrics) {
-    tracing::info!(
-        target: "rusty_controller::metrics",
-        task = name,
-        poll_duration_micros = metrics.mean_poll_duration().as_micros(),
-        scheduled_duration_micros = metrics.mean_scheduled_duration().as_micros(),
-        idle_duration_micros = metrics.mean_idle_duration().as_micros(),
-        "Durations: Poll {:.2?} / Scheduled {:.2?} / Idle {:.2?}",
-        metrics.mean_poll_duration(),
-        metrics.mean_scheduled_duration(),
-        metrics.mean_idle_duration(),
-    );
+fn log_metrics(task_name: &str, metrics: TaskMetrics) {
+    SCHEDULED_DURATION_METRIC.with_label_values(&[task_name]).observe(metrics.mean_scheduled_duration().as_secs_f64());
+    POLL_DURATION_METRIC.with_label_values(&[task_name]).observe(metrics.mean_poll_duration().as_secs_f64());
+    IDLE_DURATION_METRIC.with_label_values(&[task_name]).observe(metrics.mean_idle_duration().as_secs_f64());
 }
 
 pub struct ShutdownCommand {
