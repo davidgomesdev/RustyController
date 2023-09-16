@@ -8,7 +8,7 @@
        `/etc/udev/rules.d/10-psmove-hidraw-permissions.rules` with:
         
         `KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660", GROUP="psmove"`
-    3. add your user to that group `sudo usermod -a -G psmove your_username`
+    3. add your user to that group `sudo usermod -a -G psmove $USER`
 
 *Note: On Ubuntu, you might need to run `rfkill unblock bluetooth`.*
 
