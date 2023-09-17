@@ -2,6 +2,7 @@
 
 # Colors
 
+START=$(tput setaf 4)
 SUCCESS=$(tput setaf 2)
 WARNING=$(tput setaf 3)
 INFO=$(tput setaf 6)
@@ -14,7 +15,7 @@ RUSTY_HOME_DIR="$HOME/RustyController"
 BINARY_PATH="$RUSTY_HOME_DIR/server/target/release/rusty_controller"
 HASH_FILE="$RUSTY_HOME_DIR/current.sha256"
 
-echo "$INFO* Running at $(date)$RESET"
+echo "$START* Running at $(date)$RESET"
 
 cd "$HOME" || exit 1
 
