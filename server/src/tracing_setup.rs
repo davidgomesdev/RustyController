@@ -26,22 +26,13 @@ fn build_loki_layer() -> (tracing_loki::Layer, BackgroundTask) {
 }
 
 pub async fn setup_loki() {
-    let directory = fs::create_dir_all("/var/log/rusty-controller/server")
-        .await
-        .map(|_| {
-            tracing::info!("Failed to create directory in /var/log. Using ./logs");
-            LOGS_DIRECTORY
-        })
-        .unwrap_or("logs");
-
-    let file = tracing_appender::rolling::daily(directory, "daily");
     let filter = filter::Targets::new()
         .with_target("rusty_controller", Level::DEBUG)
         .with_default(Level::WARN);
 
     let registry = tracing_subscriber::registry().with(filter).with(
         fmt::layer()
-            .with_writer(io::stdout.and(file))
+            .with_writer(io::stdout)
     );
 
     let http = Client::new();
