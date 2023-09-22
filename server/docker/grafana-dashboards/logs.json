@@ -28,6 +28,12 @@
       "id": "loki",
       "name": "Loki",
       "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
     }
   ],
   "annotations": {
@@ -76,22 +82,151 @@
         "uid": "${DS_LOKI}"
       },
       "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "color-text"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Module Path"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 397
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Line"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 54
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Level"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 77
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "debug": {
+                        "color": "#808080",
+                        "index": 1,
+                        "text": "DEBUG"
+                      },
+                      "error": {
+                        "color": "semi-dark-red",
+                        "index": 2,
+                        "text": "ERROR"
+                      },
+                      "info": {
+                        "color": "blue",
+                        "index": 0,
+                        "text": "INFO"
+                      },
+                      "warn": {
+                        "color": "yellow",
+                        "index": 3,
+                        "text": "WARN"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.filterable",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
-        "h": 10,
-        "w": 13,
+        "h": 11,
+        "w": 24,
         "x": 0,
         "y": 1
       },
       "id": 2,
       "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": false,
-        "prettifyLogMessage": false,
-        "showCommonLabels": false,
-        "showLabels": false,
-        "showTime": false,
-        "sortOrder": "Ascending",
-        "wrapLogMessage": true
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Time"
+          }
+        ]
       },
       "pluginVersion": "9.4.3",
       "targets": [
@@ -101,51 +236,72 @@
             "uid": "${DS_LOKI}"
           },
           "editorMode": "builder",
-          "expr": "{job=\"rusty-server\"}",
+          "expr": "{host=\"rusty_controller\"} | json",
           "queryType": "range",
           "refId": "A"
         }
       ],
       "title": "Server",
-      "transformations": [],
-      "type": "logs"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "${DS_LOKI}"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 6,
-        "x": 13,
-        "y": 1
-      },
-      "id": 4,
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": false,
-        "prettifyLogMessage": false,
-        "showCommonLabels": false,
-        "showLabels": false,
-        "showTime": true,
-        "sortOrder": "Ascending",
-        "wrapLogMessage": true
-      },
-      "targets": [
+      "transformations": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
-          },
-          "editorMode": "code",
-          "expr": "{filename=\"/var/log/rusty-controller/run-all.log\"}",
-          "queryType": "range",
-          "refId": "A"
+          "id": "extractFields",
+          "options": {
+            "format": "json",
+            "jsonPaths": [
+              {
+                "alias": "Module Path",
+                "path": "_module_path"
+              },
+              {
+                "alias": "File",
+                "path": "_file"
+              },
+              {
+                "alias": "Line",
+                "path": "_line"
+              },
+              {
+                "alias": "Message",
+                "path": "message"
+              },
+              {
+                "alias": "Level",
+                "path": "level"
+              }
+            ],
+            "keepTime": true,
+            "replace": true,
+            "source": "labels"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "File": true,
+              "id": true,
+              "labels": true,
+              "line": true,
+              "tsNs": true
+            },
+            "indexByName": {
+              "File": 2,
+              "Level": 4,
+              "Line": 3,
+              "Message": 5,
+              "Module Path": 1,
+              "Time": 0
+            },
+            "renameByName": {
+              "File": "",
+              "Line": "",
+              "Line Number": "Line",
+              "Message": ""
+            }
+          }
         }
       ],
-      "title": "Plugins runner",
-      "type": "logs"
+      "type": "table"
     },
     {
       "collapsed": false,
@@ -153,7 +309,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 12
       },
       "id": 8,
       "panels": [],
@@ -170,7 +326,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 12
+        "y": 13
       },
       "id": 10,
       "maxPerRow": 3,
@@ -202,12 +358,53 @@
       "type": "logs"
     },
     {
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "description": "",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "id": 43,
+      "maxPerRow": 3,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": false,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Ascending",
+        "wrapLogMessage": true
+      },
+      "repeat": "adhocplugin",
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "editorMode": "code",
+          "expr": "{filename=\"/var/log/rusty-controller/plugins/$adhocplugin.log\"} |= ``",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "$adhocplugin",
+      "type": "logs"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 29
       },
       "id": 16,
       "panels": [],
@@ -221,9 +418,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 12,
         "x": 0,
-        "y": 29
+        "y": 30
       },
       "id": 26,
       "maxPerRow": 3,
@@ -237,7 +434,7 @@
         "sortOrder": "Ascending",
         "wrapLogMessage": true
       },
-      "repeat": "plugin",
+      "repeat": "adhocplugin",
       "repeatDirection": "h",
       "targets": [
         {
@@ -246,16 +443,16 @@
             "uid": "${DS_LOKI}"
           },
           "editorMode": "code",
-          "expr": "{filename=\"/var/log/rusty-controller/plugins/cron/$plugin.log\"} |= ``",
+          "expr": "{filename=\"/var/log/rusty-controller/plugins/cron/$adhocplugin.log\"} |= ``",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "$plugin",
+      "title": "$adhocplugin",
       "type": "logs"
     }
   ],
-  "refresh": "10s",
+  "refresh": "5s",
   "revision": 1,
   "schemaVersion": 38,
   "style": "dark",
@@ -297,6 +494,33 @@
             "selected": false,
             "text": "ruscue",
             "value": "ruscue"
+          }
+        ],
+        "query": "brewertender,stretchy,ruscue",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 0,
+        "includeAll": true,
+        "label": "Ad-Hoc Plugin",
+        "multi": true,
+        "name": "adhocplugin",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
           },
           {
             "selected": false,
@@ -309,7 +533,7 @@
             "value": "rustea"
           }
         ],
-        "query": "brewertender,stretchy,ruscue,weathery,rustea",
+        "query": "weathery,rustea",
         "queryValue": "",
         "skipUrlSync": false,
         "type": "custom"
@@ -317,13 +541,13 @@
     ]
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Logs",
   "uid": "UKUM1tWRz",
-  "version": 29,
+  "version": 43,
   "weekStart": ""
 }

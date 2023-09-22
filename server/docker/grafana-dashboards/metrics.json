@@ -7,14 +7,6 @@
       "type": "datasource",
       "pluginId": "prometheus",
       "pluginName": "Prometheus"
-    },
-    {
-      "name": "DS_LOKI",
-      "label": "Loki",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "loki",
-      "pluginName": "Loki"
     }
   ],
   "__elements": {},
@@ -24,12 +16,6 @@
       "id": "grafana",
       "name": "Grafana",
       "version": "9.4.3"
-    },
-    {
-      "type": "datasource",
-      "id": "loki",
-      "name": "Loki",
-      "version": "1.0.0"
     },
     {
       "type": "datasource",
@@ -142,7 +128,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
@@ -163,6 +149,7 @@
         }
       ],
       "title": "Connected Devices",
+      "transformations": [],
       "type": "stat"
     },
     {
@@ -180,8 +167,8 @@
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "${DS_LOKI}"
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "Time it waited to start running",
       "fieldConfig": {
@@ -241,7 +228,7 @@
               }
             ]
           },
-          "unit": "µs"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -276,51 +263,26 @@
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "builder",
-          "expr": "{host=\"rusty_controller\"} | json | _target = `rusty_controller::metrics` | task = `$task`",
-          "queryType": "range",
+          "expr": "rate(scheduled_duration_sum{task=\"$task\"}[$__rate_interval])",
+          "hide": false,
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
       "title": "[$task] Scheduled duration",
-      "transformations": [
-        {
-          "id": "extractFields",
-          "options": {
-            "format": "json",
-            "jsonPaths": [
-              {
-                "path": "scheduled_duration_micros"
-              }
-            ],
-            "keepTime": true,
-            "replace": true,
-            "source": "labels"
-          }
-        },
-        {
-          "id": "convertFieldType",
-          "options": {
-            "conversions": [
-              {
-                "destinationType": "number",
-                "targetField": "scheduled_duration_micros"
-              }
-            ],
-            "fields": {}
-          }
-        }
-      ],
+      "transformations": [],
       "transparent": true,
       "type": "timeseries"
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "${DS_LOKI}"
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "Time it spent running",
       "fieldConfig": {
@@ -379,9 +341,34 @@
               }
             ]
           },
-          "unit": "µs"
+          "unit": "s"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "poll duration"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -414,12 +401,13 @@
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "builder",
-          "expr": "{host=\"rusty_controller\"} | json | _target = `rusty_controller::metrics` | task = `$task`",
-          "queryType": "range",
+          "expr": "rate(poll_duration_sum{task=\"$task\"}[$__rate_interval])",
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -457,8 +445,8 @@
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "${DS_LOKI}"
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "Time it slept (waiting for the interval tick)",
       "fieldConfig": {
@@ -517,7 +505,7 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -552,12 +540,13 @@
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "builder",
-          "expr": "{host=\"rusty_controller\"} | json | _target = `rusty_controller::metrics` | task = `$task`",
-          "queryType": "range",
+          "expr": "rate(idle_duration_sum{task=\"$task\"}[$__rate_interval])",
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -611,7 +600,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "5s",
+  "refresh": "30s",
   "revision": 1,
   "schemaVersion": 38,
   "style": "dark",
@@ -674,6 +663,6 @@
   "timezone": "",
   "title": "Metrics",
   "uid": "TrD1CkZgk",
-  "version": 24,
+  "version": 38,
   "weekStart": ""
 }
