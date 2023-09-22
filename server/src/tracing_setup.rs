@@ -1,18 +1,14 @@
 use std::io;
 
-use tokio::fs;
 use tracing::Level;
 use tracing_loki::BackgroundTask;
 use tracing_loki::url::Url;
 use tracing_subscriber::{filter, fmt};
-use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use warp::hyper::Client;
 
 const LOKI_BASE_URL: &str = "http://127.0.0.1:3100";
-
-const LOGS_DIRECTORY: &str = "/var/log/rusty-controller/server";
 
 fn build_loki_layer() -> (tracing_loki::Layer, BackgroundTask) {
     tracing_loki::layer(

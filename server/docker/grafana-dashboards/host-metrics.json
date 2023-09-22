@@ -1969,8 +1969,12 @@
                 "value": null
               },
               {
+                "color": "#EAB839",
+                "value": 65
+              },
+              {
                 "color": "red",
-                "value": 85
+                "value": 75
               }
             ]
           },
@@ -2015,13 +2019,13 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "Temperature Cº",
+          "legendFormat": "Temperature",
           "range": true,
           "refId": "A",
           "step": 240
         }
       ],
-      "title": "Hardware temperature monitor",
+      "title": "Temperature",
       "type": "timeseries"
     }
   ],
@@ -2157,6 +2161,6 @@
   "timezone": "browser",
   "title": "Host Metrics",
   "uid": "rYdddlPWk",
-  "version": 14,
+  "version": 17,
   "weekStart": ""
 }
