@@ -9,7 +9,7 @@ use crate::monitoring::metrics::CONNECTED_DEVICES_METRIC;
 
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::effects::{LedEffect, LedEffectDetails};
+use crate::ps_move::effects::{LedEffect, LedEffectKind};
 use crate::ps_move::models::{ConnectionType, ControllerInfo};
 use crate::spawn_tasks::{InitialLedState, ShutdownSignal};
 
@@ -17,7 +17,7 @@ const INTERVAL_DURATION: Duration = Duration::from_millis(500);
 
 fn get_on_connected_effect() -> LedEffect {
     LedEffect::new_expiring(
-        LedEffectDetails::Blink {
+        LedEffectKind::Blink {
             hsv: Hsv::from_components((42.0, 1.0, 0.35)),
             last_blink: Instant::now(),
             interval: Duration::from_millis(500),

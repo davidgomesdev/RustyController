@@ -4,7 +4,7 @@ use hidapi::{HidDevice, HidError};
 use palette::{FromColor, Hsv, Srgb};
 use tracing::info;
 
-use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectDetails};
+use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectKind};
 use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, fill_state_from_byte_slice, MoveRequestType, MoveSetting};
 use crate::ps_move::models::BatteryLevel::Unknown;
 use crate::tasks::models::Button;
@@ -107,9 +107,9 @@ impl PsMoveController {
     }
 
     pub fn set_led_effect(&mut self, effect: LedEffect) {
-        let mut details = effect.details;
+        let mut kind = effect.kind;
 
-        self.setting.led = details.get_updated_hsv(self.setting.led);
+        self.setting.led = kind.get_updated_hsv(self.setting.led);
         self.led_effect = effect;
     }
 
@@ -119,14 +119,14 @@ impl PsMoveController {
     }
 
     pub fn set_rumble_effect(&mut self, effect: RumbleEffect) {
-        match effect.details {
-            RumbleEffectDetails::Off => {}
-            RumbleEffectDetails::Static { strength } => {
+        match effect.kind {
+            RumbleEffectKind::Off => {}
+            RumbleEffectKind::Static { strength } => {
                 if !(0.0..=1.0).contains(&strength) {
                     tracing::error!("Strength must be between 0.0 and 1.0")
                 }
             }
-            RumbleEffectDetails::Breathing {
+            RumbleEffectKind::Breathing {
                 initial_strength,
                 step,
                 peak,
@@ -144,7 +144,7 @@ impl PsMoveController {
                     tracing::error!("Peak must be higher than initial strength")
                 }
             }
-            RumbleEffectDetails::Blink { strength, .. } => {
+            RumbleEffectKind::Blink { strength, .. } => {
                 if !(0.0..=1.0).contains(&strength) {
                     tracing::error!("Strength must be between 0.0 and 1.0")
                 }
@@ -195,7 +195,7 @@ impl PsMoveController {
                 let off_effect = LedEffect::off();
 
                 self.last_led_effect = off_effect;
-                self.setting.last_led = off_effect.details.get_initial_hsv()
+                self.setting.last_led = off_effect.kind.get_initial_hsv()
             }
         };
 
@@ -212,7 +212,7 @@ impl PsMoveController {
             }
         };
 
-        self.setting.led = led_effect.details.get_updated_hsv(current_hsv);
+        self.setting.led = led_effect.kind.get_updated_hsv(current_hsv);
     }
 
     pub fn transform_rumble(&mut self) {
@@ -228,7 +228,7 @@ impl PsMoveController {
             }
         };
 
-        self.setting.rumble = rumble_effect.details.get_updated_rumble(current_rumble);
+        self.setting.rumble = rumble_effect.kind.get_updated_rumble(current_rumble);
     }
 
     fn update_hsv_and_rumble(&self) -> Result<(), ()> {

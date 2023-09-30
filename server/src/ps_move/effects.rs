@@ -18,23 +18,23 @@ const MAX_HUE_VALUE: f32 = 360.0;
 
 #[derive(Clone, Copy)]
 pub struct LedEffect {
-    pub details: LedEffectDetails,
+    pub kind: LedEffectKind,
     pub start: Instant,
     pub duration: Option<Duration>,
 }
 
 impl LedEffect {
-    pub fn new_expiring(details: LedEffectDetails, duration: Duration) -> LedEffect {
+    pub fn new_expiring(kind: LedEffectKind, duration: Duration) -> LedEffect {
         LedEffect {
-            details,
+            kind,
             start: Instant::now(),
             duration: Some(duration),
         }
     }
 
-    pub fn new(details: LedEffectDetails) -> LedEffect {
+    pub fn new(kind: LedEffectKind) -> LedEffect {
         LedEffect {
-            details,
+            kind,
             start: Instant::now(),
             duration: None,
         }
@@ -42,7 +42,7 @@ impl LedEffect {
 
     pub fn off() -> LedEffect {
         LedEffect {
-            details: LedEffectDetails::Off,
+            kind: LedEffectKind::Off,
             start: Instant::now(),
             duration: None,
         }
@@ -50,18 +50,18 @@ impl LedEffect {
 
     /// Creates an expiring `LedEffect` if `duration_millis` is present,
     /// otherwise a non-expiring one
-    pub fn from(details: LedEffectDetails, duration_millis: Option<i32>) -> LedEffect {
-        duration_millis.map_or(LedEffect::new(details), |millis| {
+    pub fn from(kind: LedEffectKind, duration_millis: Option<i32>) -> LedEffect {
+        duration_millis.map_or(LedEffect::new(kind), |millis| {
             if millis < 0 {
                 panic!("Negative milliseconds as duration not allowed!")
             }
 
-            LedEffect::new_expiring(details, Duration::from_millis(millis as u64))
+            LedEffect::new_expiring(kind, Duration::from_millis(millis as u64))
         })
     }
 
     pub fn is_off(&self) -> bool {
-        self.details == LedEffectDetails::Off
+        self.kind == LedEffectKind::Off
     }
 
     pub fn has_expired(&self) -> bool {
@@ -75,12 +75,12 @@ impl LedEffect {
 
 impl fmt::Display for LedEffect {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "Led::{}", &self.details)
+        write!(f, "Led::{}", &self.kind)
     }
 }
 
 #[derive(Clone, Copy, Display, Debug, PartialEq)]
-pub enum LedEffectDetails {
+pub enum LedEffectKind {
     Off,
     Static {
         hsv: Hsv,
@@ -113,17 +113,17 @@ pub enum LedEffectDetails {
     },
 }
 
-impl LedEffectDetails {
+impl LedEffectKind {
     /// Creates an instance with `LedEffect::Breathing` having `step`
     /// according to `time_to_peak` and tick rate
     pub fn new_timed_breathing(
         initial_hsv: Hsv,
         time_to_peak: Duration,
         peak: f32,
-    ) -> LedEffectDetails {
+    ) -> LedEffectKind {
         let time_to_peak = time_to_peak.as_millis() as i32;
 
-        LedEffectDetails::Breathing {
+        LedEffectKind::Breathing {
             initial_hsv,
             time_to_peak,
             peak,
@@ -138,12 +138,12 @@ impl LedEffectDetails {
         saturation: f32,
         value: f32,
         time_to_peak: Duration,
-    ) -> LedEffectDetails {
+    ) -> LedEffectKind {
         let time_to_peak = time_to_peak.as_millis() as f32;
         let step =
             effects_update::INTERVAL_DURATION.as_millis() as f32 * MAX_HUE_VALUE / time_to_peak;
 
-        LedEffectDetails::Rainbow {
+        LedEffectKind::Rainbow {
             saturation,
             value,
             time_to_complete: step,
@@ -157,14 +157,14 @@ impl LedEffectDetails {
         max_value: f32,
         variability: f32,
         interval: Option<i32>
-    ) -> LedEffectDetails {
+    ) -> LedEffectKind {
         let value_range = max_value - min_value;
         let value_sample = Uniform::new_inclusive(
             min_value - variability * value_range,
             max_value + variability * value_range,
         );
 
-        LedEffectDetails::Candle {
+        LedEffectKind::Candle {
             hue,
             saturation,
             min_value,
@@ -177,14 +177,14 @@ impl LedEffectDetails {
 
     pub fn get_initial_hsv(&self) -> Hsv {
         match *self {
-            LedEffectDetails::Off => Hsv::from_components((0.0, 0.0, 0.0)),
-            LedEffectDetails::Static { hsv }
-            | LedEffectDetails::Blink {
+            LedEffectKind::Off => Hsv::from_components((0.0, 0.0, 0.0)),
+            LedEffectKind::Static { hsv }
+            | LedEffectKind::Blink {
                 hsv,
                 interval: _,
                 last_blink: _,
             } => hsv,
-            LedEffectDetails::Breathing {
+            LedEffectKind::Breathing {
                 initial_hsv, peak, ..
             } => {
                 if peak < initial_hsv.value {
@@ -193,7 +193,7 @@ impl LedEffectDetails {
 
                 initial_hsv
             }
-            LedEffectDetails::Rainbow {
+            LedEffectKind::Rainbow {
                 saturation,
                 value,
                 time_to_complete: step,
@@ -204,7 +204,7 @@ impl LedEffectDetails {
 
                 Hsv::from_components((0.0, saturation, value))
             }
-            LedEffectDetails::Candle {
+            LedEffectKind::Candle {
                 hue,
                 saturation,
                 min_value,
@@ -215,9 +215,9 @@ impl LedEffectDetails {
 
     pub fn get_updated_hsv(&mut self, current_hsv: Hsv) -> Hsv {
         match *self {
-            LedEffectDetails::Off => *LED_OFF,
-            LedEffectDetails::Static { hsv } => hsv,
-            LedEffectDetails::Breathing {
+            LedEffectKind::Off => *LED_OFF,
+            LedEffectKind::Static { hsv } => hsv,
+            LedEffectKind::Breathing {
                 initial_hsv,
                 time_to_peak,
                 peak,
@@ -230,7 +230,7 @@ impl LedEffectDetails {
                 peak,
                 inhaling,
             ),
-            LedEffectDetails::Rainbow {
+            LedEffectKind::Rainbow {
                 time_to_complete,
                 ..
             } => {
@@ -239,7 +239,7 @@ impl LedEffectDetails {
                 // the step is relative to the max possible value
                 current_hsv.shift_hue(time_to_complete)
             }
-            LedEffectDetails::Blink {
+            LedEffectKind::Blink {
                 hsv,
                 interval,
                 last_blink: ref mut start,
@@ -256,7 +256,7 @@ impl LedEffectDetails {
                     current_hsv
                 }
             }
-            LedEffectDetails::Candle {
+            LedEffectKind::Candle {
                 hue,
                 saturation,
                 value_sample,
@@ -315,23 +315,23 @@ impl LedEffectDetails {
 
 #[derive(Clone, Copy)]
 pub struct RumbleEffect {
-    pub details: RumbleEffectDetails,
+    pub kind: RumbleEffectKind,
     pub start: Instant,
     pub duration: Option<Duration>,
 }
 
 impl RumbleEffect {
-    pub fn new_expiring(details: RumbleEffectDetails, duration: Duration) -> RumbleEffect {
+    pub fn new_expiring(kind: RumbleEffectKind, duration: Duration) -> RumbleEffect {
         RumbleEffect {
-            details,
+            kind,
             start: Instant::now(),
             duration: Some(duration),
         }
     }
 
-    pub fn new(details: RumbleEffectDetails) -> RumbleEffect {
+    pub fn new(kind: RumbleEffectKind) -> RumbleEffect {
         RumbleEffect {
-            details,
+            kind,
             start: Instant::now(),
             duration: None,
         }
@@ -339,7 +339,7 @@ impl RumbleEffect {
 
     pub fn off() -> RumbleEffect {
         RumbleEffect {
-            details: RumbleEffectDetails::Off,
+            kind: RumbleEffectKind::Off,
             start: Instant::now(),
             duration: None,
         }
@@ -347,25 +347,25 @@ impl RumbleEffect {
 
     /// Creates an expiring `RumbleEffect` if `duration_millis` is present,
     /// otherwise a non-expiring one
-    pub fn from(details: RumbleEffectDetails, duration_millis: Option<i32>) -> RumbleEffect {
-        duration_millis.map_or(RumbleEffect::new(details), |millis| {
+    pub fn from(kind: RumbleEffectKind, duration_millis: Option<i32>) -> RumbleEffect {
+        duration_millis.map_or(RumbleEffect::new(kind), |millis| {
             if millis < 0 {
                 panic!("Negative milliseconds as duration not allowed!")
             }
 
-            RumbleEffect::new_expiring(details, Duration::from_millis(millis as u64))
+            RumbleEffect::new_expiring(kind, Duration::from_millis(millis as u64))
         })
     }
 }
 
 impl fmt::Display for RumbleEffect {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "Rumble::{}", &self.details)
+        write!(f, "Rumble::{}", &self.kind)
     }
 }
 
 #[derive(Clone, Copy, Display, Debug, PartialEq)]
-pub enum RumbleEffectDetails {
+pub enum RumbleEffectKind {
     Off,
     Static {
         strength: f32,
@@ -383,12 +383,12 @@ pub enum RumbleEffectDetails {
     },
 }
 
-impl RumbleEffectDetails {
+impl RumbleEffectKind {
     pub fn get_updated_rumble(&mut self, mut current_rumble: f32) -> f32 {
         match *self {
-            RumbleEffectDetails::Off => 0.0,
-            RumbleEffectDetails::Static { strength: value } => value,
-            RumbleEffectDetails::Breathing {
+            RumbleEffectKind::Off => 0.0,
+            RumbleEffectKind::Static { strength: value } => value,
+            RumbleEffectKind::Breathing {
                 initial_strength: initial,
                 step,
                 peak,
@@ -410,7 +410,7 @@ impl RumbleEffectDetails {
 
                 current_rumble
             }
-            RumbleEffectDetails::Blink {
+            RumbleEffectKind::Blink {
                 strength,
                 interval,
                 last_blink: ref mut start,

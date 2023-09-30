@@ -3,12 +3,12 @@ use std::time::Duration;
 use juniper::{FieldError, FieldResult, Value};
 use tokio::time::Instant;
 
-use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffectDetails};
+use crate::{EffectChange, EffectChangeType, EffectTarget, LedEffectKind};
 use crate::graphql::schema::Context;
 use crate::graphql::schema_input::*;
 use crate::graphql::schema_response::MutationResponse;
 use crate::ps_move::api::build_hsv;
-use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectDetails};
+use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectKind};
 use crate::tasks::models::EffectChangeType::RevertLed;
 
 pub struct MutationRoot;
@@ -88,7 +88,7 @@ impl MutationRoot {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
         }
 
-        let effect = LedEffectDetails::Static {
+        let effect = LedEffectKind::Static {
             hsv: build_hsv(input.hue as f64, input.saturation, input.value),
         };
 
@@ -162,7 +162,7 @@ impl MutationRoot {
             ));
         }
 
-        let effect = LedEffectDetails::new_timed_breathing(
+        let effect = LedEffectKind::new_timed_breathing(
             build_hsv(input.hue as f64, input.saturation, input.initial_value),
             Duration::from_millis(input.time_to_peak as u64),
             input.peak as f32,
@@ -215,7 +215,7 @@ impl MutationRoot {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
         }
 
-        let effect = LedEffectDetails::new_timed_rainbow(
+        let effect = LedEffectKind::new_timed_rainbow(
             input.saturation as f32,
             input.value as f32,
             Duration::from_secs_f64(input.time_to_complete),
@@ -272,7 +272,7 @@ impl MutationRoot {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
         }
 
-        let effect = LedEffectDetails::Blink {
+        let effect = LedEffectKind::Blink {
             hsv: build_hsv(input.hue as f64, input.saturation, input.value),
             interval: Duration::from_millis(input.interval as u64),
             last_blink: Instant::now(),
@@ -347,7 +347,7 @@ impl MutationRoot {
         let max_value = input.max_value as f32;
         let variability = input.variability as f32;
 
-        let effect = LedEffectDetails::new_candle(
+        let effect = LedEffectKind::new_candle(
             hue,
             saturation,
             min_value,
@@ -392,13 +392,13 @@ impl MutationRoot {
             ));
         }
 
-        let details = RumbleEffectDetails::Static {
+        let kind = RumbleEffectKind::Static {
             strength: input.strength as f32,
         };
 
         process_rumble_effect_mutation(
             ctx,
-            RumbleEffect::from(details, input.duration),
+            RumbleEffect::from(kind, input.duration),
             input.controllers,
         )
     }
@@ -442,7 +442,7 @@ impl MutationRoot {
             ));
         }
 
-        let details = RumbleEffectDetails::Breathing {
+        let kind = RumbleEffectKind::Breathing {
             initial_strength: input.initial_strength as f32,
             step: input.step as f32,
             peak: input.peak as f32,
@@ -451,7 +451,7 @@ impl MutationRoot {
 
         process_rumble_effect_mutation(
             ctx,
-            RumbleEffect::from(details, input.duration),
+            RumbleEffect::from(kind, input.duration),
             input.controllers,
         )
     }
@@ -479,7 +479,7 @@ impl MutationRoot {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
         }
 
-        let details = RumbleEffectDetails::Blink {
+        let kind = RumbleEffectKind::Blink {
             strength: input.strength as f32,
             interval: Duration::from_millis(input.interval as u64),
             last_blink: Instant::now(),
@@ -487,7 +487,7 @@ impl MutationRoot {
 
         process_rumble_effect_mutation(
             ctx,
-            RumbleEffect::from(details, input.duration),
+            RumbleEffect::from(kind, input.duration),
             input.controllers,
         )
     }

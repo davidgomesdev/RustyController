@@ -25,7 +25,7 @@ impl fmt::Display for EffectChangeType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             EffectChangeType::RevertLed => { write!(f, "RevertLed") }
-            EffectChangeType::Led { effect } => { write!(f, "Led::{}", &effect.details) }
+            EffectChangeType::Led { effect } => { write!(f, "Led::{}", &effect.kind) }
             EffectChangeType::Rumble { effect } => { write!(f, "Rumble::{effect}") }
         }
     }

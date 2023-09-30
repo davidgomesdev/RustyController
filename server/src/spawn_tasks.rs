@@ -17,7 +17,7 @@ use crate::ControllerChange;
 use crate::monitoring::metrics::{IDLE_DURATION_METRIC, POLL_DURATION_METRIC, SCHEDULED_DURATION_METRIC};
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::effects::{LedEffect, LedEffectDetails};
+use crate::ps_move::effects::{LedEffect, LedEffectKind};
 use crate::tasks::{
     controller_update, controllers_list_update, effects_update, ip_discovery, mutations_handler,
 };
@@ -25,7 +25,7 @@ use crate::tasks::models::EffectChange;
 
 lazy_static! {
     static ref ON_STARTUP_EFFECT: LedEffect = LedEffect::new_expiring(
-        LedEffectDetails::new_timed_breathing(
+        LedEffectKind::new_timed_breathing(
             Hsv::from_components((270.0, 1.0, 0.001)),
             Duration::from_secs(3),
             0.3
@@ -180,7 +180,7 @@ pub struct InitialLedState {
 impl InitialLedState {
     pub fn from(effect: LedEffect) -> InitialLedState {
         InitialLedState {
-            hsv: effect.details.get_initial_hsv(),
+            hsv: effect.kind.get_initial_hsv(),
             effect,
         }
     }

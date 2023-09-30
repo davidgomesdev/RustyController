@@ -35,6 +35,6 @@ pub async fn run(
         let current_hsv = initial_state.hsv;
         let effect = &mut initial_state.effect;
 
-        initial_state.hsv = effect.details.get_updated_hsv(current_hsv);
+        initial_state.hsv = effect.kind.get_updated_hsv(current_hsv);
     }
 }

@@ -30,19 +30,19 @@ impl QueryRoot {
                 address: ctl.bt_address.clone(),
                 battery_level: ctl.battery,
                 connection_type: ctl.connection_type,
-                current_led_effect: match ctl.led_effect.details {
-                    api::LedEffectDetails::Off => { graphql::LedEffectType::Off }
-                    api::LedEffectDetails::Static { .. } => { graphql::LedEffectType::Static }
-                    api::LedEffectDetails::Breathing { .. } => { graphql::LedEffectType::Breathing }
-                    api::LedEffectDetails::Rainbow { .. } => { graphql::LedEffectType::Rainbow }
-                    api::LedEffectDetails::Blink { .. } => { graphql::LedEffectType::Blink }
-                    api::LedEffectDetails::Candle { .. } => { graphql::LedEffectType::Candle }
+                current_led_effect: match ctl.led_effect.kind {
+                    api::LedEffectKind::Off => { graphql::LedEffectType::Off }
+                    api::LedEffectKind::Static { .. } => { graphql::LedEffectType::Static }
+                    api::LedEffectKind::Breathing { .. } => { graphql::LedEffectType::Breathing }
+                    api::LedEffectKind::Rainbow { .. } => { graphql::LedEffectType::Rainbow }
+                    api::LedEffectKind::Blink { .. } => { graphql::LedEffectType::Blink }
+                    api::LedEffectKind::Candle { .. } => { graphql::LedEffectType::Candle }
                 },
-                current_rumble_effect: match ctl.rumble_effect.details {
-                    api::RumbleEffectDetails::Off => { graphql::RumbleEffectType::Off }
-                    api::RumbleEffectDetails::Static { .. } => { graphql::RumbleEffectType::Static }
-                    api::RumbleEffectDetails::Breathing { .. } => { graphql::RumbleEffectType::Breathing }
-                    api::RumbleEffectDetails::Blink { .. } => { graphql::RumbleEffectType::Blink }
+                current_rumble_effect: match ctl.rumble_effect.kind {
+                    api::RumbleEffectKind::Off => { graphql::RumbleEffectType::Off }
+                    api::RumbleEffectKind::Static { .. } => { graphql::RumbleEffectType::Static }
+                    api::RumbleEffectKind::Breathing { .. } => { graphql::RumbleEffectType::Breathing }
+                    api::RumbleEffectKind::Blink { .. } => { graphql::RumbleEffectType::Blink }
                 },
             }
         })
