@@ -106,8 +106,6 @@ pub enum LedEffectKind {
         hue: f32,
         saturation: f32,
         value_sample: Uniform<f32>,
-        min_value: f32,
-        max_value: f32,
         interval: i32,
         last_change: Instant,
     },
@@ -155,20 +153,16 @@ impl LedEffectKind {
         saturation: f32,
         min_value: f32,
         max_value: f32,
-        variability: f32,
         interval: Option<i32>
     ) -> LedEffectKind {
-        let value_range = max_value - min_value;
         let value_sample = Uniform::new_inclusive(
-            min_value - variability * value_range,
-            max_value + variability * value_range,
+            min_value,
+            max_value,
         );
 
         LedEffectKind::Candle {
             hue,
             saturation,
-            min_value,
-            max_value,
             value_sample,
             interval: interval.unwrap_or(1),
             last_change: Instant::now(),
@@ -207,9 +201,9 @@ impl LedEffectKind {
             LedEffectKind::Candle {
                 hue,
                 saturation,
-                min_value,
+                value_sample,
                 ..
-            } => Hsv::from_components((hue, saturation, min_value)),
+            } => Hsv::from_components((hue, saturation, value_sample.sample(&mut thread_rng()))),
         }
     }
 
@@ -260,8 +254,6 @@ impl LedEffectKind {
                 hue,
                 saturation,
                 value_sample,
-                min_value,
-                max_value,
                 interval,
                 ref mut last_change
             } => {
@@ -269,8 +261,7 @@ impl LedEffectKind {
                     *last_change = Instant::now();
 
                     let new_value = value_sample
-                        .sample(&mut thread_rng())
-                        .clamp(min_value, max_value);
+                        .sample(&mut thread_rng());
 
                     Hsv::from_components((hue, saturation, new_value))
                 } else {
@@ -288,9 +279,7 @@ impl LedEffectKind {
         inhaling: &mut bool,
     ) -> Hsv {
         let initial_value = initial_hsv.value;
-
         let time_elapsed = (*last_update).elapsed().as_millis() as f32;
-
         let factor = (time_elapsed / time_to_peak).powf(2.0);
 
         let mut new_value = if *inhaling {

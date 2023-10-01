@@ -116,8 +116,6 @@ pub(super) struct CandleLedEffectInput {
     pub min_value: f64,
     #[graphql(description = "Max value (min 0.0, max 1.0)")]
     pub max_value: f64,
-    #[graphql(description = "Percentage of variability of the range. (min 0.0, max 1.0)")]
-    pub variability: f64,
     #[graphql(description = "Interval to change, in milliseconds. (1ms is the default)")]
     pub interval: Option<i32>,
 }

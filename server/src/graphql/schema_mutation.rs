@@ -330,13 +330,6 @@ impl MutationRoot {
             ));
         }
 
-        if !(0.0..=1.0).contains(&input.variability) {
-            return Err(FieldError::new(
-                "Variability must be between 0.0 and 1.0!",
-                Value::Null,
-            ));
-        }
-
         if input.duration.filter(|duration| *duration < 0).is_some() {
             return Err(FieldError::new("Duration must be positive!", Value::Null));
         }
@@ -345,14 +338,12 @@ impl MutationRoot {
         let saturation = input.saturation as f32;
         let min_value = input.min_value as f32;
         let max_value = input.max_value as f32;
-        let variability = input.variability as f32;
 
         let effect = LedEffectKind::new_candle(
             hue,
             saturation,
             min_value,
             max_value,
-            variability,
             input.interval,
         );
 
