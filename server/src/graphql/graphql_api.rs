@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use futures::FutureExt as _;
 use juniper_graphql_ws::ConnectionConfig;
 use juniper_warp::playground_filter;
 use juniper_warp::subscriptions::serve_graphql_ws;
@@ -54,12 +53,11 @@ pub async fn start(
 
             ws.on_upgrade(move |websocket| async move {
                 serve_graphql_ws(websocket, root_node, ConnectionConfig::new(ctx.clone()))
-                    .map(|r| {
-                        if let Err(e) = r {
-                            tracing::error!("Websocket error: {e}");
-                        }
-                    })
                     .await
+                    .map_err(|e| {
+                        tracing::error!("Websocket error: {e}");
+                    })
+                    .expect("Websocket errored.")
             })
         }))
         .map(|reply| warp::reply::with_header(reply, "Sec-WebSocket-Protocol", "graphql-ws"))

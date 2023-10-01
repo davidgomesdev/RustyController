@@ -4,9 +4,10 @@ use hidapi::{HidDevice, HidError};
 use palette::{FromColor, Hsv, Srgb};
 use tracing::info;
 
-use crate::ps_move::effects::{LedEffect, RumbleEffect, RumbleEffectKind};
+use crate::ps_move::led_effects::LedEffect;
 use crate::ps_move::models::{BatteryLevel, ButtonState, ConnectionType, ControllerInfo, DataInput, fill_state_from_byte_slice, MoveRequestType, MoveSetting};
 use crate::ps_move::models::BatteryLevel::Unknown;
+use crate::ps_move::rumble_effects::{RumbleEffect, RumbleEffectKind};
 use crate::tasks::models::Button;
 
 pub const MIN_LED_PWM_FREQUENCY: u64 = 0x02dd;

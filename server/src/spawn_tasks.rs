@@ -17,7 +17,7 @@ use crate::ControllerChange;
 use crate::monitoring::metrics::{IDLE_DURATION_METRIC, POLL_DURATION_METRIC, SCHEDULED_DURATION_METRIC};
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::effects::{LedEffect, LedEffectKind};
+use crate::ps_move::led_effects::{LedEffect, LedEffectKind};
 use crate::tasks::{
     controller_update, controllers_list_update, effects_update, ip_discovery, mutations_handler,
 };

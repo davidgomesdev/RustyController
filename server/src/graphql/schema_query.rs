@@ -4,7 +4,8 @@ use crate::graphql::schema::Context;
 use crate::graphql::schema_response::{Controller, HealthStatus};
 
 mod api {
-    pub use crate::ps_move::effects::*;
+    pub use crate::ps_move::led_effects::*;
+    pub use crate::ps_move::rumble_effects::*;
 }
 
 mod graphql {

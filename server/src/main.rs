@@ -4,7 +4,7 @@ use tokio::sync::{broadcast, watch};
 use tokio::sync::Mutex;
 
 use graphql::graphql_api;
-use ps_move::effects::LedEffectKind;
+use ps_move::led_effects::LedEffectKind;
 
 use crate::ps_move::controller::PsMoveController;
 use crate::ps_move::models::ButtonState;

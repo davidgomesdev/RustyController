@@ -5,8 +5,9 @@ use std::vec::Vec;
 use juniper::{GraphQLEnum, GraphQLObject};
 use strum_macros::Display;
 
-use crate::ps_move::effects::{LedEffect, RumbleEffect};
+use crate::ps_move::led_effects::LedEffect;
 use crate::ps_move::models::ButtonState;
+use crate::ps_move::rumble_effects::RumbleEffect;
 
 #[derive(Clone)]
 pub enum EffectTarget {

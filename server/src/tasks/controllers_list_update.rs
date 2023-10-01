@@ -9,7 +9,7 @@ use crate::monitoring::metrics::CONNECTED_DEVICES_METRIC;
 
 use crate::ps_move::api::PsMoveApi;
 use crate::ps_move::controller::PsMoveController;
-use crate::ps_move::effects::{LedEffect, LedEffectKind};
+use crate::ps_move::led_effects::{LedEffect, LedEffectKind};
 use crate::ps_move::models::{ConnectionType, ControllerInfo};
 use crate::spawn_tasks::{InitialLedState, ShutdownSignal};
 
