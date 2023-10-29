@@ -10,7 +10,7 @@ RESET=$(tput sgr0)
 
 # Vars
 
-REPO_URL="https://github.com/LegendL3n/RustyController"
+REPO_URL="https://github.com/DavidGomesDev/RustyController"
 RUSTY_HOME_DIR="$HOME/RustyController"
 BINARY_PATH="$RUSTY_HOME_DIR/server/target/release/rusty_controller"
 HASH_FILE="$RUSTY_HOME_DIR/current.sha256"
