@@ -25,7 +25,6 @@ services:
     image: grafana/promtail:2.7.4
     command: -config.file=/mnt/config/config.yaml
     volumes:
-      - ./config/promtail.yaml:/mnt/config/config.yaml
       - /var/log/rusty-controller:/var/log/rusty-controller
     networks:
       - grafana
@@ -39,7 +38,6 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
       - prom-data:/prometheus
     extra_hosts:
       - "host.docker.internal:host-gateway"

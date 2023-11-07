@@ -1,0 +1,12 @@
+version: "3"
+
+name: grafana
+
+services:
+  promtail:
+    volumes:
+      - ./config/promtail.yaml:/mnt/config/config.yaml
+
+  prometheus:
+    volumes:
+      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml

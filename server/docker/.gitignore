@@ -1,2 +1,5 @@
 loki-data/
 grafana-data/
+grafana*.yaml
+!grafana.yaml
+!grafana.base.yaml
