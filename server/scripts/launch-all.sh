@@ -15,6 +15,8 @@ printf "$START* Running at $(date)$RESET\n"
 RUSTY_PATH=$(pwd)
 NODE_EXPORTER_PATH=${NODE_EXPORTER_PATH:-../node_exporter}
 
+GRAFANA_COMPOSE_OVERRIDE=${GRAFANA_COMPOSE_OVERRIDE:-base}
+
 if [ -f "$NODE_EXPORTER_PATH"/node_exporter ]; then
   (cd "$NODE_EXPORTER_PATH" && "$RUSTY_PATH"/server/scripts/run-node-exporter.sh)
 else
@@ -26,7 +28,7 @@ fi
 printf "${SECTION}* Launching Grafana stack...$RESET\n\n"
 
 # Here we only care about stderr
-(cd server/docker && docker compose -f grafana.yaml up --wait -d) > /dev/null
+(cd server/docker && docker compose -f grafana.yaml -f "grafana.$GRAFANA_OVERRIDE.yaml" up --wait -d) > /dev/null
 
 # Update and launch server
 
