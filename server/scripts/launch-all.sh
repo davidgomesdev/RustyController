@@ -28,7 +28,7 @@ fi
 printf "${SECTION}* Launching Grafana stack...$RESET\n\n"
 
 # Here we only care about stderr
-(cd server/docker && docker compose -f grafana.yaml -f "grafana.$GRAFANA_COMPOSE_OVERRIDE.yaml" up --wait -d) > /dev/null
+(cd server/docker && docker compose -f grafana.yaml -f "grafana.$GRAFANA_OVERRIDE.yaml" up --wait -d) > /dev/null
 
 # Update and launch server
 
