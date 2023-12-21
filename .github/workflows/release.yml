@@ -83,28 +83,28 @@ jobs:
         name: app.apk
         path: app.apk
 
-  upload:
+  release:
     needs: [build-server, build-app]
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v3
+
     - name: 📦 - Copy server artifacts
       uses: actions/download-artifact@v4
       with:
-        path: .
+        path: artifacts/
         merge-multiple: true
       
     - name: 🧐 - Display structure of downloaded artifacts
-      run: ls -R
+      run: ls -R artifacts/
 
-    - name: 🌠 - Release
-      uses: ncipollo/release-action@v1.12.0
+    - name: Semantic Release
+      uses: cycjimmy/semantic-release-action@v4
       with:
-        artifacts: "server-*,app.apk"
-        token: ${{ secrets.GITHUB_TOKEN }}
-        allowUpdates: true
-        removeArtifacts: true
-        artifactErrorsFailBuild: true
-        prerelease: true
-        name: Latest Pre-release
-        tag: latest
+        branches: |
+          [
+            'main',
+          ]
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
