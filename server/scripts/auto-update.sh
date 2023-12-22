@@ -52,7 +52,7 @@ download_latest () {
   arch=$(dpkg --print-architecture | xargs echo -n)
 
   mkdir -p target/release || exit 1
-  wget -q "$REPO_URL/releases/download/latest/server-$arch" -O target/release/rusty_controller || exit 1
+  wget -q "$REPO_URL/releases/latest/download/server-$arch" -O target/release/rusty_controller || exit 1
 
   echo "$INFO* Downloaded latest release binary!$RESET"
 }
