@@ -74,7 +74,6 @@ build () {
 
   newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
 
-  echo "$newest_hash" > "$HASH_FILE"
   echo "$SUCCESS* Built successfully!$RESET"
 }
 
@@ -127,7 +126,10 @@ if [[ -f "$HASH_FILE" ]]; then
   current_hash=$(cat "$HASH_FILE")
   update
   if [[ "$current_hash" != "$newest_hash" ]]; then
-      echo "$INFO* Built a new version!$RESET"
+      newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
+    
+      echo "$newest_hash" > "$HASH_FILE"
+      echo "$INFO* There is a new version!$RESET"
       launch
   else
       echo "$INFO* Version is already up-to-date.$RESET"
