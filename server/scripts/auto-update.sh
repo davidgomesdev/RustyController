@@ -52,8 +52,10 @@ download_latest () {
   arch=$(dpkg --print-architecture | xargs echo -n)
 
   mkdir -p target/release || exit 1
-  wget -q "$REPO_URL/releases/latest/download/server-$arch" -O target/release/rusty_controller || exit 1
-  chmod +x target/release/rusty_controller || exit 1
+  wget -q "$REPO_URL/releases/latest/download/server-$arch" -O "$BINARY_PATH" || exit 1
+  chmod +x "$BINARY_PATH" || exit 1
+
+  newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
 
   echo "$INFO* Downloaded latest release binary!$RESET"
 }
