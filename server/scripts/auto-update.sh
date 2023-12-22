@@ -83,7 +83,7 @@ update () {
 
     # This way we only pull the main branch
     git fetch origin main || exit 1
-    git checkout FETCH_HEAD -B main || exit 1
+    git switch main || exit 1
     git pull || exit 1
 
     cd server/ || exit 1
