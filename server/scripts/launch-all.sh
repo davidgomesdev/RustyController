@@ -44,5 +44,5 @@ PLUGINS_PATH=${PLUGINS_PATH:-../RustyController-plugins}
 
 mkdir -p /var/log/rusty-controller/plugins/ && cd "$PLUGINS_PATH" && git pull && bash run-all.sh
 
-echo -e "\n${SUCCESS}* Finished!$RESET"
+echo -e "\n${SUCCESS}* Finished! (at $(date))$RESET"
 echo
