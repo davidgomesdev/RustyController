@@ -80,6 +80,7 @@ services:
     image: grafana/grafana:latest
     environment:
       GF_DATABASE_WAL: true
+      GF_INSTALL_PLUGINS: "fifemon-graphql-datasource"
     ports:
       - "3000:3000"
     volumes:
