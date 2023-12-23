@@ -42,6 +42,16 @@ You can run it every midnight or so, by adding the following line on: `crontab -
 0 0 * * * ( cd /home/kali/RustyController && cp server/scripts/auto-update.sh /tmp/rusty-auto-update.sh && bash /tmp/rusty-auto-update.sh >> /var/log/rusty-controller/auto_update.log 2>&1 )
 ```
 
+## Launch all script
+
+Launches everything, it's meant to be run at reboot.
+
+It also launches prometheus _exporters_, namely [node_exporter](https://github.com/prometheus/node_exporter) and [process-exporter](https://github.com/ncabatoff/process-exporter).
+
+These aren't run if node_exporter is not found in PATH. Both must be in the home directory or anywhere on PATH.
+
+To set them up, just download their binaries and move them to `/usr/bin`.eee
+
 ## Grafana stack
 
 To launch Grafana (along with Loki and Prometheus), run `docker compose -f grafana.yaml up -d` on the [docker](docker) folder.
