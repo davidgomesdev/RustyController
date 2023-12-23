@@ -33,6 +33,35 @@ services:
         limits:
           cpus: '0.5'
 
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+
+  process-exporter:
+    ports:
+      - "9256:9256"
+    privileged: true
+    volumes:
+      - /proc:/host/proc
+      - "./config:/config"
+    image: ncabatoff/process-exporter
+    command: --procfs /host/proc -config.path /config/process-exporter.yaml
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+
   prometheus:
     image: prom/prometheus:v2.24.0
     ports:

@@ -14,9 +14,6 @@ printf "$START* Running at $(date)$RESET\n"
 
 GRAFANA_COMPOSE_OVERRIDE=${GRAFANA_COMPOSE_OVERRIDE:-base}
 
-echo
-server/scripts/run-exporters.sh
-
 # Start Grafana stack
 
 printf "${SECTION}* Launching Grafana stack...$RESET\n\n"
