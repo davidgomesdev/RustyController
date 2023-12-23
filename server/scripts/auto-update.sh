@@ -56,7 +56,7 @@ download_latest () {
 
   newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
 
-  echo "$INFO* Downloaded latest release binary!$RESET"
+  echo "$INFO* Downloaded latest release binary$RESET"
 }
 
 build () {
@@ -83,9 +83,9 @@ update () {
     git reset --hard > /dev/null || exit 1
 
     # This way we only pull the main branch
-    git fetch origin main || exit 1
-    git switch main || exit 1
-    git pull || exit 1
+    git fetch origin main > /dev/null || exit 1
+    git switch main > /dev/null || exit 1
+    git pull > /dev/null || exit 1
 
     cd server/ || exit 1
 
