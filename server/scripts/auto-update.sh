@@ -8,10 +8,6 @@ WARNING=$(tput setaf 3)
 INFO=$(tput setaf 6)
 RESET=$(tput sgr0)
 
-# Params
-
-BUILD_BINARY="n"
-
 # Vars
 
 REPO_URL="https://github.com/DavidGomesDev/RustyController"
@@ -26,10 +22,13 @@ show_usage () {
   echo "-b: build binary (instead of downloading the latest release)"
 }
 
-while getopts "bh" opt; do
+while getopts "blh" opt; do
   case ${opt} in
     b)
       BUILD_BINARY="y"
+      ;;
+    l)
+      LAUNCH_ALWAYS="y"
       ;;
     h)
       show_usage
@@ -100,7 +99,7 @@ update () {
 }
 
 launch () {
-  echo "$SUCCESS* Launching built version...$RESET"
+  echo "$SUCCESS* Launching...$RESET"
   . "$RUSTY_HOME_DIR/server/scripts/run-server.sh"
 }
 
@@ -117,7 +116,7 @@ cd "$RUSTY_HOME_DIR" || exit 1
 
 if [[ -f "$HASH_FILE" ]]; then
   if [ ! -f "$BINARY_PATH" ]; then
-    echo "$INFO* Binary not found, building...$RESET"
+    echo "$INFO* Binary not found...$RESET"
     update
     launch
     exit 0
@@ -133,6 +132,10 @@ if [[ -f "$HASH_FILE" ]]; then
       launch
   else
       echo "$INFO* Version is already up-to-date.$RESET"
+
+      if [[ "$LAUNCH_ALWAYS" == "y" ]]; then
+        launch
+      fi
   fi
 else
     echo "$WARNING* Couldn't find current hash. Updating to latest version anyway.$RESET"
