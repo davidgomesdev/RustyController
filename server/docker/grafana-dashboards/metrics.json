@@ -266,8 +266,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "editorMode": "builder",
-          "expr": "rate(scheduled_duration_sum{task=\"$task\"}[$__rate_interval])",
+          "editorMode": "code",
+          "expr": "rate(scheduled_duration_sum{task=\"$task\"}[2m]) / rate(scheduled_duration_count{task=\"$task\"}[2m])",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
@@ -404,8 +404,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "editorMode": "builder",
-          "expr": "rate(poll_duration_sum{task=\"$task\"}[$__rate_interval])",
+          "editorMode": "code",
+          "expr": "rate(poll_duration_sum{task=\"$task\"}[2m]) / rate(poll_duration_count{task=\"$task\"}[2m])\n",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -543,8 +543,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "editorMode": "builder",
-          "expr": "rate(idle_duration_sum{task=\"$task\"}[$__rate_interval])",
+          "editorMode": "code",
+          "expr": "rate(idle_duration_sum{task=\"$task\"}[2m]) / rate(idle_duration_count{task=\"$task\"}[2m])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -611,13 +611,13 @@
         "current": {
           "selected": true,
           "text": [
-            "controllers_list",
             "controller_update",
+            "controllers_list",
             "effects_update"
           ],
           "value": [
-            "controllers_list",
             "controller_update",
+            "controllers_list",
             "effects_update"
           ]
         },
@@ -656,13 +656,13 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Metrics",
   "uid": "TrD1CkZgk",
-  "version": 38,
+  "version": 41,
   "weekStart": ""
 }
