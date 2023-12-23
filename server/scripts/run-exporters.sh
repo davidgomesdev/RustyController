@@ -7,8 +7,8 @@ RESET=$(tput sgr0)
 LOG_DIRECTORY="/var/log/rusty-controller/prometheus-exporters"
 mkdir -p "$LOG_DIRECTORY"
 
-if ! which node_exporter || which process-exporter; then
-  printf "${WARNING}No exporters found. $RESET"
+if ! (which node_exporter > /dev/null || which process-exporter > /dev/null); then
+  echo "${WARNING}No exporters found. $RESET"
   exit 0
 fi
 
