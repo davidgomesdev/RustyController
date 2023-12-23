@@ -46,11 +46,9 @@ You can run it every midnight or so, by adding the following line on: `crontab -
 
 Launches everything, it's meant to be run at reboot.
 
-It also launches prometheus _exporters_, namely [node_exporter](https://github.com/prometheus/node_exporter) and [process-exporter](https://github.com/ncabatoff/process-exporter).
+It also launches prometheus _exporters_ (in case either is present in PATH), namely [node_exporter](https://github.com/prometheus/node_exporter) and [process-exporter](https://github.com/ncabatoff/process-exporter).
 
-These aren't run if node_exporter is not found in PATH. Both must be in the home directory or anywhere on PATH.
-
-To set them up, just download their binaries and move them to `/usr/bin`.eee
+To set them up, just download their binaries and move them to somewhere on PATH such as: `/usr/bin`.
 
 ## Grafana stack
 

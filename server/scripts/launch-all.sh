@@ -12,16 +12,10 @@ printf "$START* Running at $(date)$RESET\n"
 
 # Start node_exporter
 
-RUSTY_PATH=$(pwd)
-NODE_EXPORTER_PATH=${NODE_EXPORTER_PATH:-../node_exporter}
-
 GRAFANA_COMPOSE_OVERRIDE=${GRAFANA_COMPOSE_OVERRIDE:-base}
 
-if [ -f "$NODE_EXPORTER_PATH"/node_exporter ]; then
-  (cd "$NODE_EXPORTER_PATH" && "$RUSTY_PATH"/server/scripts/run-exporters.sh)
-else
-  echo "${WARNING}Warning: node_exporter wasn't found in $(pwd)/$NODE_EXPORTER_PATH. Not running any exporters.$RESET"
-fi
+echo
+server/scripts/run-exporters.sh
 
 # Start Grafana stack
 
