@@ -49,14 +49,14 @@ services:
           cpus: '0.5'
 
   process-exporter:
+    image: ncabatoff/process-exporter
+    command: --procfs /host/proc -config.path /config/process-exporter.yaml
     ports:
       - "9256:9256"
     privileged: true
     volumes:
       - /proc:/host/proc
       - "./config:/config"
-    image: ncabatoff/process-exporter
-    command: --procfs /host/proc -config.path /config/process-exporter.yaml
     deploy:
       resources:
         limits:
