@@ -87,7 +87,8 @@ jobs:
   release:
     needs: [build-server, build-app]
     runs-on: ubuntu-latest
-    if: github.ref_name == 'main'
+    # Prevents any manual run from triggering a new GH release
+    if: github.ref_name == 'main' && github.event_name == 'push'
 
     steps:
     - uses: actions/checkout@v3
