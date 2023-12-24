@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     branches: ["main"]
+  workflow_dispatch:
 
 jobs:
   build-server:
@@ -86,6 +87,7 @@ jobs:
   release:
     needs: [build-server, build-app]
     runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
 
     steps:
     - uses: actions/checkout@v3
@@ -95,7 +97,7 @@ jobs:
       with:
         path: artifacts/
         merge-multiple: true
-      
+
     - name: 🧐 - Display structure of downloaded artifacts
       run: ls -R artifacts/
 
