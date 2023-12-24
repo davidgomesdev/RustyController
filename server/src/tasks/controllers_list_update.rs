@@ -79,7 +79,7 @@ pub async fn run(
                 get_on_connected_effect()
             } else {
                 tracing::info!(
-                    "Setting current initial effect on '{}'. ({initial_effect})",
+                    "Setting current effect on '{}'. ({initial_effect})",
                     controller.bt_address
                 );
                 initial_effect

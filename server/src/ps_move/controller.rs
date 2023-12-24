@@ -103,14 +103,29 @@ impl PsMoveController {
         self.last_led_effect = current_effect;
         self.setting.last_led = current_led;
 
+        let last_led_effect = &mut self.last_led_effect;
+
+        if let Some(duration) = last_led_effect.duration {
+            if last_led_effect.start.elapsed() >= duration {
+                info!("Last led effect '{}' of '{}' has already expired, setting to off", last_led_effect, self.bt_address);
+                let off_effect = LedEffect::off();
+
+                self.led_effect = off_effect;
+                self.setting.led = off_effect.kind.get_initial_hsv()
+            }
+        }
+
         info!("Reverted '{:?}' to '{}'", self.bt_address, self.led_effect);
     }
 
     pub fn set_led_effect(&mut self, effect: LedEffect) {
+        self.last_led_effect = self.led_effect;
+        self.setting.last_led = self.setting.led;
+
         let mut kind = effect.kind;
 
-        self.setting.led = kind.get_updated_hsv(self.setting.led);
         self.led_effect = effect;
+        self.setting.led = kind.get_updated_hsv(self.setting.led);
     }
 
     pub fn set_led_effect_with_hsv(&mut self, effect: LedEffect, hsv: Hsv) {
@@ -185,20 +200,6 @@ impl PsMoveController {
     }
 
     pub fn transform_led(&mut self) {
-        let last_led_effect = &mut self.last_led_effect;
-
-        if last_led_effect.duration.is_some() {
-            let duration = last_led_effect.duration.unwrap();
-
-            if last_led_effect.start.elapsed() >= duration {
-                info!("Last led effect '{}' of '{}' expired", last_led_effect, self.bt_address);
-                let off_effect = LedEffect::off();
-
-                self.last_led_effect = off_effect;
-                self.setting.last_led = off_effect.kind.get_initial_hsv()
-            }
-        };
-
         let led_effect = &mut self.led_effect;
         let current_hsv = self.setting.led;
 
