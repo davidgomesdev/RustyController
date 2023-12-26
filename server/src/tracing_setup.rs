@@ -23,7 +23,7 @@ fn build_loki_layer() -> (tracing_loki::Layer, BackgroundTask) {
 
 pub async fn setup_loki() {
     let filter = filter::Targets::new()
-        .with_target("rusty_controller", Level::DEBUG)
+        .with_target("rusty_controller", Level::TRACE)
         .with_default(Level::WARN);
 
     let registry = tracing_subscriber::registry().with(filter).with(
