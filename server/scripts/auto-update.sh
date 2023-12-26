@@ -42,7 +42,7 @@ while getopts "blh" opt; do
   esac
 done
 
-echo "$START* Updating server$RESET"
+echo "$START* Updating server at $(date)$RESET"
 
 cd "$HOME" || exit 1
 
@@ -109,19 +109,14 @@ if [[ ! -d "$RUSTY_HOME_DIR" ]]; then
 
   update
   launch
+
+  echo "$START* Finished installing at $(date)$RESET"
   exit 0
 fi
 
 cd "$RUSTY_HOME_DIR" || exit 1
 
 if [[ -f "$HASH_FILE" ]]; then
-  if [ ! -f "$BINARY_PATH" ]; then
-    echo "$INFO* Binary not found...$RESET"
-    update
-    launch
-    exit 0
-  fi
-
   current_hash=$(cat "$HASH_FILE")
   update
   if [[ "$current_hash" != "$newest_hash" ]]; then
@@ -142,3 +137,5 @@ else
     update
     launch
 fi
+
+echo "$START* Finished auto-update at $(date)$RESET"
