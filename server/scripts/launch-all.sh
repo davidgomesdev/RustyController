@@ -25,7 +25,8 @@ printf "${SECTION}* Launching Grafana stack...$RESET\n\n"
 
 printf "\n${SECTION}* Updating and launching server...$RESET\n\n"
 
-cp server/scripts/auto-update.sh /tmp/rusty-auto-update.sh && bash /tmp/rusty-auto-update.sh -l
+# Forwards all arguments passed (for args build and launch always)
+cp server/scripts/auto-update.sh /tmp/rusty-auto-update.sh && bash /tmp/rusty-auto-update.sh "$@"
 
 # Update and launch non-adhoc plugins
 

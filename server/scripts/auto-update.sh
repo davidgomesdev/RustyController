@@ -20,6 +20,7 @@ HASH_FILE="$RUSTY_HOME_DIR/current.sha256"
 show_usage () {
   echo "Parameters:"
   echo "-b: build binary (instead of downloading the latest release)"
+  echo "-l: always launch (even if already up-to-date; useful on reboot)"
 }
 
 while getopts "blh" opt; do
