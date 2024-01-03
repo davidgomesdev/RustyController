@@ -34,7 +34,8 @@ printf "\n${SECTION}* Updating and launching plugins...$RESET\n\n"
 
 PLUGINS_PATH=${PLUGINS_PATH:-../RustyController-plugins}
 
-mkdir -p /var/log/rusty-controller/plugins/ && cd "$PLUGINS_PATH" && git pull && bash run-all.sh
+# Run plugins only if outdated
+mkdir -p /var/log/rusty-controller/plugins/ && cd "$PLUGINS_PATH" && git remote update && git status -uno | grep -q 'Your branch is behind' && git pull && bash run-all.sh
 
 echo -e "\n${SUCCESS}* Finished! (at $(date))$RESET"
 echo
