@@ -16,9 +16,9 @@ class HomeScreen extends StatelessWidget {
       bloc: bloc,
       builder: (_, state) {
         if (state is DisconnectedState) {
-          return Column(
+          return const Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
+            children: [
               Center(
                 child: Text(
                   "Not connected to the server, re-trying... ",
