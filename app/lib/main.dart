@@ -5,6 +5,7 @@ import 'package:logger/logger.dart';
 import 'package:rusty_controller/bloc/discovery_bloc.dart';
 import 'package:rusty_controller/bloc/effect_bloc.dart';
 import 'package:rusty_controller/bloc/effects/breathing_bloc.dart';
+import 'package:rusty_controller/bloc/effects/candle_bloc.dart';
 import 'package:rusty_controller/bloc/effects/rainbow_bloc.dart';
 import 'package:rusty_controller/bloc/effects/static_bloc.dart';
 import 'package:rusty_controller/extensions/color_extensions.dart';
@@ -22,12 +23,24 @@ final defaultEffects = {
   EffectType.off: OffLedEffect(),
   EffectType.static: StaticLedEffect(color: Colors.black.toHSV()),
   EffectType.breathing: BreathingLedEffect(
-      color: Colors.red.toHSV().withValue(0.0),
-      timeToPeak: maxBreathingTime,
-      peak: 1.0,
-      breatheFromOff: true),
+    color: Colors.red.toHSV().withValue(0.0),
+    timeToPeak: maxBreathingTime,
+    peak: 1.0,
+    breatheFromOff: true,
+  ),
+  EffectType.candle: CandleLedEffect(
+    hue: 0,
+    saturation: 1.0,
+    minValue: 0.5,
+    maxValue: 0.8,
+    variability: 1.0,
+    interval: 100,
+  ),
   EffectType.rainbow: RainbowLedEffect(
-      saturation: 1.0, value: 0.5, timeToComplete: maxRainbowTime),
+    saturation: 1.0,
+    value: 0.5,
+    timeToComplete: maxRainbowTime,
+  ),
 };
 
 void main() {
@@ -76,6 +89,14 @@ void setupDependencies() {
       }
 
       return BreathingBloc(savedBreathing);
+    },
+  );
+  serviceLocator.registerSingletonAsync(
+    () async {
+      final savedCandle = await storeService.get<CandleLedEffect>(
+          defaultValue: defaultEffects[EffectType.candle] as CandleLedEffect);
+
+      return CandleBloc(savedCandle);
     },
   );
   serviceLocator.registerSingletonAsync(
