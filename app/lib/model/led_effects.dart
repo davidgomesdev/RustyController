@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/painting.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:rusty_controller/model/util/json_converters.dart';
@@ -5,7 +6,7 @@ import 'package:rusty_controller/service/store_service.dart';
 
 part 'led_effects.g.dart';
 
-abstract class LedEffect {
+abstract class LedEffect extends Equatable {
   EffectType get type;
 
   String get name => type.name;
@@ -17,7 +18,7 @@ abstract class LedEffect {
   Map<String, dynamic> get graphqlVariables;
 }
 
-enum EffectType { none, off, static, breathing, rainbow }
+enum EffectType { none, off, static, breathing, candle, rainbow }
 
 // A placeholder/null-object pattern for when there's no effect selected,
 // while avoiding null-checks
@@ -33,6 +34,9 @@ class NoLedEffect extends LedEffect {
 
   @override
   Map<String, dynamic> get graphqlVariables => {};
+
+  @override
+  List<Object?> get props => [];
 }
 
 class OffLedEffect extends LedEffect {
@@ -51,6 +55,9 @@ class OffLedEffect extends LedEffect {
 
   @override
   Map<String, dynamic> get graphqlVariables => {};
+
+  @override
+  List<Object?> get props => [];
 }
 
 @JsonSerializable()
@@ -89,6 +96,9 @@ class StaticLedEffect extends LedEffect implements StorableObject {
 
   @override
   Map<String, dynamic> toJson() => _$StaticLedEffectToJson(this);
+
+  @override
+  List<Object?> get props => [color];
 }
 
 @JsonSerializable()
@@ -136,6 +146,64 @@ class BreathingLedEffect extends LedEffect implements StorableObject {
 
   @override
   Map<String, dynamic> toJson() => _$BreathingLedEffectToJson(this);
+
+  @override
+  List<Object?> get props => [color, timeToPeak, peak, breatheFromOff];
+}
+
+@JsonSerializable()
+@HSVColorJsonConverter()
+class CandleLedEffect extends LedEffect implements StorableObject {
+  @override
+  EffectType get type => EffectType.candle;
+
+  final double hue;
+  final double saturation;
+  final double minValue;
+  final double maxValue;
+  final double variability;
+  final int interval;
+
+  CandleLedEffect(
+      {required this.hue,
+      required this.saturation,
+      required this.minValue,
+      required this.maxValue,
+      required this.variability,
+      required this.interval});
+
+  @override
+  String get graphqlMutation => """
+    mutation SetLedCandle(\$input: CandleLedEffectInput!) {
+      setLedCandle(input: \$input)
+    }
+  """;
+
+  @override
+  String get graphqlMutationName => "setLedCandle";
+
+  @override
+  Map<String, dynamic> get graphqlVariables => {
+        "hue": hue.round(),
+        "saturation": saturation,
+        "minValue": minValue,
+        "maxValue": maxValue,
+        "variability": variability,
+        "interval": interval
+      };
+
+  @override
+  String get storeName => "candle";
+
+  @override
+  CandleLedEffect fromJson(Map<String, dynamic> json) =>
+      _$CandleLedEffectFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$CandleLedEffectToJson(this);
+
+  @override
+  List<Object?> get props => [hue, saturation, minValue, maxValue, variability, interval];
 }
 
 @JsonSerializable()
@@ -178,4 +246,7 @@ class RainbowLedEffect extends LedEffect implements StorableObject {
 
   @override
   Map<String, dynamic> toJson() => _$RainbowLedEffectToJson(this);
+
+  @override
+  List<Object?> get props => [saturation, value, timeToComplete];
 }
