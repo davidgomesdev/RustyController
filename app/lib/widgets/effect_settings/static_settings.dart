@@ -6,7 +6,7 @@ import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/widgets/effect_settings/common/led_color_picker.dart';
 
 class StaticSettings extends StatelessWidget {
-  const StaticSettings({Key? key}) : super(key: key);
+  const StaticSettings({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -4,7 +4,7 @@ import 'package:rusty_controller/model/led_effects.dart';
 
 class StaticBloc
     extends SpecificEffectBloc<StaticEffectEvent, StaticLedEffect> {
-  StaticBloc(StaticLedEffect effect) : super(effect) {
+  StaticBloc(super.effect) {
     on<StaticColorEvent>(
         (event, emit) => emit(state..color = event.currentColor));
   }

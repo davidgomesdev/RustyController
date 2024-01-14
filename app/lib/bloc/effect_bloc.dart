@@ -5,7 +5,7 @@ import 'package:rusty_controller/model/led_effects.dart';
 import '../service/controller_service.dart';
 
 class EffectBloc extends Bloc<EffectChangeEvent, LedEffect> {
-  EffectBloc(LedEffect effect) : super(effect) {
+  EffectBloc(super.effect) {
     final service = serviceLocator.get<ControllerService>();
 
     on<EffectSettingChangeEvent>((event, emit) async {

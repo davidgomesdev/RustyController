@@ -19,10 +19,10 @@ class StoreService {
         return (await save(defaultValue)) as T;
       }
 
-      log.v("Got file of store '${defaultValue.storeName}'");
+      log.t("Got file of store '${defaultValue.storeName}'");
       return Future.value(value as T);
     } catch (e) {
-      log.w('Failed to get value for ${defaultValue.storeName}.', e);
+      log.w('Failed to get value for ${defaultValue.storeName}.', error: e);
       log.d('Writing default value provided.');
       return (await save(defaultValue)) as T;
     }
@@ -34,7 +34,7 @@ class StoreService {
     final jsonContent = jsonEncode(value.toJson());
 
     await file.writeAsString(jsonContent);
-    log.v('Stored object to file ${file.path}');
+    log.t('Stored object to file ${file.path}');
 
     return value;
   }

@@ -9,11 +9,10 @@ class LedColorPicker extends StatefulWidget {
 
   /// [ignoreValue] ignores [currentColor.value], overriding to 1.0
   const LedColorPicker(
-      {Key? key,
+      {super.key,
       required this.currentColor,
       required this.onColorPick,
-      this.ignoreValue = false})
-      : super(key: key);
+      this.ignoreValue = false});
 
   @override
   State<LedColorPicker> createState() => _LedColorPickerState();

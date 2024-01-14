@@ -3,7 +3,7 @@ import 'package:rusty_controller/model/led_effects.dart';
 
 class RainbowBloc
     extends SpecificEffectBloc<RainbowEffectEvent, RainbowLedEffect> {
-  RainbowBloc(RainbowLedEffect effect) : super(effect) {
+  RainbowBloc(super.effect) {
     on<RainbowSaturationEvent>(
         (event, emit) => emit(state..saturation = event.saturation));
     on<RainbowValueEvent>((event, emit) => emit(state..value = event.value));

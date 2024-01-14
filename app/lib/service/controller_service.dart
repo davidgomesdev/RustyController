@@ -51,7 +51,7 @@ class ControllerService {
       if (msg.hasException) {
         final exception = msg.exception!.linkException;
         if (exception is NetworkException || exception is ServerException) {
-          log.w('Network error when sending effect', exception);
+          log.w('Network error when sending effect', error: exception);
           serviceLocator.get<DiscoveryBloc>().add(NotConnectedEvent());
           return;
         }
@@ -63,7 +63,8 @@ class ControllerService {
       if (msg.data?[effect.graphqlMutationName] == "SUCCESS") {
         log.i("Mutation succeeded");
       } else {
-        log.w("Server didn't respond successfully to mutation.", msg.data);
+        log.w(
+            "Server didn't respond successfully to mutation. (response: msg.data)");
       }
     }, onError: (msg, _) => log.e(msg))._reconnectOnTimeout();
   }

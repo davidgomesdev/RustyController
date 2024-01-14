@@ -8,8 +8,7 @@ class EffectChooser extends StatelessWidget {
   final EffectBloc bloc;
 
   const EffectChooser(
-      {Key? key, required this.bloc, required this.currentEffect})
-      : super(key: key);
+      {super.key, required this.bloc, required this.currentEffect});
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +35,7 @@ class _EffectChoice extends StatelessWidget {
   final VoidCallback onSelected;
 
   const _EffectChoice(
-      {Key? key,
-      required this.name,
-      required this.isSelected,
-      required this.onSelected})
-      : super(key: key);
+      {required this.name, required this.isSelected, required this.onSelected});
 
   @override
   Widget build(BuildContext context) {
