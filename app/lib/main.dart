@@ -79,15 +79,6 @@ void setupDependencies() {
           defaultValue:
               defaultEffects[EffectType.breathing] as BreathingLedEffect);
 
-      if (savedBreathing.timeToPeak < minBreathingTime ||
-          savedBreathing.timeToPeak > maxBreathingTime) {
-        savedBreathing.timeToPeak = maxBreathingTime;
-      }
-
-      if (savedBreathing.peak < 0.0 || savedBreathing.peak > 1.0) {
-        savedBreathing.peak = 1.0;
-      }
-
       return BreathingBloc(savedBreathing);
     },
   );
@@ -103,19 +94,6 @@ void setupDependencies() {
     () async {
       final savedRainbow = await storeService.get<RainbowLedEffect>(
           defaultValue: defaultEffects[EffectType.rainbow] as RainbowLedEffect);
-
-      if (savedRainbow.timeToComplete < minRainbowTime ||
-          savedRainbow.timeToComplete > maxRainbowTime) {
-        savedRainbow.timeToComplete = maxRainbowTime;
-      }
-
-      if (savedRainbow.saturation < 0.0 || savedRainbow.saturation > 1.0) {
-        savedRainbow.saturation = 1.0;
-      }
-
-      if (savedRainbow.value < 0.0 || savedRainbow.value > 1.0) {
-        savedRainbow.value = 1.0;
-      }
 
       return RainbowBloc(savedRainbow);
     },

@@ -66,7 +66,7 @@ class StaticLedEffect extends LedEffect implements StorableObject {
   @override
   EffectType get type => EffectType.static;
 
-  HSVColor color;
+  final HSVColor color;
 
   StaticLedEffect({required this.color});
 
@@ -107,10 +107,10 @@ class BreathingLedEffect extends LedEffect implements StorableObject {
   @override
   EffectType get type => EffectType.breathing;
 
-  HSVColor color;
-  int timeToPeak;
-  double peak;
-  bool breatheFromOff;
+  final HSVColor color;
+  final int timeToPeak;
+  final double peak;
+  final bool breatheFromOff;
 
   BreathingLedEffect(
       {required this.color,
@@ -203,7 +203,8 @@ class CandleLedEffect extends LedEffect implements StorableObject {
   Map<String, dynamic> toJson() => _$CandleLedEffectToJson(this);
 
   @override
-  List<Object?> get props => [hue, saturation, minValue, maxValue, variability, interval];
+  List<Object?> get props =>
+      [hue, saturation, minValue, maxValue, variability, interval];
 }
 
 @JsonSerializable()
@@ -211,9 +212,9 @@ class RainbowLedEffect extends LedEffect implements StorableObject {
   @override
   EffectType get type => EffectType.rainbow;
 
-  double saturation;
-  double value;
-  double timeToComplete;
+  final double saturation;
+  final double value;
+  final double timeToComplete;
 
   RainbowLedEffect(
       {required this.saturation,

@@ -16,7 +16,7 @@ class StaticSettings extends StatelessWidget {
       bloc: bloc,
       builder: (_, effect) => LedColorPicker(
         currentColor: effect.color,
-        onColorPick: (color) => bloc.add(StaticColorEvent(color)),
+        onColorPick: (color) => bloc.add(StaticEffectEvent(color)),
       ),
     );
   }

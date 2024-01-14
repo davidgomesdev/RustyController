@@ -24,7 +24,7 @@ class CandleSettings extends StatelessWidget {
           children: [
             Flexible(
               child: Padding(
-                padding: EdgeInsets.only(bottom: 48.0),
+                padding: const EdgeInsets.only(bottom: 48.0),
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
