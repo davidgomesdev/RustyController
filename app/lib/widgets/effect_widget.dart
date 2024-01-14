@@ -8,7 +8,7 @@ import 'package:rusty_controller/widgets/effect_settings/static_settings.dart';
 class EffectWidget<T extends LedEffect> extends StatelessWidget {
   final T currentEffect;
 
-  const EffectWidget(this.currentEffect, {Key? key}) : super(key: key);
+  const EffectWidget(this.currentEffect, {super.key});
 
   @override
   Widget build(BuildContext context) {

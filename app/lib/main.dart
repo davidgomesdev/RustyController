@@ -15,7 +15,7 @@ import 'package:rusty_controller/service/controller_service.dart';
 import 'package:rusty_controller/service/discovery_service.dart';
 import 'package:rusty_controller/service/store_service.dart';
 
-final log = Logger(level: Level.verbose, printer: PrettyPrinter());
+final log = Logger(level: Level.trace, printer: PrettyPrinter());
 final serviceLocator = GetIt.instance;
 
 final defaultEffects = {
@@ -102,7 +102,7 @@ void setupDependencies() {
 }
 
 class BaseScreen extends StatelessWidget {
-  const BaseScreen({Key? key}) : super(key: key);
+  const BaseScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

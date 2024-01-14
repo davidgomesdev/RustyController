@@ -9,14 +9,13 @@ class LabeledLogSlider extends StatelessWidget {
   final void Function(double) onChanged;
 
   LabeledLogSlider(
-      {Key? key,
+      {super.key,
       required this.onChanged,
       required this.label,
       required this.value,
       this.min = 1.0,
       this.max = 10.0})
-      : scale = log(max) - log(min),
-        super(key: key);
+      : scale = log(max) - log(min);
 
   @override
   Widget build(BuildContext context) {
@@ -47,13 +46,12 @@ class LabeledSlider extends StatelessWidget {
   final void Function(double) onChanged;
 
   const LabeledSlider(
-      {Key? key,
+      {super.key,
       required this.onChanged,
       required this.label,
       required this.value,
       this.max = 1.0,
-      this.min = 0.0})
-      : super(key: key);
+      this.min = 0.0});
 
   @override
   Widget build(BuildContext context) {

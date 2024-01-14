@@ -9,7 +9,7 @@ import 'package:rusty_controller/widgets/effect_settings/common/labeled_slider.d
 import 'package:rusty_controller/widgets/effect_settings/common/led_color_picker.dart';
 
 class BreathingSettings extends StatefulWidget {
-  const BreathingSettings({Key? key}) : super(key: key);
+  const BreathingSettings({super.key});
 
   @override
   State<BreathingSettings> createState() => _BreathingSettingsState();

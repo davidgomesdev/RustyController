@@ -7,7 +7,7 @@ import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/widgets/effect_settings/common/labeled_slider.dart';
 
 class RainbowSettings extends StatefulWidget {
-  const RainbowSettings({Key? key}) : super(key: key);
+  const RainbowSettings({super.key});
 
   @override
   State<RainbowSettings> createState() => _RainbowSettingsState();

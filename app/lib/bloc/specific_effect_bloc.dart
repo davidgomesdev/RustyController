@@ -11,7 +11,7 @@ abstract class SpecificEffectBloc<EffectEvent, State extends LedEffect>
     const Duration(milliseconds: 100),
   );
 
-  SpecificEffectBloc(State initialState) : super(initialState);
+  SpecificEffectBloc(super.initialState);
 
   @override
   void on<E extends EffectEvent>(
