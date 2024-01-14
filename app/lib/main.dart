@@ -106,8 +106,10 @@ class BaseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const GetMaterialApp(
-      home: Scaffold(
+    return GetMaterialApp(
+      themeMode: ThemeMode.dark,
+      darkTheme: ThemeData.dark(useMaterial3: true),
+      home: const Scaffold(
         body: ScaffoldMessenger(
           child: SafeArea(child: HomeScreen()),
         ),
