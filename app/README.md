@@ -10,7 +10,7 @@ with `--dart-define=RUSTY_DEBUG_SERVER_IP=your-ip`. (by default is 127.0.0.1)
 
 ## Build
 
-Run `flutter pub run build_runner build` before the actual build, to run the code generators. (like
+Run `dart run build_runner build` before the actual build, to run the code generators. (like
 the JSON serializable objects)
 
 ### Note while debugging / developing
