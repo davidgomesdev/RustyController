@@ -6,47 +6,30 @@ import 'package:rusty_controller/model/led_effects.dart';
 class BreathingBloc
     extends SpecificEffectBloc<BreathingEffectEvent, BreathingLedEffect> {
   BreathingBloc(super.effect) {
-    on<BreathingColorEvent>(
-        (event, emit) => emit(state..color = event.currentColor));
-    on<BreathingTimeEvent>(
-        (event, emit) => emit(state..timeToPeak = event.timeToPeak));
-    on<BreathingPeakEvent>((event, emit) => emit(state..peak = event.peak));
-    on<BreathingFromOffEvent>((event, emit) {
-      if (event.breatheFromOff) {
-        emit(state..breatheFromOff = true);
-      } else {
-        emit(state
-          ..breatheFromOff = false
-          ..color = state.color.withValue(1.0));
-      }
-    });
+    on<BreathingEffectEvent>((event, emit) => emit(event.toEffect(state)));
   }
 }
 
-abstract class BreathingEffectEvent {}
+class BreathingEffectEvent {
+  HSVColor? color;
+  int? timeToPeak;
+  double? peak;
+  bool? breatheFromOff;
 
-class BreathingColorEvent extends BreathingEffectEvent {
-  HSVColor currentColor;
+  BreathingEffectEvent(
+      {this.color, this.timeToPeak, this.peak, this.breatheFromOff});
 
-  double get initialValue => currentColor.value;
+  BreathingLedEffect toEffect(BreathingLedEffect currentEffect) {
+    HSVColor color = this.color ?? currentEffect.color;
 
-  BreathingColorEvent(this.currentColor);
-}
+    if (breatheFromOff == true) {
+      color = color.withValue(1.0);
+    }
 
-class BreathingTimeEvent extends BreathingEffectEvent {
-  int timeToPeak;
-
-  BreathingTimeEvent(this.timeToPeak);
-}
-
-class BreathingPeakEvent extends BreathingEffectEvent {
-  double peak;
-
-  BreathingPeakEvent(this.peak);
-}
-
-class BreathingFromOffEvent extends BreathingEffectEvent {
-  bool breatheFromOff;
-
-  BreathingFromOffEvent(this.breatheFromOff);
+    return BreathingLedEffect(
+        color: color,
+        timeToPeak: timeToPeak ?? currentEffect.timeToPeak,
+        peak: peak ?? currentEffect.peak,
+        breatheFromOff: breatheFromOff ?? currentEffect.breatheFromOff);
+  }
 }

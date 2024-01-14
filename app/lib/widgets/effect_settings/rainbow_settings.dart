@@ -6,18 +6,13 @@ import 'package:rusty_controller/main.dart';
 import 'package:rusty_controller/model/led_effects.dart';
 import 'package:rusty_controller/widgets/effect_settings/common/labeled_slider.dart';
 
-class RainbowSettings extends StatefulWidget {
+class RainbowSettings extends StatelessWidget {
   const RainbowSettings({super.key});
 
   @override
-  State<RainbowSettings> createState() => _RainbowSettingsState();
-}
-
-class _RainbowSettingsState extends State<RainbowSettings> {
-  final bloc = serviceLocator.get<RainbowBloc>();
-
-  @override
   Widget build(BuildContext context) {
+    final bloc = serviceLocator.get<RainbowBloc>();
+
     return BlocBuilder<RainbowBloc, RainbowLedEffect>(
       bloc: bloc,
       builder: (ctx, effect) {
@@ -30,7 +25,7 @@ class _RainbowSettingsState extends State<RainbowSettings> {
               min: minRainbowTime,
               max: maxRainbowTime,
               onChanged: (time) {
-                setState(() => bloc.add(RainbowTimeEvent(time)));
+                bloc.add(RainbowEffectEvent(timeToComplete: time));
               },
             ),
             Row(
@@ -40,8 +35,7 @@ class _RainbowSettingsState extends State<RainbowSettings> {
                     label: 'Saturation',
                     value: effect.saturation,
                     onChanged: (saturation) {
-                      setState(
-                          () => bloc.add(RainbowSaturationEvent(saturation)));
+                      bloc.add(RainbowEffectEvent(saturation: saturation));
                     },
                   ),
                 ),
@@ -50,7 +44,7 @@ class _RainbowSettingsState extends State<RainbowSettings> {
                     label: 'Brightness',
                     value: effect.value,
                     onChanged: (value) {
-                      setState(() => bloc.add(RainbowValueEvent(value)));
+                      bloc.add(RainbowEffectEvent(value: value));
                     },
                   ),
                 ),

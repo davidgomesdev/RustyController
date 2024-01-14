@@ -4,30 +4,21 @@ import 'package:rusty_controller/model/led_effects.dart';
 class RainbowBloc
     extends SpecificEffectBloc<RainbowEffectEvent, RainbowLedEffect> {
   RainbowBloc(super.effect) {
-    on<RainbowSaturationEvent>(
-        (event, emit) => emit(state..saturation = event.saturation));
-    on<RainbowValueEvent>((event, emit) => emit(state..value = event.value));
-    on<RainbowTimeEvent>(
-        (event, emit) => emit(state..timeToComplete = event.timeToComplete));
+    on<RainbowEffectEvent>((event, emit) => emit(event.toEffect(state)));
   }
 }
 
-abstract class RainbowEffectEvent {}
+class RainbowEffectEvent {
+  double? saturation;
+  double? value;
+  double? timeToComplete;
 
-class RainbowSaturationEvent extends RainbowEffectEvent {
-  double saturation;
+  RainbowEffectEvent({this.saturation, this.value, this.timeToComplete});
 
-  RainbowSaturationEvent(this.saturation);
-}
-
-class RainbowValueEvent extends RainbowEffectEvent {
-  double value;
-
-  RainbowValueEvent(this.value);
-}
-
-class RainbowTimeEvent extends RainbowEffectEvent {
-  double timeToComplete;
-
-  RainbowTimeEvent(this.timeToComplete);
+  RainbowLedEffect toEffect(RainbowLedEffect currentEffect) {
+    return RainbowLedEffect(
+        saturation: saturation ?? currentEffect.saturation,
+        value: value ?? currentEffect.value,
+        timeToComplete: timeToComplete ?? currentEffect.timeToComplete);
+  }
 }
