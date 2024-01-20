@@ -20,9 +20,9 @@ jobs:
         filters: |
           server:
             - 'server/src/**'
-            - 'Cargo.lock'
-            - 'Cargo.toml'
-            - 'Cross.toml'
+            - 'server/Cargo.lock'
+            - 'server/Cargo.toml'
+            - 'server/Cross.toml'
           app:
             - 'app/**'
 
