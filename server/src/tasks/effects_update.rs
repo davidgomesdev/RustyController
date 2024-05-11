@@ -9,7 +9,7 @@ use tokio::time::MissedTickBehavior;
 use crate::ps_move::controller::PsMoveController;
 use crate::spawn_tasks::InitialLedState;
 
-pub const INTERVAL_DURATION: Duration = Duration::from_millis(1);
+pub const INTERVAL_DURATION: Duration = Duration::from_millis(10);
 
 pub async fn run(
     controllers: Arc<Mutex<Vec<PsMoveController>>>,
