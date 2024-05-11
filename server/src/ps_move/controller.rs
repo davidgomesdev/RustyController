@@ -122,10 +122,10 @@ impl PsMoveController {
         self.last_led_effect = self.led_effect;
         self.setting.last_led = self.setting.led;
 
-        let mut kind = effect.kind;
+        let kind = effect.kind;
 
         self.led_effect = effect;
-        self.setting.led = kind.get_updated_hsv(self.setting.led);
+        self.setting.led = kind.get_initial_hsv();
     }
 
     pub fn set_led_effect_with_hsv(&mut self, effect: LedEffect, hsv: Hsv) {
