@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
@@ -17,7 +17,7 @@ pub async fn run(
 ) -> JoinHandle<()> {
     let mut interval = time::interval(INTERVAL_DURATION);
 
-    interval.set_missed_tick_behavior(MissedTickBehavior::Burst);
+    interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
 
     loop {
         interval.tick().await;
