@@ -24,6 +24,10 @@ jobs:
           os: ubuntu-latest
           rust: stable
           target: armv7-unknown-linux-gnueabihf
+        - build: aarch64
+          os: ubuntu-latest
+          rust: stable
+          target: aarch64-unknown-linux-gnu
 
     env:
       CARGO_TERM_COLOR: always
