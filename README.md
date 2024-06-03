@@ -18,6 +18,10 @@ The plugins in this [repo](https://github.com/LegendL3n/RustyController-plugins)
 
 Those plugins are scripts that use the GraphQL API.
 
+## Setting up
+
+Read the [server instructions](server/README.md).
+
 ## Acknowledge
 
 I've made use of [psmoveapi's](https://github.com/thp/psmoveapi) source, to know how to interact with the controller using HIDAPI, and its request structures.
