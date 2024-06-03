@@ -21,6 +21,17 @@ libraries, but those don't use psmove's version of bluetooth)
 
 The pairing is done manually with [psmoveapi](https://github.com/thp/psmoveapi).
 
+### Compiling psmoveapi
+
+- `sudo apt install cmake build-essential libudev-dev libbluetooth-dev libusb-dev libsystemd-dev libusb-1.0-0-dev libusb-0.1-4 libdbus-1-dev`
+- `git clone https://github.com/thp/psmoveapi && cd psmoveapi && git submodule update --init external/hidapi/ external/libusb-1.0/`
+- Remove from `CMakeLists.txt`:
+  - `include("examples/CMakeLists.txt")`
+  - the PS3Eye block
+- Remove "tracker" from `src/CMakeLists.txt` (around line 176)
+- `cmake .`
+- `make -j4`
+
 ## Windows limitation
 
 The GraphQL subscription and controller updates are very slow on Windows.
