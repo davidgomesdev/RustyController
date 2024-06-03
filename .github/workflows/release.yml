@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        build: [amd64, armhf]
+        build: [amd64, armhf, aarch64]
         include:
         - build: amd64
           os: ubuntu-latest
