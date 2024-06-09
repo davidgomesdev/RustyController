@@ -47,7 +47,7 @@ pub async fn run_move(
 
     let api = PsMoveApi::new();
     let shutdown_flag = Arc::new(AtomicBool::new(false));
-    let initial_effect = Arc::new(Mutex::new(InitialLedState::from(*ON_STARTUP_EFFECT)));
+    let initial_effect = Arc::new(Mutex::new(InitialLedState::from(ON_STARTUP_EFFECT.clone())));
     let (send, recv) = mpsc::channel::<()>(1);
 
     {

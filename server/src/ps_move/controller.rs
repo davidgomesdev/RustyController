@@ -79,9 +79,9 @@ impl PsMoveController {
         }
 
         if self.connection_type == ConnectionType::Usb {
-            self.info.bt_path = other.info.bt_path.clone();
+            self.info.bt_path.clone_from(&other.info.bt_path);
         } else if self.connection_type == ConnectionType::Bluetooth {
-            self.info.usb_path = other.info.usb_path.clone();
+            self.info.usb_path.clone_from(&other.info.usb_path);
         }
         self.connection_type = ConnectionType::UsbAndBluetooth;
     }
@@ -94,10 +94,10 @@ impl PsMoveController {
     }
 
     pub fn revert_led_effect(&mut self) {
-        let current_effect = self.led_effect;
+        let current_effect = self.led_effect.clone();
         let current_led = self.setting.led;
 
-        self.led_effect = self.last_led_effect;
+        self.led_effect = self.last_led_effect.clone();
         self.setting.led = self.setting.last_led;
 
         self.last_led_effect = current_effect;
@@ -110,8 +110,8 @@ impl PsMoveController {
                 info!("Last led effect '{}' of '{}' has already expired, setting to off", last_led_effect, self.bt_address);
                 let off_effect = LedEffect::off();
 
-                self.led_effect = off_effect;
-                self.setting.led = off_effect.kind.get_initial_hsv()
+                self.setting.led = off_effect.kind.get_initial_hsv();
+                self.led_effect = off_effect
             }
         }
 
@@ -119,13 +119,11 @@ impl PsMoveController {
     }
 
     pub fn set_led_effect(&mut self, effect: LedEffect) {
-        self.last_led_effect = self.led_effect;
+        self.last_led_effect = self.led_effect.clone();
         self.setting.last_led = self.setting.led;
 
-        let kind = effect.kind;
-
+        self.setting.led = effect.kind.get_initial_hsv();
         self.led_effect = effect;
-        self.setting.led = kind.get_initial_hsv();
     }
 
     pub fn set_led_effect_with_hsv(&mut self, effect: LedEffect, hsv: Hsv) {

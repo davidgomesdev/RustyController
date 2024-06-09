@@ -69,7 +69,7 @@ pub async fn run(
         let initial_state = initial_state.lock().await;
 
         new_controllers.into_iter().for_each(|mut controller| {
-            let initial_effect = initial_state.effect;
+            let initial_effect = initial_state.effect.clone();
 
             let effect = if initial_effect.is_off() {
                 tracing::info!(

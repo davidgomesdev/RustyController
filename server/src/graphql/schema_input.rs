@@ -26,7 +26,7 @@ pub(super) struct StaticLedEffectInput {
     pub duration: Option<i32>,
     #[graphql(description = "Name of the effect.")]
     pub name: Option<String>,
-    #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
+    #[graphql(description = "Hue/color (min 0, max 360)")]
     pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
@@ -44,7 +44,7 @@ pub(super) struct BreathingLedEffectInput {
     pub duration: Option<i32>,
     #[graphql(description = "Name of the effect.")]
     pub name: Option<String>,
-    #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
+    #[graphql(description = "Hue/color (min 0, max 360)")]
     pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
@@ -88,7 +88,7 @@ pub(super) struct BlinkLedEffectInput {
     pub duration: Option<i32>,
     #[graphql(description = "Name of the effect.")]
     pub name: Option<String>,
-    #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
+    #[graphql(description = "Hue/color (min 0, max 360)")]
     pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
@@ -101,14 +101,14 @@ pub(super) struct BlinkLedEffectInput {
 #[derive(GraphQLInputObject, Debug)]
 pub(super) struct CandleLedEffectInput {
     #[graphql(
-    description = "If specified, must not be empty, and applies the effect only on these controller addresses."
+        description = "If specified, must not be empty, and applies the effect only on these controller addresses."
     )]
     pub controllers: Option<Vec<String>>,
     #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
     pub duration: Option<i32>,
     #[graphql(description = "Name of the effect.")]
     pub name: Option<String>,
-    #[graphql(description = "Hue/color (min 0.0, max 360.0)")]
+    #[graphql(description = "Hue/color (min 0, max 360)")]
     pub hue: i32,
     #[graphql(description = "Saturation (min 0.0, max 1.0)")]
     pub saturation: f64,
@@ -120,6 +120,26 @@ pub(super) struct CandleLedEffectInput {
     pub variability: f64,
     #[graphql(description = "Interval to change, in milliseconds. (1ms is the default)")]
     pub interval: Option<i32>,
+}
+
+#[derive(GraphQLInputObject, Debug)]
+pub(super) struct BounceLedEffectInput {
+    #[graphql(
+        description = "If specified, must not be empty, and applies the effect only on these controller addresses."
+    )]
+    pub controllers: Option<Vec<String>>,
+    #[graphql(description = "Duration of effect, in milliseconds, if specified.")]
+    pub duration: Option<i32>,
+    #[graphql(description = "Name of the effect.")]
+    pub name: Option<String>,
+    #[graphql(description = "Hue colors to bounce (each min 0, max 360)")]
+    pub hues: Vec<i32>,
+    #[graphql(description = "To Saturation (min 0.0, max 1.0)")]
+    pub saturation: f64,
+    #[graphql(description = "To value (min 0.0, max 1.0)")]
+    pub value: f64,
+    #[graphql(description = "Step ratio, percentage of change from one color to the other. (min 0.0=stay in from, max 1.0=stay in to)")]
+    pub step: f64
 }
 
 #[derive(GraphQLInputObject, Debug)]
