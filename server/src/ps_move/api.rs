@@ -167,7 +167,7 @@ impl PsMoveApi {
                 }
 
                 if connection_type == ConnectionType::Usb {
-                    usb_path = path.clone();
+                    usb_path.clone_from(&path);
                     bt_address = if cfg!(windows) {
                         self.get_bt_address_on_windows(&path)
                     } else {

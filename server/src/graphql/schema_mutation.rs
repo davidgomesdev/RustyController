@@ -286,7 +286,7 @@ impl MutationRoot {
     }
 
     #[graphql(
-    description = "Randomly set brightness between min value and max value, simulating a candle/flame."
+        description = "Randomly set brightness between min value and max value, simulating a candle/flame."
     )]
     fn set_led_candle(ctx: &Context, input: CandleLedEffectInput) -> FieldResult<MutationResponse> {
         tracing::info!(
@@ -355,6 +355,53 @@ impl MutationRoot {
             variability,
             input.interval,
         );
+
+        process_led_effect_mutation(
+            ctx,
+            LedEffect::from(effect, input.duration),
+            input.controllers,
+        )
+    }
+
+    #[graphql(
+        description = "Bounces from one color to the other."
+    )]
+    fn set_led_bounce(ctx: &Context, input: BounceLedEffectInput) -> FieldResult<MutationResponse> {
+        tracing::info!(
+            "Received led bounce effect ({})",
+            input
+                .name
+                .clone()
+                .map_or(String::from("unnamed"), |name| format!("'{name}'"))
+        );
+        tracing::debug!("Effect input: {input:?}");
+
+        if input.name.map_or(false, |name| name.is_empty()) {
+            return Err(FieldError::new("Name can't be empty!", Value::Null));
+        }
+
+        if !input.hues.iter().all(|hue| (0..=360).contains(hue)) {
+            return Err(FieldError::new(
+                "Hue must be between 0 and 360!",
+                Value::Null,
+            ));
+        }
+
+        if !(0.0..=1.0).contains(&input.saturation) {
+            return Err(FieldError::new(
+                "Saturation must be between 0.0 and 1.0!",
+                Value::Null,
+            ));
+        }
+
+        if !(0.0..=1.0).contains(&input.value) {
+            return Err(FieldError::new(
+                "Min value must between 0.0 and 1.0!",
+                Value::Null,
+            ));
+        }
+
+        let effect = LedEffectKind::new_bounce(input.hues.iter().map(|hue| *hue as f32).collect(), input.saturation as f32, input.value as f32, input.step as f32);
 
         process_led_effect_mutation(
             ctx,

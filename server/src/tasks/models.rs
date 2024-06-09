@@ -14,7 +14,7 @@ pub enum EffectTarget {
     Only { bt_addresses: Vec<String> },
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub enum EffectChangeType {
     RevertLed,
     Led { effect: LedEffect },

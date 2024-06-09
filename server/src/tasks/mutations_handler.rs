@@ -24,7 +24,7 @@ pub async fn run(
                     EffectTarget::All => {
                         tracing::info!("Setting effect '{effect}' for all controllers");
                         controllers.iter_mut().for_each(|controller| {
-                            mutate_controller_effect(controller, effect);
+                            mutate_controller_effect(controller, effect.clone());
                             tracing::debug!(
                                 "Controller '{}' set to {effect}",
                                 controller.bt_address
@@ -33,7 +33,7 @@ pub async fn run(
 
                         if let EffectChangeType::Led { effect } = effect {
                             let mut initial_state = initial_state.lock().await;
-                            *initial_state = InitialLedState::from(effect);
+                            *initial_state = InitialLedState::from(effect.clone());
                             tracing::debug!("Set '{effect}' as initial effect.");
                         }
                     }
@@ -53,7 +53,7 @@ pub async fn run(
                                     );
                                     },
                                     |controller| {
-                                        mutate_controller_effect(controller, effect);
+                                        mutate_controller_effect(controller, effect.clone());
                                         tracing::info!(
                                                 "Controller '{}' set to {effect}",
                                                 controller.bt_address

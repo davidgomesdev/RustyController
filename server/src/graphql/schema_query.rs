@@ -37,6 +37,7 @@ impl QueryRoot {
                     api::LedEffectKind::Rainbow { .. } => { graphql::LedEffectType::Rainbow }
                     api::LedEffectKind::Blink { .. } => { graphql::LedEffectType::Blink }
                     api::LedEffectKind::Candle { .. } => { graphql::LedEffectType::Candle }
+                    api::LedEffectKind::Bounce { .. } => { graphql::LedEffectType::Bounce }
                 },
                 current_rumble_effect: match ctl.rumble_effect.kind {
                     api::RumbleEffectKind::Off => { graphql::RumbleEffectType::Off }
