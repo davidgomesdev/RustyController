@@ -8,7 +8,8 @@
        `/etc/udev/rules.d/10-psmove-hidraw-permissions.rules` with:
         
         `KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660", GROUP="psmove"`
-    3. add your user to that group `sudo usermod -a -G psmove $USER`
+    3. Add `ClassicBondedOnly=false` to `/etc/bluetooth/input.conf` (a workaround due to latest bluez updates breaking this see [this](https://github.com/thp/psmoveapi/issues/489))
+    4. add your user to that group `sudo usermod -a -G psmove $USER`
 
 *Note: On Ubuntu, you might need to run `rfkill unblock bluetooth`.*
 
