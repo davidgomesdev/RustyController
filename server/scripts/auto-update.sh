@@ -49,7 +49,7 @@ cd "$HOME" || exit 1
 
 download_latest () {
   # Get arch (and trim output)
-  arch=$(dpkg --print-architecture | xargs echo -n)
+  arch=$(uname -m | xargs echo -n)
 
   mkdir -p target/release || exit 1
   wget -q "$REPO_URL/releases/latest/download/server-$arch" -O "$BINARY_PATH" || exit 1
