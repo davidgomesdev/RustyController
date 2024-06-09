@@ -10,7 +10,7 @@ RESET=$(tput sgr0)
 
 printf "$START* Running at $(date)$RESET\n"
 
-# Start node_exporter
+set -e
 
 GRAFANA_COMPOSE_OVERRIDE=${GRAFANA_COMPOSE_OVERRIDE:-base}
 
