@@ -137,6 +137,10 @@ else
     echo "$WARNING* Couldn't find current hash. Updating to latest version anyway.$RESET"
     update
     launch
+
+    newest_hash=$(sha256sum "$BINARY_PATH" | gawk '{print $1}')
+
+    echo "$newest_hash" > "$HASH_FILE"
 fi
 
 echo "$START* Finished auto-update at $(date)$RESET"
