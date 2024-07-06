@@ -14,8 +14,7 @@ RESET=$(tput sgr0)
 show_usage () {
   echo "Parameters:"
   echo "-g: launch Grafana stack"
-  echo "-b: build binary (instead of downloading the latest release)"
-  echo "-l: always launch (even if already up-to-date; useful on reboot)"
+  . server/scripts/auto-update.sh -h
 }
 
 while getopts "blh" opt; do
