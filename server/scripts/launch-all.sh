@@ -73,7 +73,7 @@ if [[ ! $ARE_PLUGINS_UPDATED ]]; then
 else
   tmux has-session -t "RustyController plugins" 2>/dev/null
   if [ $? != 0 ]; then
-    printf "\n${INFO}Plugins are not running, running...$RESET\n\n"
+    printf "\n${INFO}Plugins are not running, launching...$RESET\n\n"
     bash run-all.sh
   else
     printf "\n${INFO}Plugins are up-to-date$RESET\n\n"

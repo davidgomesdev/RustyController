@@ -129,7 +129,14 @@ if [[ -f "$HASH_FILE" ]]; then
   else
       echo "$INFO* Version is already up-to-date.$RESET"
 
+      tmux has-session -t "RustyController" 2>/dev/null
+      if [ $? != 0 ]; then
+        printf "\n${INFO}Server is not running$RESET\n\n"
+        launch
+      fi
+
       if [[ "$LAUNCH_ALWAYS" == "y" ]]; then
+        printf "\n${INFO}Launching due to always launch flag$RESET\n\n"
         launch
       fi
   fi
