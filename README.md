@@ -14,7 +14,7 @@ I've used [C++ in the past](https://github.com/LegendL3n/MembroEsquerdo) to inte
 
 ## Plugins
 
-The plugins in this [repo](https://github.com/LegendL3n/RustyController-plugins) give this project a utility. (yes, there is one, I promise! 😅)
+The plugins in this [repo](https://github.com/LegendL3n/RustyController-plugins) give this project a use. (yes, there is one, I promise! 😅)
 
 Those plugins are scripts that use the GraphQL API.
 
@@ -24,4 +24,4 @@ Read the [server instructions](server/README.md).
 
 ## Acknowledge
 
-I've made use of [psmoveapi's](https://github.com/thp/psmoveapi) source, to know how to interact with the controller using HIDAPI, and its request structures.
+I've used [psmoveapi's](https://github.com/thp/psmoveapi) source to understand how to interact with the controller using HIDAPI and determine its request structures.
