@@ -22,6 +22,10 @@ while getopts "blh" opt; do
     g)
       LAUNCH_GRAFANA="y"
       ;;
+    b)
+      ;;
+    l)
+      ;;
     h)
       show_usage
       exit 0
