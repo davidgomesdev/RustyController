@@ -40,8 +40,6 @@ done
 
 printf "$START* Running at $(date)$RESET\n"
 
-set -e
-
 # Start Grafana stack
 
 if [[ "$LAUNCH_GRAFANA" == "y" ]]; then
@@ -75,7 +73,8 @@ if [[ ! $ARE_PLUGINS_UPDATED ]]; then
   printf "\n${INFO}Plugins are outdated...$RESET\n\n"
   bash run-all.sh
 else
-  if tmux has-session -t "RustyController plugins" 2>/dev/null; then
+  tmux has-session -t "RustyController plugins" 2>/dev/null
+  if [ $? != 0 ]; then
     printf "\n${INFO}Plugins are not running, launching...$RESET\n\n"
     bash run-all.sh
   else
