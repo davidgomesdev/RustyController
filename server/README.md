@@ -1,6 +1,6 @@
 ## Running the server
 
-1. install libusb: `sudo apt install libudev-dev libsystemd-dev libusb-1.0-0-dev libusb-0.1-4`
+1. install libusb: `sudo apt update && sudo apt install libudev-dev libsystemd-dev libusb-1.0-0-dev libusb-0.1-4`
 2. install gawk (for the auto-update script): `sudo apt install gawk`
 3. give permission for the move controller(s) to your user
     1. create a group called psmove (`sudo groupadd psmove`)
