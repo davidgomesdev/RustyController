@@ -33,7 +33,7 @@ pub async fn setup_loki() {
 
     match http.get(loki_base_url.parse().unwrap()).await {
         Ok(_) => {
-            let (layer, task) = build_loki_layer();
+            let (layer, task) = build_loki_layer(&loki_base_url);
 
             registry.with(layer).init();
             tokio::spawn(task);
