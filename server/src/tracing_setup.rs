@@ -1,24 +1,22 @@
-use std::io;
+use std::{env, io};
 
 use tracing::Level;
-use tracing_loki::BackgroundTask;
 use tracing_loki::url::Url;
-use tracing_subscriber::{filter, fmt};
+use tracing_loki::BackgroundTask;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{filter, fmt};
 use warp::hyper::Client;
 
-const LOKI_BASE_URL: &str = "http://127.0.0.1:3100";
-
-fn build_loki_layer() -> (tracing_loki::Layer, BackgroundTask) {
+fn build_loki_layer(url: &str) -> (tracing_loki::Layer, BackgroundTask) {
     tracing_loki::layer(
-        Url::parse(LOKI_BASE_URL).unwrap(),
+        Url::parse(url).unwrap(),
         vec![("host".into(), "rusty_controller".into())]
             .into_iter()
             .collect(),
         vec![].into_iter().collect(),
     )
-        .unwrap()
+    .unwrap()
 }
 
 pub async fn setup_loki() {
@@ -26,14 +24,14 @@ pub async fn setup_loki() {
         .with_target("rusty_controller", Level::TRACE)
         .with_default(Level::WARN);
 
-    let registry = tracing_subscriber::registry().with(filter).with(
-        fmt::layer()
-            .with_writer(io::stdout)
-    );
+    let registry = tracing_subscriber::registry()
+        .with(filter)
+        .with(fmt::layer().with_writer(io::stdout));
 
     let http = Client::new();
+    let loki_base_url = env::var("LOKI_BASE_URL").unwrap_or("http://127.0.0.1:3100".into());
 
-    match http.get(LOKI_BASE_URL.parse().unwrap()).await {
+    match http.get(loki_base_url.parse().unwrap()).await {
         Ok(_) => {
             let (layer, task) = build_loki_layer();
 
