@@ -59,7 +59,7 @@ impl MutationRoot {
         );
         tracing::debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.name.is_some_and(|name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
@@ -115,7 +115,7 @@ impl MutationRoot {
         );
         tracing::debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.name.is_some_and(|name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
@@ -189,7 +189,7 @@ impl MutationRoot {
         );
         tracing::debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.name.is_some_and(|name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
@@ -239,7 +239,7 @@ impl MutationRoot {
         );
         tracing::debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.name.is_some_and(|name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
@@ -298,7 +298,7 @@ impl MutationRoot {
         );
         tracing::debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.name.is_some_and(|name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
@@ -376,7 +376,7 @@ impl MutationRoot {
         );
         tracing::debug!("Effect input: {input:?}");
 
-        if input.name.map_or(false, |name| name.is_empty()) {
+        if input.name.is_some_and(|name| name.is_empty()) {
             return Err(FieldError::new("Name can't be empty!", Value::Null));
         }
 
