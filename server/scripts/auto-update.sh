@@ -20,7 +20,7 @@ HASH_FILE="$RUSTY_HOME_DIR/current.sha256"
 show_usage () {
   echo "Parameters:"
   echo "-b: build binary (instead of downloading the latest release)"
-  echo "-l: always launch (even if already up-to-date; useful on reboot)"
+  echo "-l: only launch (useful on reboot since network may not be available yet)"
 }
 
 while getopts "blh" opt; do
@@ -29,7 +29,7 @@ while getopts "blh" opt; do
       BUILD_BINARY="y"
       ;;
     l)
-      LAUNCH_ALWAYS="y"
+      LAUNCH_ONLY="y"
       ;;
     h)
       show_usage
@@ -117,6 +117,12 @@ fi
 
 cd "$RUSTY_HOME_DIR" || exit 1
 
+if [[ "$LAUNCH_ONLY" == "y" ]]; then
+  printf "\n${INFO}Launching due to only launch flag$RESET\n\n"
+  launch
+  exit 0
+fi
+
 if [[ -f "$HASH_FILE" ]]; then
   current_hash=$(cat "$HASH_FILE")
   update
@@ -132,11 +138,6 @@ if [[ -f "$HASH_FILE" ]]; then
       tmux has-session -t "RustyController" 2>/dev/null
       if [ $? != 0 ]; then
         printf "\n${INFO}Server is not running$RESET\n\n"
-        launch
-      fi
-
-      if [[ "$LAUNCH_ALWAYS" == "y" ]]; then
-        printf "\n${INFO}Launching due to always launch flag$RESET\n\n"
         launch
       fi
   fi
