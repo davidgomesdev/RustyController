@@ -29,21 +29,23 @@ pub async fn setup_loki() {
         .with(fmt::layer().with_writer(io::stdout));
 
     let http = Client::new();
-    let loki_base_url = env::var("LOKI_BASE_URL").unwrap_or("http://127.0.0.1:3100".into());
+    let mut is_url_provided = true;
+    let loki_base_url = env::var("LOKI_BASE_URL").unwrap_or_else(|_| {
+        is_url_provided = false;
+        "http://127.0.0.1:3100".into()
+    });
 
-    match http.get(loki_base_url.parse().unwrap()).await {
-        Ok(_) => {
-            let (layer, task) = build_loki_layer(&loki_base_url);
+    if !is_url_provided && http.get(loki_base_url.parse().unwrap()).await.is_err() {
+        registry.init();
 
-            registry.with(layer).init();
-            tokio::spawn(task);
+        tracing::warn!("Couldn't connect to Loki. Continuing without it.");
+        return;
+    }
 
-            tracing::info!("Loki initialized");
-        }
-        Err(_) => {
-            registry.init();
+    let (layer, task) = build_loki_layer(&loki_base_url);
 
-            tracing::warn!("Couldn't connect to Loki. Continuing without it.");
-        }
-    };
+    registry.with(layer).init();
+    tokio::spawn(task);
+
+    tracing::info!("Loki initialized");
 }
